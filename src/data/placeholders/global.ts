@@ -55,4 +55,25 @@ export default define({
     example: 'Every event has at least two adult supervisors; see our code of conduct (link).',
     value: null,
   },
+  'org.membership-cost': {
+    label: 'Cost to join / take part',
+    note: 'Whether joining EBMA is free, and what events usually cost (and whether fee waivers exist). Parents ask this first.',
+    pages: ['/about/', '/get-involved/', '/events/'],
+    example: 'Joining is free. Some competitions have entry fees; ask us about waivers.',
+    value: null,
+  },
+  'org.eligibility': {
+    label: 'Who can join (grades / ages / area)',
+    note: 'Which students can take part: grade range or ages, and whether they must live or attend school in a particular part of the East Bay.',
+    pages: ['/about/', '/get-involved/'],
+    example: 'Students in grades 6–12 who live or go to school in Alameda or Contra Costa County.',
+    value: null,
+  },
+  'org.meetings': {
+    label: 'Regular meeting schedule and place',
+    note: 'If EBMA meets regularly, when and where (day, time, venue, city). Delete the references if there are no regular meetings.',
+    pages: ['/about/', '/get-involved/'],
+    example: 'Most Saturdays during the school year, 10 am – noon, at the Example Library, Oakland.',
+    value: null,
+  },
 });
