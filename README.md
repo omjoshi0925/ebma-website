@@ -1,43 +1,104 @@
-# Astro Starter Kit: Minimal
+# East Bay Math Association website
 
-```sh
-npm create astro@latest -- --template minimal
+The public website of the East Bay Math Association (EBMA), a math organization serving students in
+the East Bay area of California. Built with [Astro](https://astro.build) as a static site, hosted on
+[Cloudflare Pages](https://pages.cloudflare.com), with one small serverless function for the join
+form.
+
+The site is designed like a mathematics paper: warm paper, ink, one vermilion accent, numbered
+sections, theorem-style labels, figures in crop-marked plates, and ∎ tombstones. Every figure is
+real mathematics computed in the browser. See [`docs/design-system.md`](docs/design-system.md).
+
+## Before launch: fill in the placeholders
+
+The site never invents facts about the association. Every real-world detail it needs (emails,
+officers, dates, venues, costs, legal status, and similar) appears on the site as a marked **placeholder**:
+a dashed chip that starts with `??`, LaTeX's sign for an undefined reference.
+
+- The full list is in **[`PLACEHOLDERS.md`](PLACEHOLDERS.md)** (generated).
+- Each one lives in `src/data/placeholders/<page>.ts`. Replace `value: null` with the real value,
+  e.g. `value: 'hello@example.org'`, and it updates everywhere it is used.
+- Lists (events, officers, sponsors) live in `src/data/events.ts`, `src/data/team.ts` and
+  `src/data/sponsors.ts`. While a list is empty, sample entries with placeholders are shown.
+- Run `npm run placeholders` to refresh `PLACEHOLDERS.md` and check for mistakes.
+
+## Develop
+
+Requires Node 22.12 or newer.
+
+```bash
+npm install
+npm run dev            # http://localhost:4321 with hot reload (no join-form backend)
+npm run build          # static site in dist/ plus the CSP header
+npm run preview        # production-like server with the form backend and a local database
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+For the join form locally, create the local database once: `npm run db:migrate:local`.
 
-## 🚀 Project Structure
+## Quality checks
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run check          # types, the form function, and the placeholder registry
+npm run preview &      # then, in another terminal:
+npm run test:crawl     # every page × 5 widths: accessibility (axe), overflow, links, screenshots
+npm run test:form      # join form end to end (validation, no-JS path, spam traps, rate limit)
+npm run test:links     # every external link still resolves
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Screenshots and the crawl report land in `test-results/`.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## The join form
 
-Any static assets, like images, can be placed in the `public/` directory.
+`/get-involved/#join` posts to `functions/api/join.ts`, a Cloudflare Pages Function. It validates
+with the same rules as the browser (`shared/join.ts`), filters spam (a honeypot field, a minimum
+fill time, a same-origin check and a per-IP rate limit on a salted hash), and stores each
+submission in a Cloudflare D1 database named `ebma-forms` (schema in `migrations/`). It works with
+and without JavaScript.
 
-## 🧞 Commands
+Reading submissions:
 
-All commands are run from the root of the project, from a terminal:
+- Cloudflare dashboard → Storage & Databases → D1 → `ebma-forms` → `submissions` table, or
+- `npx wrangler d1 execute ebma-forms --remote --command "SELECT * FROM submissions ORDER BY id DESC LIMIT 50"`
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Optional settings (Cloudflare dashboard → Pages project → Settings → Variables and secrets):
 
-## 👀 Want to learn more?
+- `IP_SALT`: any long random string (salts the IP hash used for rate limiting).
+- `NOTIFY_WEBHOOK_URL`: a Slack- or Discord-compatible webhook that is pinged for each new submission.
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+## Deploy
+
+The site deploys to Cloudflare Pages as the project `east-bay-math`.
+
+```bash
+npx wrangler login                       # once
+npx wrangler d1 create ebma-forms        # once; put the printed database_id in wrangler.toml
+npm run db:migrate:remote                # once, and after adding a migration
+npm run deploy                           # build and upload to production
+```
+
+To deploy automatically on every push instead, connect this repository in the Cloudflare dashboard
+(Workers & Pages → the project → Settings → Builds) with build command `npm run build` and output
+directory `dist`.
+
+## Project layout
+
+```
+src/pages/             one file per page (Astro)
+src/components/        shared building blocks (Section, Plate, PageHeader, Ph, EventCard, …)
+src/data/              site content: events, competitions, resources, problems, team, sponsors
+src/data/placeholders/ the placeholder registry
+src/scripts/           small browser modules (menu, theme, figures, form)
+src/styles/            tokens.css (colors, fonts) and global.css
+shared/join.ts         form rules shared by the browser and the server
+functions/api/join.ts  the join-form endpoint
+migrations/            D1 database schema
+tests/                 Playwright + axe checks
+scripts/               build helpers (CSP header, placeholders list, icons, social image)
+```
+
+## Credits
+
+Typefaces: Newsreader (Production Type), Instrument Sans (Instrument), IBM Plex Mono (IBM), all
+under the SIL Open Font License; math italic from KaTeX (MIT). Math typesetting by KaTeX. The hat
+monotile figure, if present, follows Craig S. Kaplan's hatviz (BSD-3-Clause), after Smith, Myers,
+Kaplan and Goodman-Strauss (2023).

@@ -35,7 +35,8 @@ verified against the third party’s own site, and never imply affiliation.
 - **Astro 7, static output**, deployed to **Cloudflare Pages**. Zero client framework; a few small
   vanilla TypeScript modules (navigation, theme, hero figure, form enhancement, reveal-on-scroll).
 - `compressHTML: true` (Astro 7’s default `'jsx'` mode strips whitespace between inline elements).
-- `security.csp` enabled: Astro emits a hash-based Content-Security-Policy meta tag.
+- **Content-Security-Policy** as a real HTTP header: `scripts/csp.mjs` hashes every inline script after
+  the build and writes the policy into `dist/_headers` (all CSS ships as files; no third-party origins).
 - **Fonts** are self-hosted via Fontsource packages: no third-party requests, no layout shift from swaps.
 - **Math** is typeset at build time with KaTeX (`katex.renderToString`), so no math JavaScript runs in the browser.
 - **Join form**: `functions/api/join.ts` (a Pages Function) validates with the same module the browser
@@ -48,7 +49,7 @@ verified against the third party’s own site, and never imply affiliation.
 ```
 src/
   layouts/Base.astro          <head>, header, footer, skip link, theme bootstrap
-  components/                 Header, Footer, Ph, PhLink, SectionHead, Button, Card, HeroFigure, JoinForm, ...
+  components/                 Header, Footer, Ph, PhLink, Section, Plate, PageHeader, Band, EventCard, Problem, JoinForm, ...
   data/placeholders/*.ts      the placeholder registry (one file per page)
   data/*.ts                   navigation, events, team, resources, sponsors content
   pages/                      index, about, events, resources, get-involved (+ thanks), sponsors, privacy, 404
@@ -57,8 +58,8 @@ src/
 shared/join.ts                form contract shared by browser and server
 functions/api/join.ts         Pages Function
 migrations/                   D1 schema
-tests/                        crawl (a11y/overflow/links/screens), external links, form e2e
-scripts/placeholders.ts       PLACEHOLDERS.md generator + checker
+tests/                        crawl (a11y/overflow/links/screens), interactions, external links, form e2e
+scripts/                      placeholders.ts (PLACEHOLDERS.md), csp.mjs (CSP header), icons/og renderers
 ```
 
 ## 4. Pages
@@ -79,9 +80,34 @@ scripts/placeholders.ts       PLACEHOLDERS.md generator + checker
    partner logo wall (placeholder slots), sponsorship inquiry CTA → join form with role preset.
 7. **Privacy notice** (the form collects personal data, including from minors), **thanks page**, **404**.
 
-## 5. Visual direction
+## 5. Visual direction: "Proof"
 
-See section 8 (filled in after the design exploration round).
+Chosen from four independently mocked directions (Proof, Plot, Chalk, Tile). A three-judge panel
+(brand strategist, typography critic, front-end/accessibility engineer) scored them, and Proof won
+all three (60, 56, 58 of 70).
+
+- **Idea:** the site is set like a mathematics paper. The home page is Theorem 1 ("Every student in
+  the East Bay can do *real* mathematics.") with a Proof that carries the mission, then an Abstract,
+  numbered sections, Definitions, Proof by cases (audiences), Acknowledgments (sponsors) and a
+  Corollary (closing call to action).
+- **Palette:** paper `#F4EFE4`, ink `#1A1813`, one vermilion accent `#C8361A`; a full dark theme
+  with the same roles (auto by system preference, manual toggle in the footer).
+- **Type:** Newsreader (display, reading), Instrument Sans (UI), IBM Plex Mono (data), and TeX's
+  math italic for variables. All self-hosted.
+- **Signature figure:** Plate I, the times-table circle. Each of 240 points is joined to the point
+  *m* times further around, so an epicycloid (a cardioid at *m* = 2) emerges from straight lines.
+  It draws itself in about 1.4 s, then drifts through whole-number *m*; it has a Pause control and
+  a slider, can be dragged to scrub, and is static under reduced motion.
+- **Placeholders** use LaTeX's `??` for an undefined reference, as dashed chips, with a legend in
+  the footer.
+- **Grafts from the other directions:** Chalk's compass-and-straightedge pentagon construction
+  (About), Plot's plotted time axis (competition calendar) and set-builder epigraph (join form),
+  Tile's aperiodic hat monotile (Get Involved), and the "Next up" strip under the hero call to action.
+- **Judges' must-fixes adopted:** plain-English headings under every metaphor label; sparse chips on
+  sample cards; a full-screen mobile menu that makes the page behind it inert; no § numbering clash
+  between the navigation and the sections; a ragged-right abstract; 12 px minimum text; a darker
+  caption ink (5.2:1 on plates); a faster figure intro; drag-to-scrub; and a focus ring on the dark
+  band that uses the on-dark accent.
 
 ## 6. Accessibility and quality bar
 

@@ -13,10 +13,11 @@
     "placeholders": "tsx scripts/placeholders.ts",
     "db:migrate:local": "wrangler d1 migrations apply ebma-forms --local",
     "db:migrate:remote": "wrangler d1 migrations apply ebma-forms --remote",
+    "test": "npm run test:crawl && npm run test:interactions && npm run test:form",
     "test:crawl": "node tests/crawl.mjs http://127.0.0.1:8788/",
-    "test:links": "node tests/external-links.mjs",
+    "test:interactions": "node tests/interactions.mjs http://127.0.0.1:8788/",
     "test:form": "node tests/form.mjs http://127.0.0.1:8788",
-    "test": "npm run test:crawl && npm run test:form",
+    "test:links": "node tests/external-links.mjs",
     "deploy": "npm run build && wrangler pages deploy dist --project-name east-bay-math --branch main",
     "astro": "astro"
   },
