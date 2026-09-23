@@ -1,0 +1,51 @@
+---
+/**
+ * A numbered section, set like a paper: "§2  Upcoming events", a rule with a vermilion tab,
+ * an optional dek (subtitle), an italic margin note, and the body.
+ *
+ *   <Section id="events" num="2" title="Upcoming *events*" dek="…" note="…">
+ *     <a slot="actions" class="xref" href="/events/">All events →</a>
+ *     …body…
+ *   </Section>
+ *
+ * `title` may contain one *italic* word. `wide` lets the body span the margin column too.
+ */
+import { emph } from '../lib/text';
+
+interface Props {
+  id: string;
+  num: string;
+  title: string;
+  dek?: string;
+  note?: string;
+  wide?: boolean;
+  class?: string;
+}
+const { id, num, title, dek, note, wide = false, class: className } = Astro.props;
+const hasNote = Boolean(note) || Astro.slots.has('note');
+---
+
+<section class:list={['sec wrap', className]} id={id} aria-labelledby={`${id}-h`}>
+  <div class="sec-grid">
+    <header class="sec-head">
+      <div class="secno" aria-hidden="true"><span class="s">§</span>{num}</div>
+      <div class="sec-titles">
+        <div>
+          <h2 id={`${id}-h`}><span class="sr-only">Section {num}: </span><Fragment set:html={emph(title)} /></h2>
+          {dek && <p class="dek">{dek}</p>}
+        </div>
+        <slot name="actions" />
+      </div>
+    </header>
+    {
+      hasNote && (
+        <div class="note margin-note">
+          {note ? <p>{note}</p> : <slot name="note" />}
+        </div>
+      )
+    }
+    <div class={wide ? 'sec-body-full' : 'sec-body'}>
+      <slot />
+    </div>
+  </div>
+</section>

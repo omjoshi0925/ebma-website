@@ -1,0 +1,43 @@
+{
+  "name": "ebma-website",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/csp.mjs",
+    "preview": "wrangler pages dev dist --port 8788",
+    "check": "astro check && tsc -p functions/tsconfig.json && tsx scripts/placeholders.ts --check",
+    "placeholders": "tsx scripts/placeholders.ts",
+    "db:migrate:local": "wrangler d1 migrations apply ebma-forms --local",
+    "db:migrate:remote": "wrangler d1 migrations apply ebma-forms --remote",
+    "test:crawl": "node tests/crawl.mjs http://127.0.0.1:8788/",
+    "test:links": "node tests/external-links.mjs",
+    "test:form": "node tests/form.mjs http://127.0.0.1:8788",
+    "test": "npm run test:crawl && npm run test:form",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name east-bay-math --branch main",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@fontsource-variable/newsreader": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "astro": "^7.3.4",
+    "katex": "^0.18.9"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@axe-core/playwright": "^4.13.0",
+    "@cloudflare/workers-types": "^5.20260923.1",
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.137.0"
+  }
+}

@@ -1,0 +1,111 @@
+---
+/**
+ * The sponsor/partner logo wall: real logos from src/data/sponsors.ts, or crop-marked empty
+ * slots while that list is empty, ending with a "Your organization here" call to action.
+ */
+import Ph from './Ph.astro';
+import { sponsors, SAMPLE_SLOTS } from '../data/sponsors';
+
+interface Props {
+  ctaHref?: string;
+}
+const { ctaHref = '/sponsors/#become' } = Astro.props;
+---
+
+<ul class="slots" aria-label="Sponsors and partners">
+  {
+    sponsors.length
+      ? sponsors.map((s) => (
+          <li class="slot cropped">
+            {s.href ? (
+              <a href={s.href} rel="noopener">
+                <img src={s.logo} alt={s.name} loading="lazy" />
+              </a>
+            ) : (
+              <img src={s.logo} alt={s.name} loading="lazy" />
+            )}
+          </li>
+        ))
+      : Array.from({ length: SAMPLE_SLOTS }, (_, i) => (
+          <li class="slot cropped">
+            <Ph id="sponsors.list" label={i < 2 ? 'Sponsor logo' : 'Partner logo'} />
+          </li>
+        ))
+  }
+  <li class="slot-li">
+    <a class="slot slot-cta" href={ctaHref}>
+      <strong>Your organization here.</strong>
+      <span>Become a sponsor <span aria-hidden="true">→</span></span>
+    </a>
+  </li>
+</ul>
+
+<style>
+  .slots {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .slot {
+    position: relative;
+    min-width: 0;
+    aspect-ratio: 3 / 2;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 16px;
+    background-color: color-mix(in srgb, var(--ink) 3%, transparent);
+    --c: var(--ink-3);
+    --l: 12px;
+    --w: 1px;
+  }
+  .slot img {
+    max-height: 64px;
+    width: auto;
+    object-fit: contain;
+  }
+  .slot :global(.ph) {
+    font-size: 12px;
+  }
+  .slot-li {
+    min-width: 0;
+  }
+  .slot-cta {
+    width: 100%;
+    height: 100%;
+    background: var(--ink);
+    color: var(--paper);
+    text-decoration: none;
+    align-content: center;
+    gap: 10px;
+    transition: background-color 0.25s;
+  }
+  .slot-cta:hover {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .slot-cta strong {
+    font: 400 23px/1.15 var(--serif);
+    display: block;
+  }
+  .slot-cta span {
+    font: 600 13.5px/1 var(--sans);
+    letter-spacing: 0.02em;
+  }
+  @media (max-width: 620px) {
+    .slots {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .slot-cta {
+      padding: 14px;
+    }
+    .slot-cta strong {
+      font-size: 19px;
+    }
+    .slot-cta span {
+      font-size: 12.5px;
+    }
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+/**
+ * Plate I on the home page: the live "times tables on a circle" figure with its controls.
+ * Behavior: src/scripts/figures/times-table.ts (mountHeroFigure).
+ */
+import Plate from './Plate.astro';
+
+interface Props {
+  n?: number;
+}
+const { n = 240 } = Astro.props;
+---
+
+<Plate
+  id="fig-1"
+  class="tt-plate"
+  plate="Plate I"
+  corner={`<span class="m" style="text-transform:none">n</span> = ${n}`}
+  fig="Fig. 1."
+  caption={`Join each point <span class="m">k</span> on a circle of <span class="m">n</span> = ${n} points to the point <span class="m">mk</span> (mod <span class="m">n</span>). Only straight lines are drawn, yet a curve appears: for whole-number <span class="m">m</span> it is an epicycloid with <span class="m">m</span>&thinsp;−&thinsp;1 cusps, traced in red.`}
+>
+  <canvas
+    class="tt-canvas"
+    data-hero-figure
+    data-n={n}
+    data-controls="fig-1-play,fig-1-m,fig-1-out"
+    role="img"
+    aria-label={`Figure 1: a circle of ${n} points, each joined by a straight line to the point m times further around. The lines crowd together along a curve, an epicycloid, drawn in red. Drag across the figure or use the slider to change m.`}
+  ></canvas>
+  <div slot="controls" class="fig-ctl">
+    <button type="button" class="fig-btn" id="fig-1-play" data-state="playing">
+      <span class="ic" aria-hidden="true"></span><span class="t">Pause</span><span class="sr-only"> animation</span>
+    </button>
+    <label for="fig-1-m"><span class="sr-only">Multiplier </span>m</label>
+    <input type="range" id="fig-1-m" min="2" max="9" step="0.05" value="2" aria-describedby="fig-1-out" />
+    <output id="fig-1-out" for="fig-1-m">2.00 <span>cardioid</span></output>
+  </div>
+</Plate>
+
+<style>
+  .tt-canvas {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    touch-action: pan-y;
+    cursor: ew-resize;
+  }
+</style>
+
+<script>
+  import { mountHeroFigure } from '../scripts/figures/times-table';
+  document.querySelectorAll<HTMLCanvasElement>('canvas[data-hero-figure]').forEach(mountHeroFigure);
+</script>

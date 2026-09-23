@@ -1,0 +1,109 @@
+/*
+ * Design tokens. The whole site is "set" like a mathematics paper: warm paper, ink, one
+ * vermilion accent. Dark mode keeps the same roles (an ink page with paper-colored type).
+ *
+ * Theme resolution: <html data-theme="light|dark"> wins; with no attribute, the system
+ * preference decides. The footer's theme control writes the attribute (see scripts/theme.ts).
+ */
+:root {
+  color-scheme: light;
+
+  --paper: #f4efe4;
+  --paper-2: #ece5d6; /* plates, cards */
+  --paper-3: #e3dac7;
+  --ink: #1a1813; /* text and rules, 15.5:1 on paper */
+  --ink-2: #4f4a40; /* body copy, 7.7:1 */
+  --ink-3: #655d50; /* captions and meta, 5.7:1 (5.2:1 on paper-2) */
+  --rule: rgb(26 24 19 / 0.16);
+  --rule-2: rgb(26 24 19 / 0.32);
+  --accent: #c8361a; /* vermilion: curves, buttons, the ∎ */
+  --accent-text: #b8300f; /* accent for small text, 5.3:1 */
+  --accent-wash: rgb(200 54 26 / 0.07);
+  --accent-line: rgb(200 54 26 / 0.6);
+  --on-accent: #fbf8f1;
+  --focus: #c8361a;
+
+  /* The inverse "band" used for the closing call to action. */
+  --band-bg: #1a1813;
+  --band-fg: #f4efe4;
+  --band-fg-2: rgb(244 239 228 / 0.78);
+  --band-accent: #ff6a45;
+  --band-rule: rgb(244 239 228 / 0.4);
+
+  /* Figure strokes (read by the canvas figures). */
+  --fig-ink: #1a1813;
+  --fig-ink-3: #655d50;
+  --fig-chord: rgb(26 24 19 / 0.42);
+  --fig-accent: #c8361a;
+
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .1  0 0 0 0 .09  0 0 0 0 .07  0 0 0 .025 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+
+  --serif: 'Newsreader Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --math: 'TeX Math', 'Newsreader Variable', serif;
+
+  --wrap: 1320px;
+  --gut: clamp(16px, 4vw, 48px);
+  --margin: minmax(0, 190px);
+  --head-h: 68px;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #16140f;
+  --paper-2: #1f1c16;
+  --paper-3: #29261e;
+  --ink: #f1ebdd;
+  --ink-2: #cfc7b6;
+  --ink-3: #a79f8f;
+  --rule: rgb(241 235 221 / 0.14);
+  --rule-2: rgb(241 235 221 / 0.3);
+  --accent: #ff6a45;
+  --accent-text: #ff8d6e;
+  --accent-wash: rgb(255 106 69 / 0.09);
+  --accent-line: rgb(255 106 69 / 0.65);
+  --on-accent: #16140f;
+  --focus: #ff8d6e;
+  --band-bg: #0d0c09;
+  --band-fg: #f1ebdd;
+  --band-fg-2: rgb(241 235 221 / 0.78);
+  --band-accent: #ff6a45;
+  --band-rule: rgb(241 235 221 / 0.35);
+  --fig-ink: #e9e2d2;
+  --fig-ink-3: #a79f8f;
+  --fig-chord: rgb(241 235 221 / 0.34);
+  --fig-accent: #ff6a45;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .95  0 0 0 0 .92  0 0 0 0 .86  0 0 0 .03 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #16140f;
+    --paper-2: #1f1c16;
+    --paper-3: #29261e;
+    --ink: #f1ebdd;
+    --ink-2: #cfc7b6;
+    --ink-3: #a79f8f;
+    --rule: rgb(241 235 221 / 0.14);
+    --rule-2: rgb(241 235 221 / 0.3);
+    --accent: #ff6a45;
+    --accent-text: #ff8d6e;
+    --accent-wash: rgb(255 106 69 / 0.09);
+    --accent-line: rgb(255 106 69 / 0.65);
+    --on-accent: #16140f;
+    --focus: #ff8d6e;
+    --band-bg: #0d0c09;
+    --band-fg: #f1ebdd;
+    --band-fg-2: rgb(241 235 221 / 0.78);
+    --band-accent: #ff6a45;
+    --band-rule: rgb(241 235 221 / 0.35);
+    --fig-ink: #e9e2d2;
+    --fig-ink-3: #a79f8f;
+    --fig-chord: rgb(241 235 221 / 0.34);
+    --fig-accent: #ff6a45;
+    --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .95  0 0 0 0 .92  0 0 0 0 .86  0 0 0 .03 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+}

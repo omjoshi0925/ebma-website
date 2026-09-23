@@ -1,0 +1,28 @@
+---
+/**
+ * The EBMA mark: a unit square with its inscribed quarter-disc (area π/4). It also reads as a
+ * tombstone ∎ with a bay-shaped bite taken out of it.
+ */
+interface Props {
+  size?: number;
+  class?: string;
+}
+const { size = 30, class: className } = Astro.props;
+---
+
+<svg class:list={['mark', className]} width={size} height={size} viewBox="0 0 30 30" aria-hidden="true" focusable="false">
+  <rect width="30" height="30" class="mark-sq"></rect>
+  <path d="M0 4 A26 26 0 0 1 26 30 L0 30 Z" class="mark-q"></path>
+</svg>
+
+<style>
+  .mark {
+    flex: none;
+  }
+  .mark-sq {
+    fill: var(--ink);
+  }
+  .mark-q {
+    fill: var(--accent);
+  }
+</style>

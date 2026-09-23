@@ -1,0 +1,243 @@
+---
+import Mark from './Mark.astro';
+import Ph from './Ph.astro';
+import PhLink from './PhLink.astro';
+import { nav, site } from '../data/site';
+
+const year = new Date().getFullYear();
+const chapters = nav.filter((item) => item.n > 0);
+---
+
+<footer class="site-footer wrap">
+  <div class="foot">
+    <div class="foot-brand">
+      <a class="brand" href="/" aria-label={`${site.name}, home`}>
+        <Mark />
+        <span class="brand-name">{site.name}</span>
+      </a>
+      <p>A math organization for students in the East Bay, California.</p>
+      <p class="legal">The East Bay Math Association is <Ph id="org.legal-status" />.</p>
+    </div>
+
+    <nav aria-labelledby="foot-contents">
+      <h2 id="foot-contents">Contents</h2>
+      <ol class="contents">
+        {
+          chapters.map((item) => (
+            <li>
+              <a href={item.href}>{item.title}</a>
+            </li>
+          ))
+        }
+        <li>
+          <a href="/privacy/">Privacy notice</a>
+        </li>
+      </ol>
+    </nav>
+
+    <div>
+      <h2 id="foot-contact">Correspondence</h2>
+      <dl aria-labelledby="foot-contact">
+        <div>
+          <dt>Email</dt>
+          <dd><PhLink id="org.email" /></dd>
+        </div>
+        <div>
+          <dt>Instagram</dt>
+          <dd><PhLink id="org.instagram">Instagram</PhLink></dd>
+        </div>
+        <div>
+          <dt>Announcements</dt>
+          <dd><PhLink id="org.mailing-list">Join the mailing list</PhLink></dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="colophon">
+      <h2>Colophon</h2>
+      <p>Set in Newsreader, Instrument Sans and IBM Plex Mono, with variables in TeX’s own math italic.</p>
+      <p>The figures are computed live in your browser from nothing but straight lines and circles.</p>
+      <fieldset class="theme" data-theme-control>
+        <legend>Theme</legend>
+        <div class="seg">
+          <label><input type="radio" name="theme" value="auto" checked /><span>Auto</span></label>
+          <label><input type="radio" name="theme" value="light" /><span>Light</span></label>
+          <label><input type="radio" name="theme" value="dark" /><span>Dark</span></label>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+
+  <div class="foot-base">
+    <span>© {year} {site.name}</span>
+    <span class="legend"
+      ><span class="ph" aria-hidden="true"><span class="ph-q">??</span>like this</span><span class="sr-only">A dashed box starting with two question marks</span>
+      marks an undefined reference: a detail the association will supply.</span
+    >
+    <a href="#top">Back to top <span aria-hidden="true">↑</span></a>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding-block: clamp(56px, 6vw, 88px) 28px;
+    width: 100%;
+  }
+  .foot {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 40px;
+    padding-top: 28px;
+    border-top: 2px solid var(--ink);
+  }
+  .foot h2,
+  .theme legend {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    color: var(--ink);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .brand-name {
+    font: 500 19px/1 var(--serif);
+  }
+  .foot-brand p {
+    margin-top: 16px;
+    color: var(--ink-2);
+    font-size: 16.5px;
+    max-width: 24em;
+  }
+  .foot-brand .legal {
+    font-size: 15px;
+    color: var(--ink-3);
+  }
+  .foot ol {
+    list-style: none;
+  }
+  .contents a {
+    display: inline-block;
+    padding: 6px 0;
+    text-decoration: none;
+    font-size: 17px;
+  }
+  .contents a:hover {
+    color: var(--accent-text);
+    text-decoration: underline;
+  }
+  dl {
+    display: grid;
+    gap: 14px;
+  }
+  dt {
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 5px;
+  }
+  dd {
+    font-size: 16.5px;
+  }
+  dd a {
+    display: inline-block;
+    padding: 4px 0;
+  }
+  dd a:hover {
+    color: var(--accent-text);
+  }
+  .colophon {
+    font-size: 15.5px;
+    color: var(--ink-2);
+  }
+  .colophon p + p {
+    margin-top: 10px;
+  }
+  .theme {
+    border: 0;
+    padding: 0;
+    margin: 22px 0 0;
+    min-width: 0;
+  }
+  .theme legend {
+    margin-bottom: 10px;
+    padding: 0;
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--rule-2);
+  }
+  .seg label {
+    position: relative;
+    cursor: pointer;
+  }
+  .seg input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .seg span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    font: 500 13px/1 var(--sans);
+    color: var(--ink-2);
+  }
+  .seg label + label span {
+    border-left: 1px solid var(--rule-2);
+  }
+  .seg input:checked + span {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .seg input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .foot-base {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule-2);
+    font: 500 12px/1.4 var(--mono);
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+  .foot-base a {
+    color: var(--ink);
+    padding: 6px 0;
+  }
+  .legend {
+    font-family: var(--sans);
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+  .legend .ph {
+    font-size: 12px;
+    margin-right: 4px;
+  }
+  @media (max-width: 1100px) {
+    .foot {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 620px) {
+    .foot {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+  }
+</style>

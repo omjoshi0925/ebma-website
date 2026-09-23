@@ -1,0 +1,49 @@
+---
+/**
+ * A crop-marked figure plate with a mono header line and a "Fig. n." caption.
+ *
+ *   <Plate id="fig-pentagon" plate="Plate II" corner="7 steps" fig="Fig. 2." caption="…">
+ *     <svg …/>                  ← the figure
+ *     <div slot="controls">…</div>   ← optional controls under the caption
+ *   </Plate>
+ */
+interface Props {
+  id?: string;
+  plate?: string;
+  corner?: string;
+  fig?: string;
+  caption?: string;
+  class?: string;
+}
+const { id, plate, corner, fig, caption, class: className } = Astro.props;
+const capId = id ? `${id}-cap` : undefined;
+const hasCaption = Boolean(caption) || Astro.slots.has('caption') || Astro.slots.has('controls');
+---
+
+<figure class:list={['plate', className]} id={id} aria-labelledby={hasCaption ? capId : undefined}>
+  <div class="frame">
+    {
+      (plate || corner) && (
+        <div class="frame-top" aria-hidden="true">
+          <span>{plate}</span>
+          <span set:html={corner ?? ''} />
+        </div>
+      )
+    }
+    <slot />
+  </div>
+  {
+    hasCaption && (
+      <figcaption id={capId}>
+        {caption && (
+          <p>
+            {fig && <b>{fig}</b>}
+            <Fragment set:html={caption} />
+          </p>
+        )}
+        <slot name="caption" />
+        <slot name="controls" />
+      </figcaption>
+    )
+  }
+</figure>

@@ -1,0 +1,171 @@
+---
+/**
+ * A practice problem: statement, an answer checker (for problems with a numeric answer),
+ * and "Hint" / "Solution" disclosures. Math is typeset at build time.
+ */
+import 'katex/dist/katex.min.css';
+import { renderTeX } from '../lib/tex';
+import type { Problem } from '../data/problems';
+
+interface Props {
+  problem: Problem;
+  num: string;
+  headingLevel?: 'h3' | 'h4';
+}
+const { problem: p, num, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const isProof = p.answer === 'Proof';
+const uid = `problem-${p.id}`;
+---
+
+<article class="problem" id={uid} aria-labelledby={`${uid}-h`}>
+  <p class="problem-top">
+    <span class="label">{isProof ? 'Proposition' : 'Exercise'} {num}</span>
+    <span class="meta">{p.topic} · {p.level}</span>
+  </p>
+  <H class="problem-title" id={`${uid}-h`}>{p.title}</H>
+  <div class="statement" set:html={renderTeX(p.statement)} />
+
+  {
+    !isProof && (
+      <form class="check" data-answer={p.answer} novalidate>
+        <label for={`${uid}-answer`}>Your answer</label>
+        <div class="check-row">
+          <input id={`${uid}-answer`} name="answer" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder={p.answer.includes('/') ? 'e.g. 3/4' : 'a number'} />
+          <button type="submit" class="btn btn-quiet">Check</button>
+        </div>
+        <p class="check-out" role="status" aria-live="polite" />
+      </form>
+    )
+  }
+
+  <details class="disclose">
+    <summary>Hint</summary>
+    <div class="disclose-body" set:html={renderTeX(p.hint)} />
+  </details>
+  <details class="disclose">
+    <summary>{isProof ? 'Proof' : 'Solution'}</summary>
+    <div class="disclose-body">
+      <Fragment set:html={renderTeX(p.solution)} />
+      <p class="end"><span class="qed" aria-label="End of solution" role="img"></span></p>
+    </div>
+  </details>
+</article>
+
+<style>
+  .problem {
+    border-top: 3px solid var(--ink);
+    padding-top: 16px;
+    min-width: 0;
+  }
+  .problem-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-bottom: 14px;
+  }
+  .problem-title {
+    font: 400 clamp(26px, 2.4vw, 32px) / 1.12 var(--serif);
+    letter-spacing: -0.012em;
+    margin-bottom: 14px;
+  }
+  .statement {
+    font-size: 19px;
+    line-height: 1.6;
+    max-width: 36em;
+  }
+  .statement :global(p + p) {
+    margin-top: 0.8em;
+  }
+  .check {
+    margin: 22px 0 18px;
+    max-width: 30em;
+  }
+  .check label {
+    display: block;
+    font: 600 12px/1.2 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .check-row {
+    display: flex;
+    gap: 10px;
+  }
+  .check input {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 14px;
+    background: var(--paper);
+    border: 1.5px solid var(--rule-2);
+    border-radius: 0;
+    font: 500 17px/1 var(--mono);
+    color: var(--ink);
+  }
+  .check input::placeholder {
+    color: var(--ink-3);
+    opacity: 1;
+  }
+  .check input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+    border-color: var(--ink);
+  }
+  .check .btn {
+    flex: none;
+  }
+  .check-out {
+    min-height: 1.5em;
+    margin-top: 10px;
+    font: 500 15px/1.4 var(--sans);
+  }
+  .check-out:global(.is-right) {
+    color: var(--ink);
+  }
+  .check-out:global(.is-wrong) {
+    color: var(--accent-text);
+  }
+  .disclose-body :global(p + p) {
+    margin-top: 0.8em;
+  }
+  .end {
+    text-align: right;
+  }
+</style>
+
+<script>
+  // Answer checking: exact match after normalizing; fractions and integers compared by value.
+  const parse = (raw: string): number | null => {
+    const s = raw.trim().replace(/\s+/g, '').replace(/−/g, '-');
+    const frac = /^(-?\d+)\/(\d+)$/.exec(s);
+    if (frac) return Number(frac[2]) === 0 ? null : Number(frac[1]) / Number(frac[2]);
+    return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : null;
+  };
+  document.querySelectorAll<HTMLFormElement>('form.check').forEach((form) => {
+    const input = form.querySelector('input')!;
+    const out = form.querySelector('.check-out')!;
+    const expected = parse(form.dataset.answer ?? '');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const got = parse(input.value);
+      out.classList.remove('is-right', 'is-wrong');
+      if (!input.value.trim()) {
+        out.textContent = 'Type an answer first.';
+        out.classList.add('is-wrong');
+      } else if (got === null) {
+        out.textContent = 'Enter a whole number or a fraction like 3/4.';
+        out.classList.add('is-wrong');
+      } else if (expected !== null && Math.abs(got - expected) < 1e-12) {
+        out.textContent = 'Correct. Now open the solution and compare your method.';
+        out.classList.add('is-right');
+      } else {
+        out.textContent = 'Not quite. Try the hint, then have another go.';
+        out.classList.add('is-wrong');
+      }
+    });
+  });
+</script>

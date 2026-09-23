@@ -1,0 +1,278 @@
+---
+import Mark from './Mark.astro';
+import { nav, joinHref, site } from '../data/site';
+
+const path = Astro.url.pathname.replace(/\/?$/, '/');
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<header class="site-header" id="top">
+  <div class="wrap head-row">
+    <a class="brand" href="/" aria-label={`${site.name}, home`}>
+      <Mark />
+      <span class="brand-name">{site.name}</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <a class="btn head-cta" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu">
+      <span class="menu-label">Menu</span><span class="bars" aria-hidden="true"></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <nav class="wrap" aria-label="Primary (mobile)">
+      <ol class="toc">
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                <span class="t">{item.title}</span>
+                <span class="lead" aria-hidden="true" />
+                <span class="go" aria-hidden="true">
+                  →
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+      <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--paper) var(--grain);
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .site-header:global(.scrolled) {
+    border-bottom-color: var(--rule-2);
+  }
+  .head-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: var(--head-h);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    text-decoration: none;
+    color: var(--ink);
+    flex: none;
+    margin-right: auto;
+  }
+  .brand-name {
+    font: 500 19px/1 var(--serif);
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+  }
+  .nav ul {
+    display: flex;
+    gap: 2px;
+    list-style: none;
+  }
+  .nav a {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 12px 10px;
+    font: 500 15px/1 var(--sans);
+    color: var(--ink-2);
+    text-decoration: none;
+    position: relative;
+  }
+  .nav a:hover {
+    color: var(--ink);
+  }
+  .nav a::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 5px;
+    height: 1.5px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s var(--ease-out);
+  }
+  .nav a:hover::after,
+  .nav a[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+  .nav a[aria-current='page'] {
+    color: var(--ink);
+  }
+  .head-cta {
+    min-height: 44px;
+    padding: 0 18px;
+    font-size: 14.5px;
+  }
+  .menu-toggle {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 4px 0 12px;
+    background: none;
+    border: 0;
+    color: var(--ink);
+    font: 600 15px/1 var(--sans);
+    cursor: pointer;
+  }
+  .menu-toggle .bars {
+    width: 22px;
+    height: 12px;
+    position: relative;
+  }
+  .menu-toggle .bars::before,
+  .menu-toggle .bars::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: currentColor;
+    transition:
+      transform 0.3s,
+      top 0.3s,
+      bottom 0.3s;
+  }
+  .menu-toggle .bars::before {
+    top: 1px;
+  }
+  .menu-toggle .bars::after {
+    bottom: 1px;
+  }
+  .menu-toggle[aria-expanded='true'] .bars::before {
+    top: 5px;
+    transform: rotate(45deg);
+  }
+  .menu-toggle[aria-expanded='true'] .bars::after {
+    bottom: 5.5px;
+    transform: rotate(-45deg);
+  }
+  /* Full-height panel under the header; the page behind is inert while it is open. */
+  .mobile-menu {
+    position: fixed;
+    inset: var(--head-h) 0 0 0;
+    background: var(--paper) var(--grain);
+    border-top: 1px solid var(--rule-2);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .mobile-menu:not([hidden]) {
+      animation: drop 0.35s var(--ease-out);
+    }
+  }
+  @keyframes drop {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .toc {
+    list-style: none;
+    padding: 8px 0 4px;
+  }
+  .toc a {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: 10px;
+    padding: 13px 0;
+    text-decoration: none;
+    color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+  }
+  .toc .go {
+    font: 500 16px/1 var(--sans);
+    color: var(--accent-text);
+  }
+  .toc .t {
+    font: 400 27px/1.1 var(--serif);
+  }
+  .toc .lead {
+    border-bottom: 1.5px dotted var(--rule-2);
+    transform: translateY(-6px);
+  }
+  .toc a[aria-current='page'] .t {
+    font-style: italic;
+    color: var(--accent-text);
+  }
+  .mobile-menu .btn {
+    width: 100%;
+    justify-content: space-between;
+    margin: 20px 0 24px;
+  }
+
+  @media (max-width: 1180px) {
+    .nav,
+    .head-cta {
+      display: none;
+    }
+    .menu-toggle {
+      display: inline-flex;
+    }
+  }
+  @media (max-width: 620px) {
+    .brand-name {
+      font-size: 17px;
+    }
+  }
+  @media (max-width: 380px) {
+    .brand-name {
+      font-size: 15.5px;
+    }
+    .head-row {
+      gap: 12px;
+    }
+  }
+  @media (max-width: 350px) {
+    .brand {
+      gap: 9px;
+    }
+    .brand :global(.mark) {
+      width: 26px;
+      height: 26px;
+    }
+    .brand-name {
+      font-size: 14.5px;
+    }
+    .menu-toggle {
+      padding-left: 8px;
+    }
+    .menu-toggle .menu-label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+  }
+</style>

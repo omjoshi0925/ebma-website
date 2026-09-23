@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://east-bay-math.pages.dev/sitemap-index.xml

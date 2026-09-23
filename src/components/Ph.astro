@@ -1,0 +1,30 @@
+---
+/**
+ * A placeholder for a real-world detail we do not know yet. Renders the filled value when the
+ * registry has one, otherwise a marked "??" chip. See src/data/placeholders/ and PLACEHOLDERS.md.
+ *
+ *   <Ph id="org.email" />                 label comes from the registry
+ *   <Ph id="events.1.venue" label="Venue" />   override the visible label
+ */
+import { getPlaceholder } from '../data/placeholders';
+
+interface Props {
+  id: string;
+  label?: string;
+  class?: string;
+}
+const { id, label, class: className } = Astro.props;
+const def = getPlaceholder(id);
+---
+
+{
+  def.value !== null && def.kind !== 'list' ? (
+    <Fragment>{def.value}</Fragment>
+  ) : (
+    <span class:list={['ph', className]} data-placeholder={id}>
+      <span class="ph-q" aria-hidden="true">??</span>
+      <span class="sr-only">Placeholder: </span>
+      {label ?? def.label}
+    </span>
+  )
+}

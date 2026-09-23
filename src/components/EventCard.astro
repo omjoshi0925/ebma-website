@@ -1,0 +1,235 @@
+---
+/**
+ * One event, as a card in "Table 1". Pass a real `event`, or `sample` (1-based) to render a
+ * sample card made of placeholder chips while src/data/events.ts is still empty.
+ */
+import Ph from './Ph.astro';
+import { dateParts, type EbmaEvent } from '../data/events';
+
+interface Props {
+  event?: EbmaEvent;
+  sample?: number;
+  /** Label number, e.g. "2.1". */
+  num: string;
+  headingLevel?: 'h3' | 'h4';
+}
+const { event, sample, num, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const d = event ? dateParts(event.date) : null;
+// Link to the event's own page; sample cards link to the Events page (except on it).
+const href = event?.href ?? (Astro.url.pathname.startsWith('/events') ? null : '/events/');
+---
+
+<article class="event">
+  <div class="event-top">
+    <span class="label">Event {num}</span>
+    {event?.kind && <span class="event-kind">{event.kind}</span>}
+  </div>
+  <div class="event-date">
+    {
+      d ? (
+        <>
+          <span class="day" aria-hidden="true">
+            {d.day}
+          </span>
+          <span class="mon">
+            <span aria-hidden="true">{d.month}</span>
+            <span class="sr-only">{d.long}</span>
+            <span class="wk" aria-hidden="true">
+              {d.weekday}
+            </span>
+          </span>
+        </>
+      ) : (
+        <>
+          <span class="skel" aria-hidden="true">
+            <span>MON</span>
+            <span>DD</span>
+          </span>
+          <Ph id="events.upcoming" label="Date" />
+        </>
+      )
+    }
+  </div>
+  <H class="event-title">
+    {
+      href ? (
+        <a href={href}>{event ? event.title : <Ph id="events.upcoming" label="Event name" />}</a>
+      ) : event ? (
+        event.title
+      ) : (
+        <Ph id="events.upcoming" label="Event name" />
+      )
+    }
+  </H>
+  {
+    event ? (
+      <dl>
+        <dt>When</dt>
+        <dd>{event.time}</dd>
+        <dt>Where</dt>
+        <dd>{`${event.venue}, ${event.city}`}</dd>
+        <dt>For</dt>
+        <dd>{event.audience}</dd>
+        {event.cost && (
+          <>
+            <dt>Cost</dt>
+            <dd>{event.cost}</dd>
+          </>
+        )}
+      </dl>
+    ) : (
+      <p class="event-sample">
+        <Ph id="events.upcoming" label="Time, place, who it’s for, cost" />
+      </p>
+    )
+  }
+  {event?.description && <p class="event-desc">{event.description}</p>}
+  {
+    href && (
+      <span class="event-go" aria-hidden="true">
+        {event?.href ? 'Details & registration' : 'All events'} <span class="arr">→</span>
+      </span>
+    )
+  }
+</article>
+
+<style>
+  .event {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 16px 0 18px;
+    transition: border-color 0.25s;
+    min-width: 0;
+  }
+  .event:hover {
+    border-top-color: var(--accent);
+  }
+  .event-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .event .label {
+    color: var(--ink);
+  }
+  .event-kind {
+    font: 500 12px/1 var(--mono);
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .event-date {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    padding: 20px 0 16px;
+  }
+  .day {
+    font: 200 clamp(64px, 6vw, 88px) / 0.78 var(--serif);
+    color: var(--accent);
+    letter-spacing: -0.04em;
+    font-variation-settings: 'opsz' 72;
+  }
+  .mon {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font: 600 13px/1 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+  }
+  .wk {
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--ink-3);
+  }
+  .event-date :global(.ph) {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  /* Date skeleton for sample cards: the shape a real date will take. */
+  .skel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 1px solid var(--rule-2);
+    font: 500 13px/1 var(--mono);
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    text-align: center;
+  }
+  .skel span + span {
+    font: 300 28px/1 var(--serif);
+    letter-spacing: 0.02em;
+  }
+  .event-sample {
+    margin-bottom: 18px;
+    font-size: 17px;
+  }
+  .event-title {
+    font: 400 24px/1.2 var(--serif);
+    margin-bottom: 16px;
+  }
+  .event-title a {
+    text-decoration: none;
+  }
+  /* The whole card is the link's hit area. */
+  .event-title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .event-title a:focus-visible {
+    outline: none;
+  }
+  .event:has(.event-title a:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 6px;
+  }
+  dl {
+    margin: 0 0 18px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 9px 16px;
+    align-items: baseline;
+  }
+  dt {
+    font: 600 11.5px/1.4 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  dd {
+    font-size: 17px;
+    min-width: 0;
+  }
+  .event-desc {
+    font-size: 16.5px;
+    color: var(--ink-2);
+    margin-bottom: 18px;
+  }
+  .event-go {
+    margin-top: auto;
+    font: 600 14.5px/1 var(--sans);
+    display: flex;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+  }
+  .event-go .arr {
+    transition: transform 0.25s;
+  }
+  .event:hover .event-go .arr {
+    transform: translateX(4px);
+  }
+</style>

@@ -1,0 +1,11 @@
+# Cloudflare Pages configuration (https://developers.cloudflare.com/pages/functions/wrangler-configuration/)
+name = "east-bay-math"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-09-01"
+
+# Join-form submissions (functions/api/join.ts). Schema lives in migrations/.
+[[d1_databases]]
+binding = "DB"
+database_name = "ebma-forms"
+database_id = "local-only-replace-on-first-deploy"
+migrations_dir = "migrations"

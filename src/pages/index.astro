@@ -1,0 +1,447 @@
+---
+import Base from '../layouts/Base.astro';
+import Section from '../components/Section.astro';
+import TimesTableFigure from '../components/TimesTableFigure.astro';
+import EventCard from '../components/EventCard.astro';
+import LogoSlots from '../components/LogoSlots.astro';
+import Problem from '../components/Problem.astro';
+import Band from '../components/Band.astro';
+import Ph from '../components/Ph.astro';
+import PhLink from '../components/PhLink.astro';
+import DefFigure from '../components/DefFigure.astro';
+import { events, SAMPLE_COUNT, dateParts } from '../data/events';
+import { problems } from '../data/problems';
+import { joinHref, contactHref } from '../data/site';
+
+const upcoming = events.slice(0, 3);
+const next = events[0];
+const featured = problems.find((p) => p.id === 'frog')!;
+---
+
+<Base>
+  <!-- Hero: Theorem 1 -->
+  <section class="wrap" aria-labelledby="hero-title">
+    <div class="runhead">
+      <span>§0 &nbsp;Introduction</span>
+      <span class="rh-r">East Bay, California &nbsp;·&nbsp; 37.8° N, 122.3° W</span>
+    </div>
+    <div class="hero">
+      <div class="hero-text">
+        <p class="thm-label rise" style="--d:0">
+          <span class="label">Theorem 1</span><span class="note">(the East Bay theorem)</span>
+        </p>
+        <h1 id="hero-title" class="rise" style="--d:120">Every student in the East Bay can do <em>real</em> mathematics.</h1>
+        <p class="proof rise" style="--d:300">
+          <em>Proof.</em> By construction. The East Bay Math Association brings students from across the East Bay together
+          for competitions, events, and serious fun with hard problems. The remaining steps are left as an exercise for you.<span
+            class="qed qed-float"
+            aria-hidden="true"></span>
+        </p>
+        <div class="cta-row rise" style="--d:420">
+          <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="#events">See upcoming events <span class="arr" aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-foot rise" style="--d:540">
+          <p class="next-up">
+            <span class="next-tag">Next up</span>
+            {
+              next ? (
+                <a href={next.href ?? '/events/'}>
+                  {next.title} · {dateParts(next.date).long}
+                </a>
+              ) : (
+                <span>
+                  <Ph id="events.upcoming" label="Event name" /> · <Ph id="events.upcoming" label="Date" />
+                </span>
+              )
+            }
+          </p>
+          <p class="note hero-aside">
+            <span class="fn" aria-hidden="true">1</span>Parent, teacher, or sponsor? Skip to <a href="#cases">§3, <i>Proof by cases</i></a>:
+            there is a case for you.
+          </p>
+        </div>
+      </div>
+      <div class="hero-fig rise" style="--d:200">
+        <TimesTableFigure />
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract: the mission -->
+  <section class="abstract wrap" aria-labelledby="abstract-h">
+    <div class="abstract-inner">
+      <h2 id="abstract-h">Abstract</h2>
+      <p class="lede">
+        The East Bay Math Association exists so that every student in the East Bay who is curious about mathematics has somewhere to take that
+        curiosity: problems worth their time, competitions worth preparing for, and people who take both seriously. We bring students together
+        across schools and cities to explore, to compete, and to find out how far a good idea can go.
+      </p>
+      <p class="keywords"><b>Keywords:</b> problem solving · competitions · community · East Bay</p>
+    </div>
+  </section>
+
+  <Section id="what" num="1" title="What we do" dek="Three definitions, one idea: mathematics is better done together.">
+    <div class="cells">
+      <article class="cell">
+        <DefFigure kind="compete" />
+        <p class="label">Definition 1.1</p>
+        <h3>Compete<i>.</i></h3>
+        <p class="body">Contests and team events where students test their ideas against the clock, the problem, and each other, and find out how much they can do.</p>
+        <a class="xref" href="/events/">Events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <DefFigure kind="explore" />
+        <p class="label">Definition 1.2</p>
+        <h3>Explore<i>.</i></h3>
+        <p class="body">Problems and study resources that reach past the standard curriculum, toward the kind of mathematics that keeps you thinking on the walk home.</p>
+        <a class="xref" href="/resources/">Student resources <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <DefFigure kind="belong" />
+        <p class="label">Definition 1.3</p>
+        <h3>Belong<i>.</i></h3>
+        <p class="body">A community of students from schools across the East Bay who like a hard problem as much as you do, and the people who make room for them.</p>
+        <a class="xref" href="/get-involved/">Get involved <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+    </div>
+  </Section>
+
+  <Section
+    id="events"
+    num="2"
+    title="Upcoming events"
+    dek="Competitions, events, and meetings open to East Bay students."
+    note="All times Pacific. Each listing links to its details and registration."
+  >
+    <a slot="actions" class="xref" href="/events/">All events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
+    <div class="events">
+      {
+        upcoming.length
+          ? upcoming.map((event, i) => <EventCard event={event} num={`2.${i + 1}`} />)
+          : Array.from({ length: SAMPLE_COUNT }, (_, i) => (
+              <div class:list={['sample-wrap', { 'sample-extra': i > 0 }]}>
+                <EventCard sample={i + 1} num={`2.${i + 1}`} />
+              </div>
+            ))
+      }
+    </div>
+    <p class="tcap">
+      <b>Table 1.</b> Upcoming EBMA events, in date order. Looking further ahead? See the <a href="/events/#calendar">2026–27 competition calendar</a>.
+    </p>
+  </Section>
+
+  <Section
+    id="cases"
+    num="3"
+    title="Proof by *cases*"
+    dek="Whoever you are, the claim holds. Pick your case."
+    note="A proof by cases splits a claim into every possible situation, then proves each one on its own."
+  >
+    <div class="cells cells-4">
+      <article class="cell">
+        <p class="label">Case 1</p>
+        <h3>You’re a <em>student.</em></h3>
+        <p class="body">Problems that stretch you, competitions to aim for, and friends who think a clever argument is the best part of the day.</p>
+        <ul class="gets">
+          <li>Original problems with hints and full solutions</li>
+          <li>A verified calendar of competitions you can enter</li>
+          <li>Events with students from other schools</li>
+        </ul>
+        <a class="xref" href="/resources/">Start with resources <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Case 2</p>
+        <h3>You’re a <em>parent.</em></h3>
+        <p class="body">A welcoming place for your child to grow as a thinker, with clear details on every event before anyone signs up.</p>
+        <ul class="gets">
+          <li>Dates, places and costs posted up front</li>
+          <li>Supervision and safety: <Ph id="org.safety-policy" label="Policy" /></li>
+          <li>A real person to ask: <PhLink id="org.email" label="Contact email" /></li>
+        </ul>
+        <a class="xref" href="/about/#faq">Questions parents ask <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Case 3</p>
+        <h3>You <em>teach.</em></h3>
+        <p class="body">A partner for your math team or club: bring students to events, share opportunities, and meet colleagues across the East Bay.</p>
+        <ul class="gets">
+          <li>Bring a team or a whole club to events</li>
+          <li>Share opportunities with your students</li>
+          <li>Tell us what your students need</li>
+        </ul>
+        <a class="xref" href="/get-involved/#schools">Partner with us <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Case 4</p>
+        <h3>You’d like to <em>help.</em></h3>
+        <p class="body">Support the next generation of East Bay problem-solvers, and be recognized for it in front of the families you serve.</p>
+        <ul class="gets">
+          <li>Recognition at events and on this site</li>
+          <li>A clear account of what your support made possible</li>
+          <li>Volunteers welcome too, not only funding</li>
+        </ul>
+        <a class="xref" href="/sponsors/">Sponsor EBMA <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+    </div>
+    <p class="conclude"><span>In every case, there is a place for you at EBMA.</span><span class="qed" aria-hidden="true"></span></p>
+  </Section>
+
+  <Section
+    id="exercise"
+    num="4"
+    title="A problem to *try*"
+    dek="No sign-up required. Work it out, check your answer, then compare methods."
+    note="Every problem on this site is original, and every answer has been checked."
+  >
+    <a slot="actions" class="xref" href="/resources/#problems">More problems <span class="arr" aria-hidden="true">→</span></a>
+    <div class="exercise">
+      <Problem problem={featured} num="4.1" />
+    </div>
+  </Section>
+
+  <Section
+    id="partners"
+    num="5"
+    title="Acknowledgments"
+    dek="Our sponsors and partners."
+    note="In a paper, the acknowledgments thank the people who made the work possible. Same idea here."
+  >
+    <div class="ack">
+      <div>
+        <p class="ack-lede">Every problem set printed, every room booked, every student who shows up: none of it happens alone.</p>
+        <p class="ack-sub">We are grateful to the organizations that support mathematics for students in the East Bay.</p>
+        <a class="xref" href="/sponsors/">Sponsors &amp; partners <span class="arr" aria-hidden="true">→</span></a>
+      </div>
+      <LogoSlots />
+    </div>
+  </Section>
+
+  <Band label="Corollary 1.1" title="The next problem is *yours.*" text="Join the association, come to an event, or just say hello. We’ll take it from there.">
+    <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+    <a class="btn btn-quiet" href={contactHref}>Contact us</a>
+  </Band>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: start;
+    padding: clamp(32px, 4.4vw, 64px) 0 clamp(56px, 6vw, 88px);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(46px, 6.9vw, 106px);
+    line-height: 0.96;
+    letter-spacing: -0.028em;
+    font-variation-settings: 'opsz' 72;
+    margin-left: -0.04em;
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    padding-right: 0.04em;
+  }
+  .proof {
+    margin-top: clamp(26px, 3vw, 40px);
+    max-width: 34em;
+    font-size: clamp(18px, 1.55vw, 21px);
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .proof em:first-child {
+    color: var(--ink);
+    font-style: italic;
+    margin-right: 0.25em;
+  }
+  .cta-row {
+    margin-top: clamp(28px, 3.2vw, 44px);
+  }
+  .hero-foot {
+    margin-top: 36px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px 32px;
+    align-items: start;
+  }
+  .next-up {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 12px;
+    font-size: 17px;
+  }
+  .next-tag {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--on-accent);
+    background: var(--ink);
+    padding: 5px 8px 4px;
+  }
+  :global(:root[data-theme='dark']) .next-tag {
+    color: var(--paper);
+  }
+  .next-up a {
+    color: var(--ink);
+  }
+  .hero-aside {
+    max-width: 26em;
+  }
+  .hero-aside a {
+    color: var(--ink);
+  }
+
+  .abstract {
+    padding-block: clamp(56px, 7vw, 100px) clamp(24px, 3vw, 40px);
+    border-top: 1px solid var(--rule-2);
+  }
+  .abstract-inner {
+    max-width: 880px;
+    margin: 0 auto;
+  }
+  .abstract h2 {
+    text-align: center;
+    font: 600 13px/1 var(--sans);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .abstract .lede {
+    max-width: 38em;
+    margin-inline: auto;
+    font-size: clamp(21px, 2.1vw, 29px);
+    line-height: 1.5;
+    font-weight: 350;
+    text-wrap: pretty;
+    font-variation-settings: 'opsz' 36;
+  }
+  .abstract .lede::first-line {
+    font-variant-caps: small-caps;
+    letter-spacing: 0.03em;
+  }
+  .keywords {
+    margin-top: 28px;
+    text-align: center;
+    font: 500 13px/1.6 var(--mono);
+    color: var(--ink-3);
+  }
+  .keywords b {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .cells h3 i {
+    font-weight: 400;
+  }
+  .events {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 28px);
+  }
+  .tcap {
+    margin-top: 20px;
+    font-size: 15.5px;
+    color: var(--ink-2);
+  }
+  .tcap b {
+    font: 600 12.5px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 0.4em;
+  }
+  .tcap a {
+    color: var(--ink);
+  }
+  .conclude {
+    border-top: 0;
+  }
+  .exercise {
+    max-width: 52rem;
+  }
+  .ack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: clamp(28px, 4vw, 64px);
+    align-items: start;
+  }
+  .ack-lede {
+    font-size: clamp(21px, 1.9vw, 26px);
+    line-height: 1.4;
+    font-weight: 350;
+    font-variation-settings: 'opsz' 30;
+  }
+  .ack-sub {
+    margin-top: 18px;
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .ack .xref {
+    margin-top: 28px;
+  }
+
+  @media (max-width: 980px) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+    .hero-fig {
+      max-width: 560px;
+    }
+    .events {
+      grid-template-columns: 1fr;
+    }
+    .ack {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (min-width: 621px) and (max-width: 980px) {
+    .hero-fig {
+      max-width: none;
+    }
+    .events {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .gets {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    font: 500 14.5px/1.4 var(--sans);
+    color: var(--ink-2);
+    margin-bottom: 4px;
+  }
+  .gets li {
+    position: relative;
+    padding-left: 20px;
+  }
+  .gets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+  }
+  .sample-wrap {
+    display: grid;
+    min-width: 0;
+  }
+  @media (max-width: 620px) {
+    .hero-foot {
+      grid-template-columns: 1fr;
+    }
+    /* Identical sample cards add length without information on a phone. */
+    .sample-extra {
+      display: none;
+    }
+  }
+</style>

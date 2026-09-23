@@ -1,0 +1,169 @@
+---
+/**
+ * The opening of an inner page ("chapter"): running head, a theorem-style label, the <h1>,
+ * a lede, optional actions, and on the right either a figure (slot "aside") or an
+ * "In this chapter" table of contents built from `contents`.
+ *
+ *   <PageHeader chapter={1} label="Chapter 1" note="(in which we introduce ourselves)"
+ *     title="About the *Association*" lede="…"
+ *     contents={[{ href: '#mission', num: '1', title: 'Mission' }, …]} />
+ */
+import { emph } from '../lib/text';
+
+interface ContentsItem {
+  href: string;
+  num: string;
+  title: string;
+}
+interface Props {
+  chapter: number;
+  runLeft?: string;
+  runRight?: string;
+  label: string;
+  note?: string;
+  title: string;
+  lede?: string;
+  contents?: ContentsItem[];
+}
+const { chapter, runLeft, runRight = 'East Bay, California', label, note, title, lede, contents } = Astro.props;
+const hasAside = Astro.slots.has('aside');
+---
+
+<section class="wrap page-head" aria-labelledby="page-title">
+  <div class="runhead">
+    <span>{runLeft ?? `Chapter ${chapter}`}</span>
+    <span class="rh-r">{runRight}</span>
+  </div>
+  <div class:list={['ph-grid', { 'has-aside': hasAside || contents }]}>
+    <div class="ph-text">
+      <p class="thm-label rise" style="--d:0">
+        <span class="label">{label}</span>
+        {note && <span class="note">{note}</span>}
+      </p>
+      <h1 id="page-title" class="rise" style="--d:120" set:html={emph(title)} />
+      {lede && <p class="lede rise" style="--d:260" set:html={lede} />}
+      <slot name="lede" />
+      {
+        Astro.slots.has('actions') && (
+          <div class="cta-row rise" style="--d:380">
+            <slot name="actions" />
+          </div>
+        )
+      }
+    </div>
+    {
+      hasAside ? (
+        <div class="ph-aside rise" style="--d:200">
+          <slot name="aside" />
+        </div>
+      ) : (
+        contents && (
+          <nav class="ph-aside toc-box rise" style="--d:200" aria-label="In this chapter">
+            <p class="toc-h">In this chapter</p>
+            <ol>
+              {contents.map((c) => (
+                <li>
+                  <a href={c.href}>
+                    <span class="toc-n">§{c.num}</span>
+                    <span class="toc-t">{c.title}</span>
+                    <span class="toc-lead" aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .page-head {
+    padding-bottom: clamp(48px, 6vw, 88px);
+  }
+  .ph-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: end;
+    padding-top: clamp(32px, 4.4vw, 64px);
+  }
+  .ph-grid.has-aside {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(44px, 6.2vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.028em;
+    font-variation-settings: 'opsz' 72;
+    margin-left: -0.04em;
+  }
+  h1 :global(em) {
+    font-style: italic;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    padding-right: 0.04em;
+  }
+  .lede {
+    margin-top: clamp(22px, 2.6vw, 34px);
+    max-width: 34em;
+    font-size: clamp(18px, 1.5vw, 21px);
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .lede :global(em:first-child) {
+    color: var(--ink);
+    margin-right: 0.25em;
+  }
+  .cta-row {
+    margin-top: clamp(26px, 3vw, 40px);
+  }
+  .toc-box {
+    border-top: 2px solid var(--ink);
+    padding-top: 14px;
+  }
+  .toc-h {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .toc-box ol {
+    list-style: none;
+  }
+  .toc-box a {
+    display: grid;
+    grid-template-columns: 3.2em auto 1fr;
+    align-items: baseline;
+    gap: 8px;
+    padding: 9px 0;
+    min-height: 44px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule);
+    font-size: 18px;
+  }
+  .toc-n {
+    font: 500 12.5px/1 var(--mono);
+    color: var(--accent-text);
+  }
+  .toc-lead {
+    border-bottom: 1.5px dotted var(--rule-2);
+    transform: translateY(-5px);
+  }
+  .toc-box a:hover .toc-t {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  @media (max-width: 980px) {
+    .ph-grid.has-aside {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .toc-box {
+      max-width: 34em;
+    }
+  }
+</style>

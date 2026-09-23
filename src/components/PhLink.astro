@@ -1,0 +1,40 @@
+---
+/**
+ * A link whose target is a placeholder (an email address, a URL, a phone number).
+ * Filled: a real link. Unfilled: the "??" chip, not a dead link.
+ *
+ *   <PhLink id="org.email" />                       mailto link showing the address
+ *   <PhLink id="org.instagram">Instagram</PhLink>   link text from the slot
+ */
+import { getPlaceholder } from '../data/placeholders';
+import Ph from './Ph.astro';
+
+interface Props {
+  id: string;
+  label?: string;
+  class?: string;
+}
+const { id, label, class: className } = Astro.props;
+const def = getPlaceholder(id);
+const value = def.value;
+const href =
+  value === null
+    ? null
+    : def.kind === 'email'
+      ? `mailto:${value}`
+      : def.kind === 'phone'
+        ? `tel:${value.replace(/[^\d+]/g, '')}`
+        : value;
+const external = href !== null && /^https?:\/\//.test(href);
+const hasSlot = Astro.slots.has('default');
+---
+
+{
+  href === null ? (
+    <Ph id={id} label={label} class={className} />
+  ) : (
+    <a href={href} class={className} {...(external ? { rel: 'noopener' } : {})}>
+      {hasSlot ? <slot /> : value}
+    </a>
+  )
+}
