@@ -1,0 +1,419 @@
+---
+/**
+ * Fig. 1 on /events/: the 2026–27 competition season plotted on a time axis t, September to June.
+ * One row per contest (or contest stage); a vermilion point for a contest day, a bar for a
+ * window, an open dashed bar for the usual timing when the date is not posted yet.
+ *
+ * SVG text scales with its viewBox, so the figure is laid out three times at build time for
+ * three widths (phone, tablet, desktop) and CSS shows the one that keeps text at 12px or more.
+ * The same data is in Table 2 (CompetitionTable.astro) for screen readers and for reading.
+ * scripts/events-calendar.ts adds a "today" line and fades contests that have passed.
+ */
+import Plate from './Plate.astro';
+import { competitions, upcomingDates, SEASON, VERIFIED_ON, dayNum, formatRange, type Competition } from '../data/competitions';
+
+interface Mark {
+  kind: 'point' | 'span' | 'typical';
+  start: string;
+  end: string;
+  text: string;
+}
+interface Row {
+  key: string;
+  name: string;
+  comp: Competition;
+  marks: Mark[];
+}
+
+/* ---------- rows ---------- */
+const today = new Date().toISOString().slice(0, 10);
+const asOf = today > VERIFIED_ON ? today : VERIFIED_ON;
+const rowsByKey = new Map<string, Row>();
+for (const it of upcomingDates()) {
+  const key = it.figRow ?? it.competition.id;
+  const row = rowsByKey.get(key) ?? { key, name: it.figRow ?? it.competition.short, comp: it.competition, marks: [] };
+  const end = it.end ?? it.start;
+  const days = dayNum(end) - dayNum(it.start) + 1;
+  const d = formatRange(it.start, it.end);
+  row.marks.push({ kind: it.kind === 'window' && days > 2 ? 'span' : 'point', start: it.start, end, text: (it.figTag ?? '{d}').replace('{d}', d) });
+  rowsByKey.set(key, row);
+}
+for (const c of competitions) {
+  const w = c.typicalWindow;
+  if (!w || w.end < asOf || rowsByKey.has(c.id)) continue;
+  rowsByKey.set(c.id, { key: c.id, name: c.short, comp: c, marks: [{ kind: 'typical', start: w.start, end: w.end, text: `typically ${w.label}` }] });
+}
+const rows = [...rowsByKey.values()].sort((a, b) => a.marks[0].start.localeCompare(b.marks[0].start));
+const rowText = (r: Row) => r.marks.map((m) => m.text).join(' · ');
+const lastEnd = (r: Row) => r.marks.reduce((e, m) => (m.end > e ? m.end : e), r.marks[0].end);
+
+/* ---------- geometry ---------- */
+const d0 = dayNum(SEASON.start);
+const d1 = dayNum(SEASON.end) + 1;
+const MONTHS = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+const monthStarts = ['2026-09-01', '2026-10-01', '2026-11-01', '2026-12-01', '2027-01-01', '2027-02-01', '2027-03-01', '2027-04-01', '2027-05-01', '2027-06-01', '2027-07-01'];
+
+// Rough advance widths (in em) of Instrument Sans 600 and IBM Plex Mono, to keep labels inside the frame.
+const sansW = (s: string, px: number) =>
+  [...s].reduce((w, ch) => w + (/[A-Z]/.test(ch) ? 0.68 : /[0-9]/.test(ch) ? 0.58 : ch === ' ' ? 0.27 : /[il.,·]/.test(ch) ? 0.3 : 0.54), 0) * px;
+const monoW = (s: string, px: number) => s.length * 0.6 * px;
+
+const f = (n: number) => Math.round(n * 10) / 10;
+
+interface Variant {
+  id: string;
+  W: number;
+  mode: 'column' | 'stacked';
+  labelW: number;
+  rowH: number;
+}
+const variants: Variant[] = [
+  { id: 's', W: 280, mode: 'stacked', labelW: 0, rowH: 46 },
+  { id: 'm', W: 660, mode: 'column', labelW: 178, rowH: 32 },
+  { id: 'l', W: 1000, mode: 'column', labelW: 214, rowH: 31 },
+];
+const NAME_PX = 14;
+const DATE_PX = 13.5;
+
+function layout(v: Variant) {
+  const top = 30; // room for the "today" label
+  const x0 = v.mode === 'column' ? v.labelW : 1;
+  const x1 = v.W - 30;
+  const x = (iso: string) => x0 + ((dayNum(iso) - d0) / (d1 - d0)) * (x1 - x0);
+  const xEnd = (iso: string) => x0 + ((dayNum(iso) + 1 - d0) / (d1 - d0)) * (x1 - x0);
+  const laid = rows.map((r, i) => {
+    const yTop = top + i * v.rowH;
+    const trackY = v.mode === 'column' ? yTop + v.rowH / 2 : yTop + 31;
+    const nameY = v.mode === 'column' ? trackY + 5 : yTop + 15;
+    const marks = r.marks.map((m) => {
+      const a = x(m.start);
+      const b = xEnd(m.end);
+      return { ...m, cx: m.kind === 'point' ? (a + b) / 2 : a, x2: b };
+    });
+    const text = rowText(r);
+    let dateX: number;
+    let anchor: 'start' | 'end';
+    let dateY: number;
+    if (v.mode === 'stacked') {
+      dateX = v.W;
+      anchor = 'end';
+      dateY = nameY;
+    } else {
+      const right = Math.max(...marks.map((m) => (m.kind === 'point' ? m.cx + 6 : m.x2)));
+      const left = Math.min(...marks.map((m) => (m.kind === 'point' ? m.cx - 6 : m.cx)));
+      if (right + 10 + monoW(text, DATE_PX) <= v.W) {
+        dateX = right + 10;
+        anchor = 'start';
+      } else {
+        dateX = left - 10;
+        anchor = 'end';
+      }
+      dateY = trackY + 4.5;
+    }
+    return { ...r, text, yTop, trackY, nameY, marks, dateX, dateY, anchor, end: lastEnd(r) };
+  });
+  const rowsBottom = top + rows.length * v.rowH + (v.mode === 'column' ? 4 : 2);
+  const axisY = rowsBottom + 10;
+  const months = MONTHS.map((label, i) => ({
+    label,
+    a: x(monthStarts[i]),
+    b: x(monthStarts[i + 1]),
+    year: i === 0 ? '2026' : i === 4 ? '2027' : '',
+  }));
+  const H = axisY + (v.mode === 'column' ? 50 : 52);
+  // Warn at build time if a label would spill over the frame or collide with its own row's marks.
+  for (const r of laid) {
+    const w = monoW(r.text, DATE_PX);
+    if (v.mode === 'stacked' && sansW(r.name, NAME_PX) + 12 + w > v.W) console.warn(`[CompetitionTimeline] row "${r.name}" is tight at ${v.W}px`);
+    if (v.mode === 'column' && sansW(r.name, NAME_PX) + 10 > v.labelW) console.warn(`[CompetitionTimeline] name "${r.name}" is wider than the label column at ${v.W}px`);
+  }
+  return { ...v, H, top, x0, x1, rows: laid, months, axisY, rowsBottom };
+}
+const figs = variants.map(layout);
+const summary = `Timeline of the ${SEASON.label} competition season from September 2026 to June 2027, with ${rows.length} contests plotted by date. Table 2 below lists the same dates.`;
+---
+
+<Plate
+  id="fig-calendar"
+  plate="Plate I"
+  corner={`<span class="m">t</span> ∈ [Sep 2026, Jun 2027]`}
+  fig="Fig. 1."
+  caption={`The ${SEASON.label} competition season, one row per contest, in date order. Filled marks are dates posted by the organizers; open dashed bars show the usual timing where the 2027 date is not posted yet. Dates verified from each official site on September 23, 2026. Always confirm with the organizer.`}
+  class="cal-plate"
+>
+  <div class="cal-box">
+  {
+    rows.length ? (
+      figs.map((g) => (
+        <svg
+          class={`cal-svg cal-${g.id}`}
+          viewBox={`0 0 ${g.W} ${g.H}`}
+          role="img"
+          aria-labelledby={`cal-${g.id}-t`}
+          data-reveal
+          data-calendar
+          data-d0={d0}
+          data-d1={d1}
+          data-x0={f(g.x0)}
+          data-x1={f(g.x1)}
+          data-top={g.top - 2}
+          data-bottom={g.axisY}
+        >
+          <title id={`cal-${g.id}-t`}>{summary}</title>
+          <g class="cal-months" aria-hidden="true">
+            {g.months.map((m, i) => i % 2 === 1 && <rect x={f(m.a)} y={g.top - 4} width={f(m.b - m.a)} height={f(g.axisY - g.top + 4)} class="cal-shade" />)}
+            {g.months.map((m) => <line x1={f(m.a)} x2={f(m.a)} y1={g.top - 4} y2={g.axisY} class={m.year ? 'cal-grid cal-grid-yr' : 'cal-grid'} />)}
+          </g>
+          <g class="cal-rows">
+            {g.rows.map((r, i) => (
+              <g class="cal-row" data-end={r.end}>
+                <text x={g.mode === 'column' ? 0 : 1} y={f(r.nameY)} class="cal-name">
+                  {r.name}
+                </text>
+                <line x1={f(g.x0)} x2={f(g.x1)} y1={f(r.trackY)} y2={f(r.trackY)} class="cal-lane" />
+                {r.marks.map((m) =>
+                  m.kind === 'point' ? (
+                    <circle cx={f(m.cx)} cy={f(r.trackY)} r="5.5" class="cal-mark cal-pt" data-end={m.end} style={`--i:${i}`} />
+                  ) : m.kind === 'span' ? (
+                    <rect x={f(m.cx)} y={f(r.trackY - 4.5)} width={f(Math.max(m.x2 - m.cx, 6))} height="9" class="cal-mark cal-span" data-end={m.end} style={`--i:${i}`} />
+                  ) : (
+                    <rect x={f(m.cx + 0.75)} y={f(r.trackY - 4.5)} width={f(Math.max(m.x2 - m.cx - 1.5, 6))} height="9" class="cal-mark cal-typ" style={`--i:${i}`} />
+                  ),
+                )}
+                <text x={f(r.dateX)} y={f(r.dateY)} text-anchor={r.anchor} class:list={['cal-date', { 'cal-date-typ': r.marks[0].kind === 'typical' }]}>
+                  {r.text}
+                </text>
+              </g>
+            ))}
+          </g>
+          <g class="cal-axis" aria-hidden="true">
+            <line x1={f(g.x0)} x2={f(g.x1 + 18)} y1={g.axisY} y2={g.axisY} class="cal-axis-line" pathLength="1" />
+            <path d={`M${f(g.x1 + 19)} ${g.axisY} l-8 -4.2 v8.4 z`} class="cal-arrow" />
+            <text x={f(g.x1 + 24)} y={g.axisY + 5} class="cal-t">
+              t
+            </text>
+            {g.months.map((m) => <line x1={f(m.a)} x2={f(m.a)} y1={g.axisY} y2={g.axisY + (m.year ? 30 : 6)} class="cal-tick" />)}
+            <line x1={f(g.months[9].b)} x2={f(g.months[9].b)} y1={g.axisY} y2={g.axisY + 6} class="cal-tick" />
+            {g.months.map((m) => (
+              <text x={f((m.a + m.b) / 2)} y={g.axisY + 21} text-anchor="middle" class="cal-mon">
+                {g.mode === 'stacked' ? m.label[0] : m.label.toUpperCase()}
+              </text>
+            ))}
+            {g.months.map((m) => m.year && <text x={f(m.a + 5)} y={g.axisY + (g.mode === 'column' ? 41 : 43)} class="cal-yr">{m.year}</text>)}
+          </g>
+        </svg>
+      ))
+    ) : (
+      <p class="cal-empty">The {SEASON.label} season has ended. The 2027–28 calendar will appear here once organizers post their dates.</p>
+    )
+  }
+  </div>
+  <ul slot="caption" class="cal-key" aria-label="Key">
+    <li>
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" class="cal-pt" /></svg>Contest day
+    </li>
+    <li>
+      <svg viewBox="0 0 28 16" width="28" height="16" aria-hidden="true"><rect x="1" y="3.5" width="26" height="9" class="cal-span" /></svg>Contest window
+    </li>
+    <li>
+      <svg viewBox="0 0 28 16" width="28" height="16" aria-hidden="true"><rect x="1.75" y="3.5" width="24.5" height="9" class="cal-typ" /></svg>Usual timing, date not posted
+    </li>
+    <li class="cal-key-today" hidden>
+      <svg viewBox="0 0 12 16" width="12" height="16" aria-hidden="true"><line x1="6" x2="6" y1="1" y2="15" class="cal-today-line" /></svg>Today
+    </li>
+  </ul>
+</Plate>
+
+<script>
+  import '../scripts/events-calendar';
+</script>
+
+<style>
+  :global(.cal-plate .frame-top .m) {
+    text-transform: none;
+    font-size: 1.2em;
+    letter-spacing: 0;
+  }
+  .cal-svg {
+    display: none;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  /* Show the variant whose text stays at 12px or larger in the space available. */
+  .cal-box {
+    container-type: inline-size;
+  }
+  .cal-s {
+    display: block;
+    max-width: 380px;
+    margin-inline: auto;
+  }
+  @container (min-width: 600px) {
+    .cal-s {
+      display: none;
+    }
+    .cal-m {
+      display: block;
+      max-width: 820px;
+    }
+  }
+  @container (min-width: 920px) {
+    .cal-m {
+      display: none;
+    }
+    .cal-l {
+      display: block;
+    }
+  }
+
+  .cal-shade {
+    fill: var(--ink);
+    opacity: 0.035;
+  }
+  .cal-grid {
+    stroke: var(--rule);
+    stroke-width: 1;
+  }
+  .cal-grid-yr {
+    stroke: var(--rule-2);
+  }
+  /* A paper-colored halo keeps labels legible where grid lines and the today line pass under them. */
+  .cal-name,
+  .cal-date {
+    stroke: var(--paper-2);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    paint-order: stroke fill;
+  }
+  .cal-name {
+    font: 600 14px var(--sans);
+    fill: var(--ink);
+  }
+  .cal-lane {
+    stroke: var(--rule-2);
+    stroke-width: 1;
+    stroke-dasharray: 1 3;
+  }
+  .cal-pt {
+    fill: var(--accent);
+  }
+  .cal-span {
+    fill: var(--accent);
+  }
+  .cal-typ {
+    fill: var(--paper-2);
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 2.5;
+  }
+  .cal-date {
+    font: 500 13.5px var(--mono);
+    fill: var(--ink-2);
+  }
+  .cal-date-typ {
+    font-style: italic;
+    fill: var(--ink-3);
+  }
+  .cal-axis-line {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .cal-arrow {
+    fill: var(--ink);
+  }
+  .cal-t {
+    font: italic 20px var(--math);
+    fill: var(--ink);
+  }
+  .cal-tick {
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .cal-mon {
+    font: 500 13.5px var(--mono);
+    letter-spacing: 0.06em;
+    fill: var(--ink-2);
+  }
+  .cal-yr {
+    font: 600 13.5px var(--mono);
+    fill: var(--ink);
+  }
+  .cal-s .cal-mon {
+    font-size: 13.5px;
+    letter-spacing: 0;
+  }
+
+  /* Contests that have passed (scripts/events-calendar.ts). */
+  .cal-row:global(.is-past) .cal-name,
+  .cal-row:global(.is-past) .cal-date,
+  .cal-svg :global(.is-past.cal-mark) {
+    opacity: 0.38;
+  }
+  .cal-svg :global(.cal-today-line),
+  .cal-key .cal-today-line {
+    stroke: var(--ink);
+    stroke-width: 1.25;
+    stroke-dasharray: 4 3;
+  }
+  .cal-svg :global(.cal-today-label) {
+    font: 600 13.5px var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    fill: var(--ink);
+  }
+
+  /* The key, under the caption. */
+  .cal-key {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 12px;
+    font: 500 14px/1.3 var(--sans);
+    color: var(--ink-2);
+  }
+  .cal-key li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cal-key svg {
+    flex: none;
+  }
+  .cal-empty {
+    padding: 24px 0;
+    font-size: 18px;
+    color: var(--ink-2);
+  }
+
+  /* Draw-in when scrolled into view: the axis draws, then marks appear in date order. */
+  .cal-svg:global(.armed) .cal-axis-line {
+    stroke-dashoffset: 1;
+  }
+  .cal-svg:global(.armed) .cal-mark {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  .cal-mark {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .cal-svg:global(.armed.in) .cal-axis-line {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s cubic-bezier(0.6, 0, 0.2, 1);
+  }
+  .cal-svg:global(.armed.in) .cal-mark {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.35s ease-out,
+      transform 0.45s var(--ease-out);
+    transition-delay: calc(0.5s + var(--i, 0) * 70ms);
+  }
+  .cal-svg:global(.armed.in) .cal-mark:global(.is-past) {
+    opacity: 0.38;
+  }
+</style>

@@ -1,0 +1,500 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import Problem from '../components/Problem.astro';
+import Band from '../components/Band.astro';
+import Ph from '../components/Ph.astro';
+import ResourceLink from '../components/ResourceLink.astro';
+import ResourceLibrary from '../components/ResourceLibrary.astro';
+import { problems } from '../data/problems';
+import { resource, handouts, VERIFIED_ON, VERIFIED_ON_LONG } from '../data/resources';
+import { joinHref, contactHref } from '../data/site';
+
+// §1: warm-ups first, then intermediate, then the proof. Ids stay the same (#problem-frog …).
+const levelOrder = ['Warm-up', 'Intermediate', 'Proof'];
+const rank = (level: string) => {
+  const i = levelOrder.indexOf(level);
+  return i === -1 ? levelOrder.length : i;
+};
+const set = problems.map((p, i) => ({ p, i })).sort((a, b) => rank(a.p.level) - rank(b.p.level) || a.i - b.i).map(({ p }) => p);
+const numbered = set.map((p, i) => ({ p, num: `1.${i + 1}` }));
+const warmups = numbered.filter(({ p }) => p.level === 'Warm-up');
+const proof = numbered.find(({ p }) => p.answer === 'Proof');
+const words = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+const countWord = words[numbered.length] ?? String(numbered.length);
+
+// §2 links: every third-party URL comes from the verified data file.
+const alcumus = resource('alcumus');
+const khan = resource('khan-academy');
+const wiki = resource('aops-wiki-amc');
+const intro = resource('aops-intro');
+const polya = resource('how-to-solve-it');
+const chen = resource('evan-chen');
+const engel = resource('engel');
+const primes = resource('mit-primes');
+
+const handoutDate = (iso: string) =>
+  new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Los_Angeles' });
+---
+
+<Base
+  title="Student Resources"
+  description="Original math problems with hints and full solutions, advice on where to start with contest math, and a checked library of free practice sites, Bay Area programs, summer programs and books."
+>
+  <PageHeader
+    chapter={3}
+    label="Chapter 3"
+    note="(exercises for the reader)"
+    title="Student *resources*"
+    lede={`${countWord} original problems to try right now, some honest advice on where to start, and a library of trusted places to keep going: free practice sites, Bay Area programs, summer programs and books.`}
+    contents={[
+      { href: '#problems', num: '1', title: 'Problems to try' },
+      { href: '#start', num: '2', title: 'Where to start' },
+      { href: '#library', num: '3', title: 'The library' },
+    ]}
+  />
+
+  <!-- §1 Problems -->
+  <Section id="problems" num="1" title="Problems to *try*" dek="From warm-ups to a first proof. Work each one on paper, check your answer, and open the hint only when you are properly stuck.">
+    <div slot="note" class="pnote">
+      <p>Every problem on this site is original, and every answer has been checked.</p>
+      <nav class="pindex" aria-label="Problems in this section">
+        <p class="pindex-h" aria-hidden="true">In this set</p>
+        <ol>
+          {
+            numbered.map(({ p, num }) => (
+              <li>
+                <a href={`#problem-${p.id}`}>
+                  <span class="pindex-n">{num}</span>
+                  <span class="pindex-t">{p.title}</span>
+                  <span class="pindex-l">{p.level}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </div>
+
+    <div class="problems">
+      {numbered.map(({ p, num }) => <Problem problem={p} num={num} />)}
+    </div>
+
+    <div class="handouts">
+      <p class="label">Appendix A</p>
+      <div class="handouts-body">
+        <div>
+          <h3 id="handouts-h">Problem sets from EBMA events</h3>
+          <p class="handouts-text">Problems, solutions and handouts from our own events, collected here so that anyone who missed the day can still try them.</p>
+        </div>
+        {
+          handouts.length ? (
+            <ul class="handouts-list" role="list">
+              {handouts.map((h) => (
+                <li>
+                  <a href={h.href}>{h.title}</a>
+                  {h.date && <span class="meta">{handoutDate(h.date)}</span>}
+                  {h.note && <span class="handouts-note">{h.note}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="handouts-sample">
+              <Ph id="resources.handouts" label="Past problem sets & handouts" />
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </Section>
+
+  <!-- §2 Where to start -->
+  <Section
+    id="start"
+    num="2"
+    title="Where to *start*"
+    dek="Three stages, a few concrete next steps for each. Find the one that sounds like you."
+    note="A lemma is a smaller result proved on the way to a bigger one. Each stage here sets up the next."
+  >
+    <a slot="actions" class="xref" href="/events/#competitions">Competitions to enter <span class="arr" aria-hidden="true">→</span></a>
+    <div class="cells stages">
+      <article class="cell">
+        <p class="label">Lemma 2.1</p>
+        <h3>New to <em>contests</em></h3>
+        <p class="body">You like math class and want something harder, but you have not tried a contest yet. Start with problems you can finish, and build the habit first.</p>
+        <ol class="steps">
+          <li>
+            Do the warm-ups in §1 (<a class="nw" href={`#problem-${warmups[0]?.p.id}`}>Exercises {warmups[0]?.num}–{warmups[warmups.length - 1]?.num}</a>) with pencil and paper, and no calculator.
+          </li>
+          <li>
+            Practice a little most days on <ResourceLink href={alcumus.url}>Alcumus</ResourceLink>, which adapts to how you are doing. It is free with a free AoPS account.
+          </li>
+          <li>Patch any gaps from school with the lessons and practice on <ResourceLink href={khan.url}>Khan Academy</ResourceLink>.</li>
+          <li>When a solution finally makes sense, close it and write the solution out yourself. That is when it sticks.</li>
+        </ol>
+        <a class="xref" href="/events/#competitions">Find a contest to try <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Lemma 2.2</p>
+        <h3>Building <em>up</em></h3>
+        <p class="body">You have done a contest or two and want to get better. Depth now matters more than volume: one subject at a time, and practice under real time limits.</p>
+        <ol class="steps">
+          <li>
+            Work through one subject properly with the <ResourceLink href={intro.url}>Art of Problem Solving Introduction books</ResourceLink>: algebra, counting &amp; probability,
+            geometry, number theory.
+          </li>
+          <li>
+            Sit a past AMC 8 or AMC 10 from the <ResourceLink href={wiki.url}>AoPS Wiki archive</ResourceLink> under test conditions (25 questions; 40 minutes for the AMC 8, 75 for
+            the AMC 10), then study every problem you missed.
+          </li>
+          <li>Keep an error log: the problem, where you went wrong, and the idea you were missing. It becomes your study plan.</li>
+          <li>Read <ResourceLink href={polya.url}>How to Solve It</ResourceLink> by George Pólya for a vocabulary of strategies, like working backward and looking for an analogy.</li>
+        </ol>
+        <a class="xref" href="#lib-reading">Books for this stage <span class="arr" aria-hidden="true">↓</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Lemma 2.3</p>
+        <h3>Olympiad-<em>bound</em></h3>
+        <p class="body">Short-answer contests feel comfortable and you want the proof-based kind. The new skill is writing a complete argument that someone else can check.</p>
+        <ol class="steps">
+          {
+            proof && (
+              <li>
+                Write out <a href={`#problem-${proof.p.id}`}>Proposition {proof.num}</a> as a full proof in sentences, then compare it with ours.
+              </li>
+            )
+          }
+          <li>
+            Read <ResourceLink href={chen.url}>Evan Chen’s free handouts</ResourceLink> on olympiad algebra, combinatorics, geometry, number theory and proof writing.
+          </li>
+          <li>Work through <ResourceLink href={engel.url}>Problem-Solving Strategies</ResourceLink> by Arthur Engel, which groups competition problems by strategy.</li>
+          <li>
+            Plan ahead: summer programs admit by application, often with a problem set. <ResourceLink href={primes.url}>MIT PRIMES-USA</ResourceLink>, a free year-long
+            program for sophomores and juniors, takes 2027 applications until November 2, 2026.
+          </li>
+        </ol>
+        <a class="xref" href="#lib-summer">Summer &amp; year-round programs <span class="arr" aria-hidden="true">↓</span></a>
+      </article>
+    </div>
+    <p class="conclude"><span>At every stage the method is the same: try, get stuck, find out why, try again.</span><span class="qed" aria-hidden="true"></span></p>
+  </Section>
+
+  <!-- §3 The library -->
+  <Section id="library" num="3" title="The *library*" dek="Free practice, Bay Area programs, summer programs and books, each checked against its official site. Filter by type, or show only what is free.">
+    <a slot="actions" class="xref" href={contactHref}>Suggest a resource <span class="arr" aria-hidden="true">→</span></a>
+    <div slot="note" class="lnote">
+      <p><b>Not affiliated.</b> EBMA is not affiliated with any organization listed here.</p>
+      <p>Descriptions verified from each official site on <time datetime={VERIFIED_ON}>{VERIFIED_ON_LONG}</time>.</p>
+    </div>
+
+    <ResourceLibrary />
+
+    <div class="remark">
+      <p class="label">Remark 3.5</p>
+      <p>
+        <strong>About these links.</strong> The East Bay Math Association is not affiliated with any organization, program, author or publisher on this page. A
+        listing is our recommendation, not a partnership, and it does not mean they endorse EBMA. Each description was checked against the official site on <time datetime={VERIFIED_ON}>{VERIFIED_ON_LONG}</time>. Dates,
+        costs and eligibility change, so confirm the details on the official site before you apply or pay. Links marked <span class="ext-mark" aria-hidden="true">↗</span><span class="sr-only">with an arrow</span> leave this site, and each site has its own privacy
+        policy (ours is in the <a href="/privacy/">privacy notice</a>).
+      </p>
+      <p>
+        Spotted something out of date, or know a resource that belongs here? <a href={contactHref}>Tell us</a>. Teachers are welcome to share this page with students, and to
+        <a href="/get-involved/#schools">bring a team to EBMA</a>.
+      </p>
+    </div>
+  </Section>
+
+  <Band
+    label="Corollary 3.1"
+    title="Stuck? *Good.*"
+    text="Being stuck is where the learning starts, and it goes better with company. Join EBMA to meet students across the East Bay who like hard problems as much as you do."
+  >
+    <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+    <a class="btn btn-quiet" href="/events/">See upcoming events</a>
+  </Band>
+</Base>
+
+<style>
+  /* ---------- §1 problems ---------- */
+  .problems {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(48px, 5vw, 72px);
+    max-width: 52rem;
+  }
+  @media (min-width: 1240px) {
+    .problems {
+      max-width: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 64px clamp(40px, 4vw, 64px);
+      align-items: start;
+    }
+  }
+  /* Long display formulas: set a little smaller on phones so they fit, and scroll inside their
+     own box (never the page) if a reader's font settings still make them too wide. */
+  .problems :global(.katex-display) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 0;
+    margin: 0.9em 0;
+  }
+  @media (max-width: 480px) {
+    .problems :global(.katex-display > .katex) {
+      font-size: 1.04em;
+    }
+  }
+  @media (max-width: 400px) {
+    .problems :global(.katex-display > .katex) {
+      font-size: 0.9em;
+    }
+  }
+  @media (max-width: 340px) {
+    .problems :global(.katex-display > .katex) {
+      font-size: 0.8em;
+    }
+  }
+  /* A proof has no answer box, so give its statement room before the first disclosure. */
+  .problems :global(.statement + .disclose) {
+    margin-top: 24px;
+  }
+
+  /* margin note + problem index */
+  .pnote {
+    display: grid;
+    gap: 22px;
+  }
+  .pindex {
+    font-style: normal;
+  }
+  .pindex-h {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .pindex ol {
+    list-style: none;
+  }
+  .pindex a {
+    display: grid;
+    grid-template-columns: 2.4em minmax(0, 1fr);
+    column-gap: 6px;
+    padding: 10px 0;
+    min-height: 44px;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .pindex-n {
+    font: 500 12.5px/1.5 var(--mono);
+    color: var(--accent-text);
+    grid-row: span 2;
+  }
+  .pindex-t {
+    font: 400 16px/1.3 var(--serif);
+  }
+  .pindex-l {
+    font: 500 12px/1.4 var(--mono);
+    color: var(--ink-3);
+    margin-top: 3px;
+  }
+  .pindex a:hover .pindex-t {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+  @media (min-width: 981px) and (min-height: 720px) {
+    /* The margin column keeps the index in view while you work down the set (only when the
+       whole index fits on screen, so nothing in it is ever out of reach). */
+    :global(#problems .margin-note) {
+      position: sticky;
+      top: calc(var(--head-h) + 24px);
+    }
+  }
+  @media (max-width: 980px) {
+    .pindex ol {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+      column-gap: 24px;
+    }
+  }
+
+  /* Appendix A: EBMA's own problem sets */
+  .handouts {
+    margin-top: clamp(56px, 6vw, 88px);
+    padding-top: 16px;
+    border-top: 1px solid var(--rule-2);
+  }
+  .handouts .label {
+    margin-bottom: 12px;
+  }
+  .handouts-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px clamp(24px, 4vw, 64px);
+    align-items: start;
+  }
+  .handouts h3 {
+    font: 400 clamp(26px, 2.2vw, 32px) / 1.12 var(--serif);
+    letter-spacing: -0.012em;
+    margin-bottom: 10px;
+  }
+  .handouts-text {
+    color: var(--ink-2);
+    font-size: 17.5px;
+    max-width: 30em;
+  }
+  .handouts-sample {
+    padding-top: 6px;
+  }
+  .handouts-list {
+    list-style: none;
+    border-top: 1px solid var(--ink);
+  }
+  .handouts-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .handouts-list a {
+    color: var(--ink);
+  }
+  .handouts-note {
+    font-size: 16px;
+    color: var(--ink-2);
+  }
+
+  /* ---------- §2 stages ---------- */
+  .stages .cell h3 em {
+    font-style: italic;
+  }
+  .steps {
+    list-style: none;
+    counter-reset: step;
+    display: grid;
+    gap: 12px;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    flex: 1;
+    align-content: start;
+  }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 30px;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.3em;
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--accent-line);
+    font: 500 12px/1 var(--mono);
+    color: var(--accent-text);
+  }
+  .steps a {
+    color: var(--ink);
+  }
+  .steps a:hover {
+    color: var(--accent-text);
+  }
+  .nw {
+    white-space: nowrap;
+  }
+  .stages .body {
+    flex: none;
+  }
+  @media (max-width: 1239px) {
+    .stages {
+      --cols: 1;
+    }
+    .stages .cell,
+    .stages .cell:first-child,
+    .stages .cell:last-child {
+      border-left: 0;
+      padding: 28px 0 30px;
+    }
+    .stages .cell + .cell {
+      border-top: 1px solid var(--rule);
+    }
+  }
+  @media (min-width: 761px) and (max-width: 1239px) {
+    /* One stage per row: the framing on the left, the steps on the right. */
+    .stages .cell {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-rows: auto auto 1fr;
+      column-gap: clamp(24px, 4vw, 48px);
+      row-gap: 14px;
+      align-items: start;
+    }
+    .stages .cell > .label,
+    .stages .cell > h3,
+    .stages .cell > .body {
+      grid-column: 1;
+    }
+    .stages .cell > .steps {
+      grid-column: 2;
+      grid-row: 1 / span 3;
+    }
+    .stages .cell > .xref {
+      grid-column: 2;
+    }
+  }
+
+  /* ---------- §3 library ---------- */
+  .lnote {
+    display: grid;
+    gap: 10px;
+  }
+  .lnote b {
+    font-style: normal;
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 0.3em;
+  }
+  .remark {
+    margin-top: clamp(56px, 6vw, 88px);
+    padding: 20px 0 0;
+    border-top: 1px solid var(--rule-2);
+    max-width: 46em;
+    display: grid;
+    gap: 12px;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .ext-mark {
+    font: 500 0.8em/1 var(--sans);
+    color: var(--accent-text);
+  }
+  .remark strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .remark a {
+    color: var(--ink);
+  }
+  .remark a:hover {
+    color: var(--accent-text);
+  }
+
+  @media (max-width: 760px) {
+    .handouts-body {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

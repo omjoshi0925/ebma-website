@@ -114,7 +114,7 @@ const featured = problems.find((p) => p.id === 'frog')!;
     dek="Competitions, events, and meetings open to East Bay students."
     note="All times Pacific. Each listing links to its details and registration."
   >
-    <a slot="actions" class="xref" href="/events/">All events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
+    <a slot="actions" class="xref" href="/events/#upcoming">All events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
     <div class="events">
       {
         upcoming.length
@@ -388,6 +388,11 @@ const featured = problems.find((p) => p.id === 'frog')!;
     margin-top: 28px;
   }
 
+  @media (max-width: 1180px) {
+    .ack {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
   @media (max-width: 980px) {
     .hero {
       grid-template-columns: 1fr;

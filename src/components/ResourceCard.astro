@@ -1,0 +1,140 @@
+---
+/**
+ * One entry in the Student Resources library, set like a numbered reference: "[12]", the cost
+ * tag, the name (a link to the official site), who runs it, what it is, level and timing, and
+ * the domain the link goes to. Data: src/data/resources.ts (verified third-party facts only).
+ */
+import ResourceLink from './ResourceLink.astro';
+import { costLabel, domainOf, type Resource } from '../data/resources';
+
+interface Props {
+  resource: Resource;
+  /** Reference number, e.g. 12 → "[12]". */
+  num: number;
+  headingLevel?: 'h3' | 'h4';
+}
+const { resource: r, num, headingLevel = 'h4' } = Astro.props;
+const H = headingLevel;
+const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
+---
+
+<article class="res" id={`lib-${r.id}`}>
+  <p class="res-top">
+    <span class="res-num" aria-hidden="true">[{num}]</span>
+    <span class:list={['res-cost', `is-${r.cost}`]}><span class="sr-only">Cost: </span>{costLabel[r.cost]}</span>
+  </p>
+  <H class="res-name"><ResourceLink href={r.url}>{r.name}</ResourceLink></H>
+  {showOrg && <p class="res-org">{r.org}</p>}
+  <p class="res-desc">{r.description}</p>
+  <dl class="res-facts">
+    <div>
+      <dt>Level</dt>
+      <dd>{r.level}</dd>
+    </div>
+    {
+      r.timing && (
+        <div>
+          <dt>When</dt>
+          <dd>{r.timing}</dd>
+        </div>
+      )
+    }
+  </dl>
+  <p class="res-domain">{domainOf(r.url)}</p>
+</article>
+
+<style>
+  .res {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--ink);
+    min-width: 0;
+  }
+  .res-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 2px;
+  }
+  .res-num {
+    font: 500 13px/1 var(--mono);
+    color: var(--accent-text);
+    letter-spacing: 0.02em;
+  }
+  .res-cost {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 7px 4px;
+    border: 1px solid var(--rule-2);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .res-cost.is-free {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .res-cost.is-free-tier {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .res-name {
+    font: 400 clamp(22px, 1.7vw, 24px) / 1.18 var(--serif);
+    letter-spacing: -0.01em;
+    text-wrap: pretty;
+  }
+  .res-name :global(a) {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .res-name :global(a:hover) {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+  .res-org {
+    font: 500 14.5px/1.4 var(--sans);
+    color: var(--ink-3);
+  }
+  .res-desc {
+    font-size: 16.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  .res-facts {
+    margin: 4px 0 0;
+    display: grid;
+    gap: 6px;
+  }
+  .res-facts div {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+  }
+  .res-facts dt {
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .res-facts dd {
+    margin: 0;
+    font: 500 14.5px/1.45 var(--sans);
+    color: var(--ink-2);
+  }
+  .res-domain {
+    margin-top: auto;
+    padding: 12px 0 2px;
+    border-top: 1px solid var(--rule);
+    font: 500 12.5px/1.3 var(--mono);
+    color: var(--ink-3);
+    overflow-wrap: anywhere;
+  }
+</style>

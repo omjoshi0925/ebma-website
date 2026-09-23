@@ -1,0 +1,703 @@
+---
+/**
+ * /privacy/ — the privacy notice.
+ *
+ * Every factual statement here describes what this repository's code does; keep them in sync:
+ *   form fields and options     shared/join.ts (imported below, so the lists stay current)
+ *   what is stored, and how     functions/api/join.ts, migrations/0001_create_submissions.sql
+ *   what the browser keeps      src/layouts/Base.astro + src/scripts/site.ts (theme, localStorage)
+ *   no outside requests         public/_headers + scripts/csp.mjs (Content-Security-Policy)
+ * If any of those change (analytics, a new form, a new third-party embed), update this page and
+ * `privacy.effective-date`. The notice is not legal advice; see `privacy.review`.
+ */
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import Plate from '../components/Plate.astro';
+import Band from '../components/Band.astro';
+import Ph from '../components/Ph.astro';
+import PhLink from '../components/PhLink.astro';
+import { ROLES, INTERESTS, LIMITS } from '../../shared/join';
+import { joinHref, contactHref } from '../data/site';
+
+/** "a, b, or c" from option labels, lower-cased to sit mid-sentence. */
+const listOf = (items: readonly { label: string }[], last = 'or') => {
+  const words = items.map((i) => i.label.charAt(0).toLowerCase() + i.label.slice(1));
+  return words.length > 1 ? `${words.slice(0, -1).join(', ')}, ${last} ${words.at(-1)}` : (words[0] ?? '');
+};
+const roles = listOf(ROLES);
+const interests = listOf(INTERESTS);
+const messageLimit = LIMITS.message.toLocaleString('en-US');
+
+const contents = [
+  { href: '#short', num: '1', title: 'The short version' },
+  { href: '#form', num: '2', title: 'What the form collects' },
+  { href: '#kept', num: '3', title: 'Where it goes, who sees it' },
+  { href: '#under-13', num: '4', title: 'Students under 13' },
+  { href: '#device', num: '5', title: 'On your device' },
+  { href: '#choices', num: '6', title: 'Your choices' },
+  { href: '#changes', num: '7', title: 'Changes to this notice' },
+];
+---
+
+<Base
+  title="Privacy notice"
+  description="What the East Bay Math Association website collects, why, where it is kept, and how to have it deleted. No cookies, no analytics, no ads."
+>
+  <PageHeader
+    chapter={0}
+    runLeft="Appendix A"
+    runRight="Privacy notice"
+    label="Appendix A"
+    note="(the fine print, in large print)"
+    title="Privacy, in *plain* English."
+    lede="The short version: this site collects personal information in one place only, the join form, and only what you type into it. It sets no cookies and runs no analytics, ads or trackers."
+    contents={contents}
+  >
+    <p slot="lede" class="effective rise" style="--d:320"><span class="meta">Effective</span> <Ph id="privacy.effective-date" /></p>
+  </PageHeader>
+
+  <Section
+    id="short"
+    num="1"
+    title="The short *version*"
+    dek="Four numbers that sum up this page."
+    note="Each number describes how the site’s code works today. If the code changes, this page changes with it."
+  >
+    <ul class="tally" role="list">
+      <li>
+        <span class="tally-n" aria-hidden="true">0</span>
+        <p class="tally-k"><span class="sr-only">Zero </span>cookies</p>
+        <p class="tally-b">The site never asks your browser to store a cookie.</p>
+      </li>
+      <li>
+        <span class="tally-n" aria-hidden="true">0</span>
+        <p class="tally-k"><span class="sr-only">Zero </span>analytics, ads or trackers</p>
+        <p class="tally-b">No visitor tracking, no advertising, no tracking pixels.</p>
+      </li>
+      <li>
+        <span class="tally-n" aria-hidden="true">0</span>
+        <p class="tally-k"><span class="sr-only">Zero </span>outside services</p>
+        <p class="tally-b">Fonts, images and scripts all come from this website itself.</p>
+      </li>
+      <li>
+        <span class="tally-n" aria-hidden="true">1</span>
+        <p class="tally-k"><span class="sr-only">One </span>form that collects personal information</p>
+        <p class="tally-b">The <a href={joinHref}>join form</a>. It keeps what you type, plus the three details in §2.</p>
+      </li>
+    </ul>
+    <p class="conclude"><span>The rest of this page is the detail behind those four numbers.</span><span class="qed" aria-hidden="true"></span></p>
+  </Section>
+
+  <Section id="form" num="2" title="What the form *collects*" dek="What you type into the join form, why we ask, and three things recorded automatically.">
+    <p slot="note"><b>Personal information</b> means anything that could identify you, like your name or email address.</p>
+    <div class="table-wrap">
+      <table class="table fields">
+        <caption><b>Table 1.</b> What the <a href={joinHref}>join form</a> asks for, and what is recorded with it.</caption>
+        <thead>
+          <tr>
+            <th scope="col">Detail</th>
+            <th scope="col">Why we ask</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group"><th scope="rowgroup" colspan="2">What you type</th></tr>
+          <tr>
+            <th scope="row">Name <span class="tag req">Required</span></th>
+            <td>So we know who we are writing back to.</td>
+          </tr>
+          <tr>
+            <th scope="row">Email address <span class="tag req">Required</span></th>
+            <td>So we can reply to you.</td>
+          </tr>
+          <tr>
+            <th scope="row">Who you are <span class="tag req">Required</span></th>
+            <td>You choose one: {roles}. It lets the right person answer, with the right information.</td>
+          </tr>
+          <tr>
+            <th scope="row">Grade <span class="tag">Optional</span></th>
+            <td>So we can suggest events and resources that fit.</td>
+          </tr>
+          <tr>
+            <th scope="row">School <span class="tag">Optional</span></th>
+            <td>So we know which schools students come from.</td>
+          </tr>
+          <tr>
+            <th scope="row">City <span class="tag">Optional</span></th>
+            <td>So we can plan events that are easy to reach.</td>
+          </tr>
+          <tr>
+            <th scope="row">Interests <span class="tag">Optional</span></th>
+            <td>Any of: {interests}. So we know what you want to hear about. Choosing “Email updates” asks us to send you announcements.</td>
+          </tr>
+          <tr>
+            <th scope="row">Message <span class="tag">Optional</span></th>
+            <td>Anything you want to tell or ask us, up to {messageLimit} characters.</td>
+          </tr>
+          <tr>
+            <th scope="row">Permission to email you <span class="tag req">Required</span></th>
+            <td>A tick confirming we may email you about your message, and about anything you ticked (such as updates).</td>
+          </tr>
+        </tbody>
+        <tbody>
+          <tr class="group"><th scope="rowgroup" colspan="2">Recorded automatically</th></tr>
+          <tr>
+            <th scope="row">Date and time <span class="tag">Automatic</span></th>
+            <td>When your form arrived, so we can reply in order and delete old submissions on time.</td>
+          </tr>
+          <tr>
+            <th scope="row">Page address <span class="tag">Automatic</span></th>
+            <td>Which page the form was sent from (for example, <code>/get-involved/</code>), if your browser shares it.</td>
+          </tr>
+          <tr>
+            <th scope="row">Scrambled IP address <span class="tag">Automatic</span></th>
+            <td>
+              A salted SHA-256 hash of your IP address, never the address itself. It is used only to stop one connection from sending a flood of forms
+              in a few minutes.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prose after-table">
+      <p>
+        <strong>Not kept.</strong> The form has two spam checks: a hidden field that only bots fill in, and how quickly the form was completed. Both
+        are checked when you press send, then thrown away.
+      </p>
+      <p><strong>Never asked.</strong> The form does not ask for a phone number, a home address, a date of birth or a photo.</p>
+    </div>
+  </Section>
+
+  <Section id="kept" num="3" title="Where it goes, who *sees* it" dek="Where a submission is stored, who can read it, and for how long.">
+    <p slot="note">
+      A <b>hash</b> is a one-way scramble: the same input always gives the same output, so repeat senders can be spotted without keeping the address.
+    </p>
+    <Plate id="fig-a1" plate="Plate A" corner="One submission" fig="Fig. A.1." caption="The whole journey of a form submission. Nothing is sent to advertisers, analytics companies or data brokers.">
+      <ol class="flow">
+        <li>
+          <span class="flow-n" aria-hidden="true">1</span>
+          <p class="flow-h">You press send</p>
+          <p class="flow-b">Your browser sends what you typed to this website.</p>
+        </li>
+        <li>
+          <span class="flow-n" aria-hidden="true">2</span>
+          <p class="flow-h">The site checks it</p>
+          <p class="flow-b">It checks each field, runs the spam checks, and replaces your IP address with its hash.</p>
+        </li>
+        <li>
+          <span class="flow-n" aria-hidden="true">3</span>
+          <p class="flow-h">It is stored</p>
+          <p class="flow-b">As one row in the association’s database on Cloudflare D1.</p>
+        </li>
+        <li>
+          <span class="flow-n" aria-hidden="true">4</span>
+          <p class="flow-h">A person replies</p>
+          <p class="flow-b">Someone from the association reads it and writes back.</p>
+        </li>
+      </ol>
+    </Plate>
+
+    <dl class="ledger">
+      <div>
+        <dt>Where it is stored</dt>
+        <dd>
+          In a database on Cloudflare D1, the database service of Cloudflare, the company that hosts this website. Submissions are never published
+          on the site.
+        </dd>
+      </div>
+      <div>
+        <dt>Who can see it</dt>
+        <dd>
+          Only <Ph id="privacy.access" /> can read submissions. We do not sell or rent your information, and we do not share it with advertisers.
+        </dd>
+      </div>
+      <div>
+        <dt>Sign-up alerts</dt>
+        <dd>
+          When a form arrives, the site can post a one-line alert with your name, role and email address to <Ph id="privacy.notifications" />, so
+          someone can reply quickly.
+        </dd>
+      </div>
+      <div>
+        <dt>How long we keep it</dt>
+        <dd>We keep a submission <Ph id="privacy.retention" label="How long we keep it" />. You can ask us to delete it sooner (§6).</dd>
+      </div>
+      <div>
+        <dt>If you email us</dt>
+        <dd>Your email address and message stay in the association’s inbox and are treated the same way.</dd>
+      </div>
+    </dl>
+  </Section>
+
+  <Section id="under-13" num="4" title="Students under *13*" dek="Please ask a parent or guardian to fill in the form for you.">
+    <div class="prose">
+      <p>
+        If you are under 13, please don’t send us your own name or email address. Ask a parent or guardian to fill in the <a href={joinHref}
+          >join form</a
+        > instead: they can choose “Parent or guardian” and tell us about you in the message.
+      </p>
+      <p>If we learn that a child under 13 has sent us their own details, we will delete them.</p>
+      <p>
+        Parents and guardians can ask to see, correct or delete anything their child has sent us by writing to <PhLink id="org.email" label="Contact email" />.
+      </p>
+    </div>
+  </Section>
+
+  <Section
+    id="device"
+    num="5"
+    title="On your *device*"
+    dek="What this site keeps in your browser: one setting, and only if you choose it."
+    note="A cookie is a small file a website asks your browser to keep and send back on every visit. This site never asks."
+  >
+    <dl class="ledger">
+      <div>
+        <dt>Cookies</dt>
+        <dd>None.</dd>
+      </div>
+      <div>
+        <dt>Your theme choice</dt>
+        <dd>
+          If you pick Light or Dark in the footer, your browser remembers it in its local storage, under the name <code>ebma-theme</code>. It stays on
+          your device and is never sent to us. Choosing Auto deletes it.
+        </dd>
+      </div>
+      <div>
+        <dt>Analytics, ads, trackers</dt>
+        <dd>None. The site runs no code that tracks, profiles or advertises to you.</dd>
+      </div>
+      <div>
+        <dt>Outside services</dt>
+        <dd>
+          None. Every font, image and script comes from this website, and its security policy tells your browser to refuse anything from anywhere
+          else.
+        </dd>
+      </div>
+      <div>
+        <dt>Hosting</dt>
+        <dd>
+          The site is hosted on Cloudflare. As with any website, the servers that deliver a page see your IP address in order to send the page to you.
+          The site itself stores your IP address only as the hash in §2, and only when you send the form.
+        </dd>
+      </div>
+      <div>
+        <dt>Links to other sites</dt>
+        <dd>
+          Our <a href="/events/">Events</a> and <a href="/resources/">Student Resources</a> pages link to competitions and programs run by other organizations.
+          Their sites have their own privacy practices, which this notice does not cover.
+        </dd>
+      </div>
+    </dl>
+  </Section>
+
+  <Section id="choices" num="6" title="Your *choices*" dek="You can see, correct or delete what you sent us, at any time.">
+    <div class="cells">
+      <article class="cell">
+        <p class="label">Case 1</p>
+        <h3>See or correct it</h3>
+        <p class="body">Ask for a copy of what we hold about you, or tell us what to fix.</p>
+      </article>
+      <article class="cell">
+        <p class="label">Case 2</p>
+        <h3>Delete it</h3>
+        <p class="body">Tell us the email address you used, and we will delete your submission.</p>
+      </article>
+      <article class="cell">
+        <p class="label">Case 3</p>
+        <h3>Stop updates</h3>
+        <p class="body">If you asked for email updates and no longer want them, tell us and we will stop.</p>
+      </article>
+    </div>
+    <div class="reach">
+      <dl>
+        <div>
+          <dt>Email</dt>
+          <dd><PhLink id="org.email" /></dd>
+        </div>
+        <div>
+          <dt>Post</dt>
+          <dd><Ph id="org.mailing-address" /></dd>
+        </div>
+      </dl>
+      <a class="xref" href={contactHref}>All the ways to reach us <span class="arr" aria-hidden="true">→</span></a>
+    </div>
+  </Section>
+
+  <Section id="changes" num="7" title="Changes to this *notice*" dek="If the site starts handling information differently, this page changes first.">
+    <div class="prose">
+      <p>
+        If we change what the site collects or how we use it, we will update this page and its effective date before the change takes effect. The
+        date at the top of the page always shows the current version.
+      </p>
+      <p>
+        This notice explains how the website works, in plain English on purpose. It is not legal advice. Last reviewed by <Ph id="privacy.review" />.
+      </p>
+      <p>
+        New here? Start with <a href="/about/">what the association is for</a>, or go back to the <a href="/">home page</a>.
+      </p>
+    </div>
+  </Section>
+
+  <Band
+    label="Corollary A.1"
+    title="Questions are *welcome.*"
+    text="If anything here is unclear, or you want your information seen, changed or deleted, get in touch. A person will read it and reply."
+  >
+    <a class="btn" href={contactHref}>Contact us <span class="arr" aria-hidden="true">→</span></a>
+    <a class="btn btn-quiet" href={joinHref}>Join EBMA</a>
+  </Band>
+</Base>
+
+<style>
+  .effective {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+    font-size: 17px;
+  }
+  .effective .meta {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+
+  /* §1: four large numerals */
+  .tally {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid var(--rule-2);
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .tally li {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    align-content: start;
+    gap: 10px;
+    padding: 26px 24px 30px;
+    border-left: 1px solid var(--rule);
+    min-width: 0;
+  }
+  .tally li:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .tally li:last-child {
+    padding-right: 0;
+  }
+  .tally-n {
+    font: 200 clamp(76px, 7.4vw, 112px) / 0.82 var(--serif);
+    font-variation-settings: 'opsz' 72;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .tally li:last-child .tally-n {
+    color: var(--accent);
+  }
+  .tally-k {
+    margin-top: 8px;
+    font: 400 clamp(22px, 1.9vw, 26px) / 1.15 var(--serif);
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .tally-b {
+    font-size: 16.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .tally-b a {
+    color: var(--ink);
+  }
+
+  /* §2: the fields table */
+  .fields caption {
+    caption-side: bottom;
+    text-align: left;
+    padding: 16px 0 0;
+    font-size: 15.5px;
+    color: var(--ink-2);
+  }
+  .fields caption b {
+    font: 600 12.5px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 0.4em;
+  }
+  .fields caption a {
+    color: var(--ink);
+  }
+  .fields thead th:first-child {
+    width: 34%;
+  }
+  .fields tbody th {
+    font: 400 19px/1.3 var(--serif);
+    color: var(--ink);
+    padding-right: 24px;
+  }
+  .fields td {
+    color: var(--ink-2);
+  }
+  .fields .group th {
+    font: 600 12px/1.2 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    padding: 22px 0 10px;
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .fields tbody + tbody .group th {
+    border-top: 1px solid var(--rule-2);
+  }
+  .tag {
+    display: block;
+    width: fit-content;
+    margin-top: 6px;
+    font: 500 12px/1.2 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .tag.req {
+    color: var(--accent-text);
+  }
+  code {
+    font: 500 0.84em var(--mono);
+    color: var(--ink);
+    background: var(--paper-2);
+    padding: 0.08em 0.35em;
+    overflow-wrap: anywhere;
+  }
+  .table-wrap {
+    /* The caption sits under the bottom rule; the wrapper keeps the page from scrolling sideways. */
+    border-bottom: 0;
+  }
+  .fields tbody:last-of-type tr:last-child > * {
+    border-bottom: 2px solid var(--ink);
+  }
+  .after-table {
+    margin-top: 32px;
+  }
+
+  /* §3: the flow figure */
+  .flow {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    counter-reset: flow;
+    padding: 18px 0 6px;
+  }
+  .flow li {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    padding: 0 22px 0 0;
+    min-width: 0;
+  }
+  .flow li + li {
+    padding-left: 22px;
+    border-left: 1px solid var(--rule);
+  }
+  .flow-n {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid var(--ink);
+    font: 500 14px/1 var(--mono);
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .flow li:last-child .flow-n {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+  /* an arrow on the rule between steps */
+  .flow li + li::before {
+    content: '→';
+    position: absolute;
+    left: -0.62em;
+    top: 5px;
+    padding: 2px 0;
+    background: var(--paper-2);
+    font: 500 17px/1 var(--sans);
+    color: var(--accent-text);
+  }
+  .flow-h {
+    font: 400 21px/1.2 var(--serif);
+    color: var(--ink);
+  }
+  .flow-b {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  /* §3, §5: ruled term / description rows */
+  .ledger {
+    margin-top: clamp(32px, 4vw, 48px);
+    border-top: 1px solid var(--rule-2);
+  }
+  .ledger > div {
+    display: grid;
+    grid-template-columns: minmax(0, 15em) minmax(0, 1fr);
+    gap: 8px 32px;
+    padding: 18px 0 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ledger > div:last-child {
+    border-bottom-color: var(--rule-2);
+  }
+  .ledger dt {
+    font: 600 15px/1.35 var(--sans);
+    color: var(--ink);
+    padding-top: 3px;
+  }
+  .ledger dd {
+    margin: 0;
+    max-width: 38em;
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .ledger dd a {
+    color: var(--ink);
+  }
+  #device .ledger {
+    margin-top: 0;
+  }
+
+  /* §6: how to reach us */
+  .reach {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px 40px;
+  }
+  .reach dl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 14px 40px;
+    min-width: 0;
+  }
+  .reach dl > div {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+  }
+  .reach dt {
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .reach dd {
+    margin: 0;
+    font-size: 17.5px;
+    min-width: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .tally {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tally li:nth-child(odd) {
+      border-left: 0;
+      padding-left: 0;
+    }
+    .tally li:nth-child(even) {
+      padding-right: 0;
+    }
+    .tally li:nth-child(n + 3) {
+      border-top: 1px solid var(--rule);
+    }
+    .flow {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 28px;
+    }
+    /* li + li outranks :nth-child once Astro scopes both, so match it explicitly */
+    .flow li + li:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .flow li + li:nth-child(3)::before {
+      content: none;
+    }
+  }
+  @media (max-width: 620px) {
+    /* numeral beside its words: four compact rows instead of four tall blocks */
+    .tally {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .tally li,
+    .tally li:nth-child(odd),
+    .tally li:nth-child(even) {
+      grid-template-columns: 64px minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      column-gap: 16px;
+      row-gap: 6px;
+      padding: 20px 0;
+      border-left: 0;
+    }
+    .tally li + li {
+      border-top: 1px solid var(--rule);
+    }
+    .tally-n {
+      grid-row: 1 / span 2;
+      font-size: 72px;
+    }
+    .tally-k {
+      margin-top: 2px;
+    }
+    .flow {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 0;
+      padding-top: 10px;
+    }
+    .flow li,
+    .flow li + li {
+      grid-template-columns: 34px minmax(0, 1fr);
+      column-gap: 16px;
+      padding: 16px 0;
+      border-left: 0;
+    }
+    .flow li + li {
+      border-top: 1px solid var(--rule);
+    }
+    .flow li + li::before {
+      content: none;
+    }
+    .flow-n {
+      grid-row: 1 / span 2;
+      margin: 0;
+    }
+    .fields thead th:first-child {
+      width: 42%;
+    }
+    .fields tbody th {
+      font-size: 17.5px;
+      padding-right: 14px;
+    }
+    .table th,
+    .table td {
+      padding-right: 10px;
+    }
+    .ledger > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .reach,
+    .reach dl {
+      flex-direction: column;
+      gap: 14px;
+    }
+  }
+</style>

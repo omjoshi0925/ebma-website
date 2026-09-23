@@ -1,0 +1,125 @@
+---
+/**
+ * /get-involved/thanks/ — where the join form lands after a plain (no-JavaScript) submission.
+ * functions/api/join.ts redirects here with 303 on success. Not indexed, not in the sitemap.
+ */
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Section from '../../components/Section.astro';
+import Band from '../../components/Band.astro';
+import Ph from '../../components/Ph.astro';
+import PhLink from '../../components/PhLink.astro';
+---
+
+<Base title="Thanks" description="Your form reached the East Bay Math Association. Here is what happens next." noindex>
+  <PageHeader
+    chapter={4}
+    runLeft="Chapter 4 · Get Involved"
+    label="Q.E.D."
+    note="(your form has arrived)"
+    title="Thanks, we got *it.*"
+    lede="<em>Proof.</em> You’re reading this page, and we only send people here once their form has reached us. Nothing more to do for now: we’ll write back by email."
+  >
+    <Fragment slot="actions">
+      <a class="btn" href="/resources/#problems">Try a problem while you wait <span class="arr" aria-hidden="true">→</span></a>
+      <a class="xref" href="/get-involved/">Back to Get Involved <span class="arr" aria-hidden="true">→</span></a>
+    </Fragment>
+  </PageHeader>
+
+  <Section id="next" num="1" title="What happens *next*" dek="Three steps, and only the last one is yours." note="Didn’t mean to send it, or spotted a mistake? Email us and we’ll fix it.">
+    <ol class="ty-steps">
+      <li>
+        <span class="ty-n" aria-hidden="true">1</span>
+        <div>
+          <h3>We read it</h3>
+          <p>A person on the EBMA team reads every form that comes in.</p>
+        </div>
+      </li>
+      <li>
+        <span class="ty-n" aria-hidden="true">2</span>
+        <div>
+          <h3>We reply by email</h3>
+          <p>
+            Usually within <span class="ty-tie"><Ph id="get-involved.response-time" />.</span> Nothing yet? Check your spam folder, then write to <span class="ty-tie"><PhLink id="org.email" />.</span>
+          </p>
+        </div>
+      </li>
+      <li>
+        <span class="ty-n" aria-hidden="true">3</span>
+        <div>
+          <h3>You take it from there</h3>
+          <p>Come to an event, try a problem, or just keep an eye on your inbox.</p>
+        </div>
+      </li>
+    </ol>
+    <p class="conclude"><span>That’s all. We’ll be in touch.</span><span class="qed" aria-hidden="true"></span></p>
+  </Section>
+
+  <Section id="meanwhile" num="2" title="While you *wait*" dek="A few places to go from here.">
+    <div class="cells">
+      <article class="cell">
+        <p class="label">Remark 2.1</p>
+        <h3>Upcoming events</h3>
+        <p class="body">Competitions, events and meetings open to East Bay students.</p>
+        <a class="xref" href="/events/">Events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Remark 2.2</p>
+        <h3>Something to think about</h3>
+        <p class="body">Original problems with hints and full solutions, and study resources worth your time.</p>
+        <a class="xref" href="/resources/">Student resources <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Remark 2.3</p>
+        <h3>Who we are</h3>
+        <p class="body">What the East Bay Math Association is for, and the questions parents ask most.</p>
+        <a class="xref" href="/about/">About EBMA <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+    </div>
+  </Section>
+
+  <Band label="Corollary 4.2" title="While you wait, try a *problem.*" text="No sign-up needed. Work it out, check your answer, then compare methods.">
+    <a class="btn" href="/resources/#problems">Try a problem <span class="arr" aria-hidden="true">→</span></a>
+    <a class="btn btn-quiet" href="/">Home</a>
+  </Band>
+</Base>
+
+<style>
+  .ty-steps {
+    list-style: none;
+    border-top: 2px solid var(--ink);
+    max-width: 48rem;
+  }
+  .ty-steps li {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 18px;
+    padding: 22px 0 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ty-n {
+    font: 200 54px/0.85 var(--serif);
+    font-variation-settings: 'opsz' 72;
+    color: var(--accent);
+  }
+  .ty-steps h3 {
+    font: 400 clamp(24px, 2vw, 28px) / 1.15 var(--serif);
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .ty-steps p {
+    font-size: 18px;
+    color: var(--ink-2);
+    max-width: 36em;
+  }
+  .ty-steps + .conclude {
+    max-width: 48rem;
+  }
+  .ty-tie,
+  .ty-tie :global(.ph) {
+    white-space: nowrap;
+  }
+  .cells h3 {
+    font-size: clamp(25px, 2.1vw, 31px);
+  }
+</style>

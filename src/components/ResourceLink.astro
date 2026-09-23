@@ -1,0 +1,42 @@
+---
+/**
+ * A link to a third-party site: the text, a small ↗ (hidden from screen readers) and
+ * "(external site)" for screen readers. Opens in the same tab. The last word and the arrow are
+ * kept together so the arrow never wraps onto a line of its own.
+ *
+ *   <ResourceLink href="https://artofproblemsolving.com/alcumus">Alcumus</ResourceLink>
+ */
+interface Props {
+  href: string;
+  class?: string;
+}
+const { href, class: className } = Astro.props;
+// The slot is plain text in practice (escaped by Astro). If it ever holds markup, leave it whole.
+const html = (await Astro.slots.render('default')).trim();
+const split = /[<>]/.test(html) ? -1 : html.lastIndexOf(' ');
+const head = split > 0 ? html.slice(0, split + 1) : '';
+const tail = split > 0 ? html.slice(split + 1) : html;
+---
+
+<a href={href} class:list={['ext', className]} rel="external noopener"
+  ><Fragment set:html={head} /><span class="ext-tail"
+    ><Fragment set:html={tail} /><span class="ext-arr" aria-hidden="true">↗</span></span
+  ><span class="sr-only"> (external site)</span></a
+>
+
+<style>
+  .ext-tail {
+    white-space: nowrap;
+  }
+  .ext-arr {
+    display: inline-block;
+    margin-left: 0.2em;
+    font: 500 0.78em/1 var(--sans);
+    color: var(--accent-text);
+    text-decoration: none;
+    transition: transform 0.2s var(--ease-out);
+  }
+  .ext:hover .ext-arr {
+    transform: translate(1px, -1px);
+  }
+</style>

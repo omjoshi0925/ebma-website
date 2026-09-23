@@ -1,0 +1,339 @@
+---
+/**
+ * The upcoming-events list on /events/, set as an agenda along a vertical time rail: date,
+ * a vermilion point on the rail, then the details. Takes the same events as EventCard
+ * (src/data/events.ts). While that list is empty it shows `sampleCount` sample rows made of
+ * placeholder chips (three chips per row), with no links.
+ */
+import Ph from './Ph.astro';
+import { dateParts, type EbmaEvent } from '../data/events';
+
+interface Props {
+  events: EbmaEvent[];
+  sampleCount: number;
+  /** Section number, for labels like "Event 1.2". */
+  num: string;
+}
+const { events, sampleCount, num } = Astro.props;
+const external = (href: string) => /^https?:\/\//.test(href);
+---
+
+<ol class="agenda" aria-label="Upcoming EBMA events, soonest first">
+  {
+    events.length
+      ? events.map((e, i) => {
+          const d = dateParts(e.date);
+          return (
+            <li class="ag">
+              <div class="ag-date">
+                <span class="ag-day" aria-hidden="true">
+                  {d.day}
+                </span>
+                <span class="ag-mon">
+                  <span aria-hidden="true">{d.month}</span>
+                  <span class="ag-wk" aria-hidden="true">
+                    {d.weekday}
+                  </span>
+                  <span class="sr-only">{d.long}</span>
+                </span>
+              </div>
+              <div class="ag-rail" aria-hidden="true">
+                <span class="ag-pt" />
+              </div>
+              <div class="ag-main">
+                <p class="ag-top">
+                  <span class="label">
+                    Event {num}.{i + 1}
+                  </span>
+                  {e.kind && <span class="ag-kind">{e.kind}</span>}
+                </p>
+                <h3 class="ag-title">{e.title}</h3>
+                <dl class="ag-meta">
+                  <div>
+                    <dt>When</dt>
+                    <dd>{e.time}</dd>
+                  </div>
+                  <div>
+                    <dt>Where</dt>
+                    <dd>{`${e.venue}, ${e.city}`}</dd>
+                  </div>
+                  <div>
+                    <dt>For</dt>
+                    <dd>{e.audience}</dd>
+                  </div>
+                  {e.cost && (
+                    <div>
+                      <dt>Cost</dt>
+                      <dd>{e.cost}</dd>
+                    </div>
+                  )}
+                </dl>
+                {e.description && <p class="ag-desc">{e.description}</p>}
+              </div>
+              <div class="ag-go">
+                {e.href && (
+                  <a class="xref" href={e.href} {...(external(e.href) ? { rel: 'noopener' } : {})}>
+                    Details &amp; registration<span class="sr-only">: {e.title}</span>
+                    <span class="arr" aria-hidden="true">
+                      {external(e.href) ? '↗' : '→'}
+                    </span>
+                    {external(e.href) && <span class="sr-only"> (external site)</span>}
+                  </a>
+                )}
+              </div>
+            </li>
+          );
+        })
+      : Array.from({ length: sampleCount }, (_, i) => (
+          <li class:list={['ag ag-sample', { 'ag-extra': i > 1 }]}>
+            <div class="ag-date">
+              <span class="ag-skel" aria-hidden="true">
+                <span>MON</span>
+                <span>DD</span>
+              </span>
+              <Ph id="events.upcoming" label="Date" />
+            </div>
+            <div class="ag-rail" aria-hidden="true">
+              <span class="ag-pt" />
+            </div>
+            <div class="ag-main">
+              <p class="ag-top">
+                <span class="label">
+                  Event {num}.{i + 1}
+                </span>
+              </p>
+              <h3 class="ag-title">
+                <Ph id="events.upcoming" label="Event name" />
+              </h3>
+              <p class="ag-sample-line">
+                <Ph id="events.upcoming" label="Time, place, who it’s for, cost" />
+              </p>
+            </div>
+            <div class="ag-go" />
+          </li>
+        ))
+  }
+</ol>
+
+<style>
+  .agenda {
+    list-style: none;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    --date-w: 132px;
+    --rail-w: 36px;
+  }
+  .ag {
+    display: grid;
+    grid-template-columns: var(--date-w) var(--rail-w) minmax(0, 1fr) auto;
+    column-gap: 18px;
+    align-items: start;
+    position: relative;
+  }
+  .ag + .ag .ag-main,
+  .ag + .ag .ag-date,
+  .ag + .ag .ag-go {
+    border-top: 1px solid var(--rule);
+  }
+  .ag-date,
+  .ag-main,
+  .ag-go {
+    padding: 22px 0 24px;
+    min-width: 0;
+    align-self: stretch;
+  }
+
+  /* The rail: one continuous time axis through every row, with a point per event. */
+  .ag-rail {
+    position: relative;
+    align-self: stretch;
+  }
+  .ag-rail::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1.5px;
+    margin-left: -0.75px;
+    background: var(--ink);
+  }
+  .ag-pt {
+    position: absolute;
+    left: 50%;
+    top: 34px;
+    width: 13px;
+    height: 13px;
+    margin-left: -6.5px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--paper);
+  }
+  .ag-sample .ag-pt {
+    background: var(--paper);
+    border: 1.5px dashed var(--accent-line);
+  }
+
+  .ag-date {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .ag-day {
+    font: 200 clamp(56px, 5vw, 76px) / 0.8 var(--serif);
+    color: var(--accent);
+    letter-spacing: -0.04em;
+    font-variation-settings: 'opsz' 72;
+  }
+  .ag-mon {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font: 600 13px/1 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .ag-wk {
+    font: 500 12.5px/1 var(--mono);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--ink-3);
+  }
+  .ag-skel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 1px solid var(--rule-2);
+    font: 500 13px/1 var(--mono);
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    text-align: center;
+  }
+  .ag-skel span + span {
+    font: 300 28px/1 var(--serif);
+    letter-spacing: 0.02em;
+  }
+  .ag-date :global(.ph) {
+    font-size: 13px;
+  }
+
+  .ag-top {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .ag-top .label {
+    color: var(--ink);
+  }
+  .ag-kind {
+    font: 500 12px/1 var(--mono);
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .ag-title {
+    font: 400 clamp(24px, 2.2vw, 30px) / 1.15 var(--serif);
+    letter-spacing: -0.01em;
+  }
+  .ag-sample .ag-title :global(.ph) {
+    font-size: 17px;
+  }
+  .ag-sample-line {
+    margin-top: 12px;
+    font-size: 17px;
+  }
+  .ag-meta {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+  }
+  .ag-meta div {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    min-width: 0;
+  }
+  .ag-meta dt {
+    font: 600 12px/1.4 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .ag-meta dd {
+    font-size: 17px;
+  }
+  .ag-desc {
+    margin-top: 12px;
+    font-size: 17px;
+    color: var(--ink-2);
+    max-width: 40em;
+  }
+  .ag-go {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-top: 26px;
+  }
+  .ag-go .xref {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 760px) {
+    .agenda {
+      --rail-w: 22px;
+    }
+    .ag {
+      grid-template-columns: var(--rail-w) minmax(0, 1fr);
+      column-gap: 14px;
+    }
+    .ag-rail {
+      grid-column: 1;
+      grid-row: 1 / span 3;
+    }
+    .ag-date,
+    .ag-main,
+    .ag-go {
+      grid-column: 2;
+    }
+    .ag-date {
+      flex-direction: row;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      padding-bottom: 12px;
+    }
+    .ag-main {
+      padding-top: 0;
+      border-top: 0 !important;
+      padding-bottom: 20px;
+    }
+    .ag-go {
+      border-top: 0 !important;
+      justify-content: flex-start;
+      padding: 0 0 22px;
+    }
+    .ag-go:empty {
+      display: none;
+    }
+    .ag-pt {
+      top: 30px;
+    }
+    .ag-meta {
+      flex-direction: column;
+      gap: 6px;
+    }
+    .ag-meta dt {
+      min-width: 4.4em;
+    }
+  }
+  @media (max-width: 620px) {
+    /* Identical sample rows add length without information on a phone. */
+    .ag-extra {
+      display: none;
+    }
+  }
+</style>

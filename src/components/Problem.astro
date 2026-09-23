@@ -79,6 +79,19 @@ const uid = `problem-${p.id}`;
   .statement :global(p + p) {
     margin-top: 0.8em;
   }
+  .statement + .disclose {
+    margin-top: 24px;
+  }
+  .problem :global(.katex-display) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0;
+  }
+  @media (max-width: 480px) {
+    .problem :global(.katex-display > .katex) {
+      font-size: 1em;
+    }
+  }
   .check {
     margin: 22px 0 18px;
     max-width: 30em;

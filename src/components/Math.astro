@@ -2,8 +2,10 @@
 /**
  * Typeset TeX at build time with KaTeX (no math JavaScript in the browser).
  *
- *   <Math tex="\sum_{k=1}^{n} \frac{1}{k(k+1)}" />          inline
- *   <Math display tex="a^2 + b^2 = c^2" />                   display (centered block)
+ *   <Math tex={String.raw`\sum_{k=1}^{n} \frac{1}{k(k+1)}`} />   inline
+ *   <Math display tex={String.raw`a^2 + b^2 = c^2`} />           display (centered block)
+ *
+ * Use String.raw for TeX: in a quoted attribute Astro treats backslashes as escapes (\f → form feed).
  */
 import katex from 'katex';
 import 'katex/dist/katex.min.css';

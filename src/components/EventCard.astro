@@ -13,7 +13,7 @@ interface Props {
   num: string;
   headingLevel?: 'h3' | 'h4';
 }
-const { event, sample, num, headingLevel = 'h3' } = Astro.props;
+const { event, num, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
 const d = event ? dateParts(event.date) : null;
 // Link to the event's own page; sample cards link to the Events page (except on it).

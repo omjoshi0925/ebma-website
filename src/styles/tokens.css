@@ -22,6 +22,9 @@
   --accent-line: rgb(200 54 26 / 0.6);
   --on-accent: #fbf8f1;
   --focus: #c8361a;
+  /* placeholder chips: a solid tint so contrast holds on paper and on paper-2 panels */
+  --ph-bg: #f1e4d8;
+  --ph-text: #a82b0d; /* 5.6:1 on --ph-bg */
 
   /* The inverse "band" used for the closing call to action. */
   --band-bg: #1a1813;
@@ -66,6 +69,8 @@
   --accent-line: rgb(255 106 69 / 0.65);
   --on-accent: #16140f;
   --focus: #ff8d6e;
+  --ph-bg: #2b1c14;
+  --ph-text: #ff8d6e;
   --band-bg: #0d0c09;
   --band-fg: #f1ebdd;
   --band-fg-2: rgb(241 235 221 / 0.78);
@@ -95,6 +100,8 @@
     --accent-line: rgb(255 106 69 / 0.65);
     --on-accent: #16140f;
     --focus: #ff8d6e;
+    --ph-bg: #2b1c14;
+    --ph-text: #ff8d6e;
     --band-bg: #0d0c09;
     --band-fg: #f1ebdd;
     --band-fg-2: rgb(241 235 221 / 0.78);

@@ -1,0 +1,309 @@
+---
+/**
+ * The "page not found" page. Astro builds it to dist/404.html, which Cloudflare Pages serves
+ * (with a 404 status) for any path that does not exist; `astro dev` shows it for unknown routes.
+ * All links are root-relative so they work from any depth.
+ *
+ * The figure: a curve y = f(x) with a removable discontinuity at x = 404, where f(404) is
+ * "??", the site's mark for an undefined reference.
+ */
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import Plate from '../components/Plate.astro';
+import { nav, contactHref } from '../data/site';
+
+const blurbs: Record<string, string> = {
+  '/': 'The East Bay theorem, upcoming events, and a problem to try.',
+  '/about/': 'What the association is for, and the questions parents ask.',
+  '/events/': 'Upcoming events, and competitions students can enter.',
+  '/resources/': 'Problems to work on, and good places to learn more.',
+  '/get-involved/': 'Join, get in touch, or bring your school along.',
+  '/sponsors/': 'Support mathematics for students across the East Bay.',
+};
+const pages = [
+  ...nav.map((item) => ({ href: item.href, n: `§${item.n}`, title: item.title, blurb: blurbs[item.href] ?? '' })),
+  { href: '/privacy/', n: 'App. A', title: 'Privacy notice', blurb: 'What this site collects, and what it does not.' },
+];
+
+// ---- figure geometry (viewBox units; labels are sized to stay ≥ 12 px down to the narrowest
+// two-column header at 981 px, where the figure renders at about 0.76×) ----
+const W = 360;
+const H = 262;
+const ox = 46; // y-axis
+const oy = 214; // x-axis
+const T = 520; // t runs over [0, T]
+const X = (t: number) => ox + 12 + t * 0.54;
+// A wave with period 340: peak near t = 150, trough near t = 320, and x = 404 mid-slope on the
+// way back up, so the hole reads as a gap in the curve rather than a marked extremum.
+const f = (t: number) => 128 - 62 * Math.sin((2 * Math.PI * (t - 65)) / 340) - 0.05 * t;
+const HOLE = 404;
+const GAP = 7; // stop the curve this far (in t) either side of the hole
+const path = (a: number, b: number) => {
+  const pts: string[] = [];
+  for (let i = 0; i <= 80; i++) {
+    const t = a + ((b - a) * i) / 80;
+    pts.push(`${X(t).toFixed(1)} ${f(t).toFixed(1)}`);
+  }
+  return `M${pts.join(' L')}`;
+};
+const left = path(0, HOLE - GAP);
+const right = path(HOLE + GAP, T);
+const hx = X(HOLE);
+const hy = f(HOLE);
+const ticks = [100, 200, 300, 500].map(X);
+---
+
+<Base title="Page not found" description="The page you asked for does not exist. Every page that does is listed here." noindex>
+  <PageHeader
+    chapter={0}
+    runLeft="Error 404"
+    runRight="Page not found"
+    label="Counterexample"
+    note="(to the claim that every link works)"
+    title="This page does not *exist.*"
+    lede={`<em>Proof.</em> Suppose it did. Then this site would have found it at the address you asked for. It found nothing there, which is a contradiction. <span class="qed" aria-hidden="true"></span>`}
+  >
+    <p slot="lede" class="lede-2 rise" style="--d:320">
+      The address may be mistyped, or the page may have moved. Every page that does exist is listed below.
+    </p>
+    <a slot="actions" class="btn" href="/">Go to the home page <span class="arr" aria-hidden="true">→</span></a>
+    <a slot="actions" class="xref" href="#pages">See every page <span class="arr" aria-hidden="true">↓</span></a>
+    <div slot="aside" class="nf-wrap">
+      <Plate
+        id="fig-404"
+        plate="Plate 404"
+        corner={`<span class="m" style="text-transform:none">f</span>(404) = ??`}
+        fig="Fig. 1."
+        caption={`A curve defined at every point but one. At <span class="m">x</span> = 404 it has a hole, which mathematicians call a <i>removable</i> discontinuity. The links below remove it.`}
+      >
+        <svg class="nf-fig" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false">
+          <!-- axes -->
+          <path class="ax" d={`M${ox} ${oy} H${W - 12} M${ox} ${oy} V16`}></path>
+          <path class="ax-head" d={`M${W - 12} ${oy} l-8 -4 v8 Z M${ox} 16 l-4 8 h8 Z`}></path>
+          {ticks.map((x) => <path class="ax" d={`M${x} ${oy} v6`} />)}
+          <text class="var" x={W - 14} y={oy + 26} text-anchor="end">x</text>
+          <text class="var" x={ox + 12} y="24">y</text>
+          <text class="lbl" x={ox - 8} y={oy + 20} text-anchor="end">0</text>
+          <!-- guides from the hole to the axes -->
+          <path class="guide" d={`M${hx} ${hy + 9} V${oy} M${hx - 9} ${hy} H${ox}`}></path>
+          <path class="ax" d={`M${hx} ${oy} v6`}></path>
+          <text class="lbl hot" x={hx} y={oy + 26} text-anchor="middle">404</text>
+          <text class="lbl hot" x={ox - 8} y={hy + 5} text-anchor="end">??</text>
+          <!-- the curve, in two pieces, and the hole between them -->
+          <path class="curve c1" d={left} pathLength="1"></path>
+          <path class="curve c2" d={right} pathLength="1"></path>
+          <circle class="hole" cx={hx} cy={hy} r="6.5"></circle>
+          <text class="var fx" x={X(150)} y={f(150) - 18} text-anchor="middle">y = f(x)</text>
+        </svg>
+      </Plate>
+    </div>
+  </PageHeader>
+
+  <Section
+    id="pages"
+    num="1"
+    title="Pages that *do* exist"
+    dek="Every page on this site. One of them is probably what you were looking for."
+    note="A proof by exhaustion checks every possible case, one at a time. Here are all of them."
+  >
+    <nav aria-label="All pages">
+      <ol class="pages" role="list">
+        {
+          pages.map((p) => (
+            <li>
+              <a href={p.href}>
+                <span class="pg-n">{p.n}</span>
+                <span class="pg-t">{p.title}</span>
+                <span class="pg-d">{p.blurb}</span>
+                <span class="pg-go" aria-hidden="true">
+                  →
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+    <p class="conclude">
+      <span>Still stuck? <a href={contactHref}>Tell us what you were looking for</a>, and we will point you to it.</span><span
+        class="qed"
+        aria-hidden="true"></span>
+    </p>
+  </Section>
+</Base>
+
+<style>
+  .lede-2 {
+    margin-top: 14px;
+    max-width: 34em;
+    font-size: clamp(18px, 1.5vw, 21px);
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .nf-wrap {
+    max-width: 460px;
+  }
+  .nf-fig {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    margin-top: 6px;
+  }
+  .ax {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .ax-head {
+    fill: var(--ink);
+  }
+  .guide {
+    fill: none;
+    stroke: var(--accent-line);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 4;
+  }
+  .curve {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hole {
+    fill: var(--paper-2);
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .lbl {
+    font: 500 16px var(--mono);
+    fill: var(--ink-3);
+  }
+  .lbl.hot {
+    fill: var(--accent-text);
+  }
+  .var {
+    font: italic 18px var(--math);
+    fill: var(--ink-3);
+  }
+  .fx {
+    fill: var(--ink-2);
+  }
+
+  /* The curve draws itself once, then the hole appears. Static and complete without JS or motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .curve {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      animation: nf-draw 1s cubic-bezier(0.6, 0, 0.4, 1) forwards;
+    }
+    :global(.js) .c1 {
+      animation-delay: 0.45s;
+    }
+    :global(.js) .c2 {
+      animation-delay: 1.55s;
+      animation-duration: 0.6s;
+    }
+    :global(.js) .hole,
+    :global(.js) .guide,
+    :global(.js) .hot {
+      opacity: 0;
+      animation: nf-fade 0.5s ease-out 1.45s forwards;
+    }
+  }
+  @keyframes nf-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes nf-fade {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* every page, as a ruled contents list */
+  .pages {
+    list-style: none;
+    border-top: 2px solid var(--ink);
+    max-width: 60rem;
+  }
+  .pages a {
+    display: grid;
+    grid-template-columns: 4.2em minmax(0, 15em) minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 6px 20px;
+    padding: 16px 0;
+    min-height: 56px;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .pg-n {
+    font: 500 12.5px/1 var(--mono);
+    color: var(--accent-text);
+    white-space: nowrap;
+  }
+  .pg-t {
+    font: 400 clamp(22px, 2vw, 27px) / 1.15 var(--serif);
+    letter-spacing: -0.01em;
+  }
+  .pg-d {
+    font-size: 16.5px;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .pg-go {
+    font: 500 17px/1 var(--sans);
+    color: var(--accent-text);
+    transition: transform 0.25s var(--ease-out);
+  }
+  .pages a:hover .pg-t {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  .pages a:hover .pg-go {
+    transform: translateX(4px);
+  }
+  .conclude {
+    border-top: 0;
+    max-width: 60rem;
+  }
+  .conclude a {
+    color: var(--ink);
+  }
+  .conclude a:hover {
+    color: var(--accent-text);
+  }
+
+  @media (max-width: 760px) {
+    .pages a {
+      grid-template-columns: 3.6em minmax(0, 1fr) auto;
+    }
+    .pg-d {
+      grid-column: 2;
+      grid-row: 2;
+    }
+    .pg-go {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+  @media (max-width: 980px) {
+    .nf-wrap {
+      max-width: 520px;
+    }
+  }
+  /* the smallest phones draw the figure at about 0.72× */
+  @media (max-width: 359px) {
+    .lbl {
+      font-size: 17px;
+    }
+    .var {
+      font-size: 19px;
+    }
+  }
+</style>

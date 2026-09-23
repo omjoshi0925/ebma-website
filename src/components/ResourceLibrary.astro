@@ -1,0 +1,283 @@
+---
+/**
+ * §3 of the Student Resources page: the library of verified third-party resources, grouped by
+ * category (3.1–3.4) and numbered like references ([1]–[n]).
+ *
+ * Without JavaScript it is simply the full grouped list. With JavaScript a filter bar appears
+ * (src/scripts/resources-filter.ts): category buttons and a "Free only" toggle, all
+ * aria-pressed, with a live status line ("12 resources shown").
+ */
+import ResourceCard from './ResourceCard.astro';
+import { categories, resources, isFree } from '../data/resources';
+
+let n = 0;
+const groups = categories.map((c, i) => ({
+  ...c,
+  num: `3.${i + 1}`,
+  items: resources.filter((r) => r.category === c.id).map((r) => ({ r, num: ++n })),
+}));
+const total = resources.length;
+const freeTotal = resources.filter(isFree).length;
+// "Two are free; the rest offer need-based aid." stays true to the data (every paid summer
+// program in the verified list mentions need-based aid).
+const summerFree = resources.filter((r) => r.category === 'summer' && isFree(r)).length;
+const words = ['None', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summerFree === 1 ? 'is' : 'are'} free; the rest offer need-based aid.` : 'Most offer need-based aid.';
+---
+
+<div class="lib" data-lib>
+  <div class="lib-bar" data-lib-bar hidden>
+    <p class="lib-bar-h" id="lib-filter-h">Filter the library</p>
+    <div class="lib-controls">
+      <div class="lib-cats" role="group" aria-labelledby="lib-filter-h">
+        <button type="button" class="lib-btn" aria-pressed="true" data-filter-cat="all">
+          All <span class="lib-n" aria-hidden="true" data-count-for="all">{total}</span>
+        </button>
+        {
+          groups.map((g) => (
+            <button type="button" class="lib-btn" aria-pressed="false" data-filter-cat={g.id} data-label={g.title}>
+              {g.short} <span class="lib-n" aria-hidden="true" data-count-for={g.id}>{g.items.length}</span>
+            </button>
+          ))
+        }
+      </div>
+      <button type="button" class="lib-btn lib-free" aria-pressed="false" data-filter-free>
+        <span class="lib-box" aria-hidden="true"></span>Free only <span class="lib-n" aria-hidden="true">{freeTotal}</span>
+      </button>
+    </div>
+    <p class="lib-status" role="status" data-lib-status>{total} resources shown</p>
+  </div>
+
+  {
+    groups.map((g) => (
+      <div class="lib-group" id={`lib-${g.id}`} data-group={g.id}>
+        <div class="lib-group-head">
+          <h3 id={`lib-${g.id}-h`}>
+            <span class="lib-gnum">{g.num}</span>
+            {g.title}
+          </h3>
+          <p class="lib-intro">
+            {g.id === 'practice' && <>Problem sets, lessons, videos and tools. Everything in this group is free to use.</>}
+            {g.id === 'local' && (
+              <>
+                Math circles, festivals and other programs based in the Bay Area. Looking for contests? BAMO and the Berkeley and Stanford math
+                tournaments are listed with the <a href="/events/#competitions">competitions</a>.
+              </>
+            )}
+            {g.id === 'summer' && (
+              <>
+                Programs for motivated students, mostly of high school age. Each one admits by application, and deadlines fall months before summer.
+                {summerFreeText}
+              </>
+            )}
+            {g.id === 'reading' && <>Classics on problem solving, contest textbooks, and books about why mathematics is beautiful. Try your public library first.</>}
+          </p>
+        </div>
+        <ul class="lib-grid" role="list">
+          {g.items.map(({ r, num }) => (
+            <li data-res data-cat={r.category} data-free={isFree(r) ? '1' : '0'}>
+              <ResourceCard resource={r} num={num} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+
+  <p class="lib-empty" data-lib-empty hidden>
+    Nothing matches those filters. <button type="button" class="lib-reset" data-lib-reset>Show all resources</button>
+  </p>
+</div>
+
+<style>
+  /* ---------- filter bar ---------- */
+  .lib-bar {
+    padding: 16px 0 18px;
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--rule-2);
+    margin-bottom: clamp(8px, 1.5vw, 16px);
+  }
+  .lib-bar-h {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .lib-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 22px;
+  }
+  .lib-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .lib-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 14px;
+    background: transparent;
+    border: 1px solid var(--rule-2);
+    border-radius: 0;
+    color: var(--ink);
+    font: 600 14.5px/1.1 var(--sans);
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+  }
+  .lib-btn:hover {
+    border-color: var(--ink);
+  }
+  .lib-n {
+    font: 500 12.5px/1 var(--mono);
+    color: var(--ink-3);
+  }
+  .lib-cats .lib-btn[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .lib-cats .lib-btn[aria-pressed='true'] .lib-n {
+    color: var(--paper);
+    opacity: 0.8;
+  }
+  /* "Free only" reads as a checkbox-style toggle, set apart from the category group. */
+  .lib-free {
+    position: relative;
+  }
+  .lib-box {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    border: 1.5px solid var(--ink);
+    display: grid;
+    place-items: center;
+  }
+  .lib-free[aria-pressed='true'] {
+    border-color: var(--accent);
+    background: var(--accent-wash);
+  }
+  .lib-free[aria-pressed='true'] .lib-box {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .lib-free[aria-pressed='true'] .lib-box::after {
+    content: '';
+    width: 4px;
+    height: 8px;
+    border: solid var(--on-accent);
+    border-width: 0 2px 2px 0;
+    transform: translateY(-1px) rotate(45deg);
+  }
+  .lib-status {
+    margin-top: 14px;
+    font: 500 13px/1.4 var(--mono);
+    color: var(--ink-3);
+  }
+
+  /* ---------- groups ---------- */
+  .lib-group {
+    padding-top: clamp(36px, 4vw, 56px);
+  }
+  .lib-group-head {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 10px clamp(24px, 3vw, 48px);
+    align-items: baseline;
+    margin-bottom: 26px;
+  }
+  .lib-group h3 {
+    font: 400 clamp(27px, 2.4vw, 34px) / 1.1 var(--serif);
+    letter-spacing: -0.015em;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+  }
+  .lib-gnum {
+    font: 500 14px/1 var(--mono);
+    color: var(--accent-text);
+    letter-spacing: 0.02em;
+    flex: none;
+  }
+  .lib-intro {
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 36em;
+  }
+  .lib-intro a {
+    color: var(--ink);
+  }
+  .lib-intro a:hover {
+    color: var(--accent-text);
+  }
+  .lib-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 272px), 1fr));
+    gap: 36px clamp(24px, 2.4vw, 36px);
+  }
+  .lib-grid > li {
+    min-width: 0;
+  }
+  .lib-empty {
+    padding: 32px 0;
+    font-size: 18px;
+    color: var(--ink-2);
+  }
+  .lib-reset {
+    margin-left: 0.4em;
+    padding: 6px 0 3px;
+    min-height: 32px;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    font: 600 15px/1.3 var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .lib-reset:hover {
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+
+  @media (max-width: 760px) {
+    .lib-group-head {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 620px) {
+    .lib-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .lib-cats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .lib-cats .lib-btn:first-child {
+      grid-column: 1 / -1;
+    }
+    .lib-btn {
+      justify-content: space-between;
+      text-align: left;
+    }
+    .lib-free {
+      justify-content: flex-start;
+    }
+    .lib-free .lib-n {
+      margin-left: auto;
+    }
+  }
+</style>
+
+<script>
+  import '../scripts/resources-filter';
+</script>

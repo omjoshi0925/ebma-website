@@ -1,0 +1,657 @@
+---
+/**
+ * The "Join EBMA" form on /get-involved/#join. One form for everyone (students, parents,
+ * teachers, volunteers, sponsors); the role radios say who is writing.
+ *
+ * Works without JavaScript: a plain POST to /api/join (functions/api/join.ts), native
+ * `required` validation, then a redirect to /get-involved/thanks/. With JavaScript,
+ * src/scripts/join-form.ts validates with the same rules as the server (shared/join.ts),
+ * shows an error summary and inline errors, submits with fetch, and shows #join-success.
+ *
+ * Markup contract (tests/form.mjs): field ids are join-<field>; radio and checkbox groups put
+ * join-<field> on their first input; errors live in #join-<field>-error.
+ */
+import { ROLES, GRADES, INTERESTS, LIMITS } from '../../shared/join';
+import Ph from './Ph.astro';
+
+const fmt = (n: number) => n.toLocaleString('en-US');
+const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${field}` : `join-${field}-${value}`);
+---
+
+<div class="jf" data-join>
+  <form id="join-form" class="jf-form" action="/api/join" method="post" aria-describedby="join-intro">
+    <div
+      id="join-error-summary"
+      class="jf-summary"
+      tabindex="-1"
+      role="alert"
+      aria-labelledby="join-error-summary-h"
+      hidden
+    >
+      <h3 id="join-error-summary-h" data-summary-heading>Please check the form</h3>
+      <p class="jf-summary-msg" data-summary-msg hidden></p>
+      <ul class="jf-summary-list" data-summary-list></ul>
+    </div>
+
+    <p id="join-intro" class="jf-intro">
+      Four things are <b>required</b>: your name, your email, who you are, and the consent box at the end. Everything else is optional.
+    </p>
+
+    <div class="jf-row jf-row-2">
+      <div class="jf-field" data-field="name">
+        <label class="jf-label" for="join-name">Name <span class="jf-req">(required)</span></label>
+        <p class="jf-err" id="join-name-error"></p>
+        <input
+          class="jf-input"
+          id="join-name"
+          name="name"
+          type="text"
+          autocomplete="name"
+          maxlength={LIMITS.name}
+          required
+          aria-describedby="join-name-error"
+        />
+      </div>
+      <div class="jf-field" data-field="email">
+        <label class="jf-label" for="join-email">Email <span class="jf-req">(required)</span></label>
+        <p class="jf-err" id="join-email-error"></p>
+        <input
+          class="jf-input"
+          id="join-email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          spellcheck="false"
+          maxlength={LIMITS.email}
+          required
+          aria-describedby="join-email-hint join-email-error"
+        />
+        <p class="jf-hint" id="join-email-hint">We’ll reply to this address.</p>
+      </div>
+    </div>
+
+    <fieldset class="jf-field jf-group" data-field="role" aria-describedby="join-role-error">
+      <legend class="jf-label">Who are you? <span class="jf-req">(required)</span></legend>
+      <p class="jf-err" id="join-role-error"></p>
+      <div class="jf-choices jf-choices-3">
+        {
+          ROLES.map((r, i) => (
+            <label class="jf-choice">
+              <input class="jf-radio" type="radio" name="role" value={r.value} id={groupId('role', r.value, i)} required />
+              <span>{r.label}</span>
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <div class="jf-row jf-row-3">
+      <div class="jf-field" data-field="grade">
+        <label class="jf-label" for="join-grade">Grade <span class="jf-req">(optional)</span></label>
+        <p class="jf-err" id="join-grade-error"></p>
+        <span class="jf-select">
+          <select class="jf-input" id="join-grade" name="grade" aria-describedby="join-grade-hint join-grade-error">
+            <option value="">Choose…</option>
+            {GRADES.map((g) => <option value={g.value}>{g.label}</option>)}
+          </select>
+        </span>
+        <p class="jf-hint" id="join-grade-hint">For students.</p>
+      </div>
+      <div class="jf-field" data-field="school">
+        <label class="jf-label" for="join-school">School <span class="jf-req">(optional)</span></label>
+        <p class="jf-err" id="join-school-error"></p>
+        <input
+          class="jf-input"
+          id="join-school"
+          name="school"
+          type="text"
+          autocomplete="organization"
+          maxlength={LIMITS.school}
+          aria-describedby="join-school-hint join-school-error"
+        />
+        <p class="jf-hint" id="join-school-hint">Where you study or teach.</p>
+      </div>
+      <div class="jf-field" data-field="city">
+        <label class="jf-label" for="join-city">City <span class="jf-req">(optional)</span></label>
+        <p class="jf-err" id="join-city-error"></p>
+        <input
+          class="jf-input"
+          id="join-city"
+          name="city"
+          type="text"
+          autocomplete="address-level2"
+          maxlength={LIMITS.city}
+          aria-describedby="join-city-hint join-city-error"
+        />
+        <p class="jf-hint" id="join-city-hint">Just the city or town.</p>
+      </div>
+    </div>
+
+    <fieldset class="jf-field jf-group" data-field="interests" aria-describedby="join-interests-hint join-interests-error">
+      <legend class="jf-label">What are you interested in? <span class="jf-req">(optional)</span></legend>
+      <p class="jf-hint jf-hint-top" id="join-interests-hint">Tick any that apply.</p>
+      <p class="jf-err" id="join-interests-error"></p>
+      <div class="jf-choices jf-choices-2">
+        {
+          INTERESTS.map((it, i) => (
+            <label class="jf-choice">
+              <input class="jf-check" type="checkbox" name="interests" value={it.value} id={groupId('interests', it.value, i)} />
+              <span>{it.label}</span>
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <div class="jf-field" data-field="message">
+      <label class="jf-label" for="join-message">Message <span class="jf-req">(optional)</span></label>
+      <p class="jf-hint jf-hint-top" id="join-message-hint">A question, what you’re hoping for, or what your students need.</p>
+      <p class="jf-err" id="join-message-error"></p>
+      <textarea
+        class="jf-input jf-textarea"
+        id="join-message"
+        name="message"
+        rows="5"
+        maxlength={LIMITS.message}
+        aria-describedby="join-message-hint join-message-count join-message-error"></textarea>
+      <p class="jf-count" id="join-message-count" data-count-for="join-message">
+        <span data-count>0</span> of {fmt(LIMITS.message)} characters
+      </p>
+      <p class="sr-only" aria-live="polite" data-count-live></p>
+    </div>
+
+    <div class="jf-field jf-consent" data-field="consent">
+      <p class="jf-err" id="join-consent-error"></p>
+      <label class="jf-choice jf-choice-consent">
+        <input class="jf-check" type="checkbox" id="join-consent" name="consent" value="yes" required aria-describedby="join-consent-error" />
+        <span>
+          It’s OK for the East Bay Math Association to contact me by email about this message, and about anything I ticked above.
+          <span class="jf-req">(required)</span>
+        </span>
+      </label>
+      <p class="jf-hint">
+        We use what you send only to reply to you and to send what you asked for. See the <a href="/privacy/">privacy notice</a>.
+      </p>
+    </div>
+
+    <!-- Spam trap: people never see or reach this field; bots tend to fill it in. -->
+    <div class="jf-hp" aria-hidden="true">
+      <label for="join-website">Leave this empty</label>
+      <input id="join-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+    </div>
+    <input type="hidden" name="started_at" value="" />
+
+    <div class="jf-submit">
+      <button class="btn jf-btn" type="submit">
+        <span data-btn-label>Join EBMA</span><span class="arr" aria-hidden="true">→</span>
+      </button>
+      <p class="sr-only" aria-live="polite" data-status></p>
+    </div>
+  </form>
+
+  <section id="join-success" class="jf-success" tabindex="-1" aria-labelledby="join-success-h" hidden>
+    <p class="label">Q.E.D.</p>
+    <h3 id="join-success-h">Thanks, we got it.</h3>
+    <p>
+      We’ll reply to <strong data-success-email>your email address</strong>, usually within <span class="jf-tie"><Ph id="get-involved.response-time" />.</span>
+    </p>
+    <p>
+      While you wait, <a href="/resources/#problems">try a problem</a> or <a href="/events/">see what’s coming up</a>.
+    </p>
+    <div class="jf-success-foot">
+      <button class="btn btn-quiet" type="button" data-join-again>Send another response</button>
+      <span class="qed" aria-hidden="true"></span>
+    </div>
+  </section>
+</div>
+
+<script>
+  import { mountJoinForm } from '../scripts/join-form';
+  const form = document.getElementById('join-form');
+  if (form instanceof HTMLFormElement) mountJoinForm(form);
+</script>
+
+<style>
+  .jf {
+    min-width: 0;
+    container: jf / inline-size;
+  }
+  .jf-form {
+    display: grid;
+    gap: 34px;
+  }
+  .jf-intro {
+    font: 500 15px/1.5 var(--sans);
+    color: var(--ink-2);
+    max-width: 40em;
+  }
+  .jf-intro b {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ---------- layout ---------- */
+  .jf-row {
+    display: grid;
+    gap: 34px 24px;
+    align-items: start;
+  }
+  .jf-row-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .jf-row-3 {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .jf-field {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+  }
+  fieldset.jf-field {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  /* The error state: a vermilion rule in the margin, like a referee's mark. */
+  .jf-field.is-invalid::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+
+  /* ---------- labels, hints, errors ---------- */
+  .jf-label {
+    display: block;
+    padding: 0;
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .jf-req {
+    font: 500 13px/1.3 var(--sans);
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: var(--ink-3);
+    margin-left: 0.3em;
+  }
+  .jf-hint {
+    font: 500 14px/1.45 var(--sans);
+    color: var(--ink-3);
+  }
+  .jf-hint a {
+    color: var(--ink);
+  }
+  .jf-hint-top {
+    margin-top: -2px;
+  }
+  .jf-err {
+    font: 600 14.5px/1.4 var(--sans);
+    color: var(--accent-text);
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+  }
+  .jf-err:empty {
+    display: none;
+  }
+  .jf-err::before {
+    content: '';
+    flex: none;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+
+  /* ---------- text inputs, select, textarea ---------- */
+  .jf-input {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    background: var(--paper);
+    border: 1.5px solid var(--ink-3);
+    border-radius: 0;
+    font: 500 17px/1.35 var(--sans);
+    color: var(--ink);
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  .jf-input:hover {
+    border-color: var(--ink);
+  }
+  .jf-input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-color: var(--ink);
+  }
+  .jf-input[aria-invalid='true'] {
+    border-color: var(--accent);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .jf-textarea {
+    min-height: 150px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .jf-select {
+    position: relative;
+    display: block;
+  }
+  .jf-select select {
+    -webkit-appearance: none;
+    appearance: none;
+    padding-right: 44px;
+    cursor: pointer;
+  }
+  .jf-select::after {
+    content: '';
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+    transform: translateY(-70%) rotate(45deg);
+    pointer-events: none;
+  }
+  .jf-count {
+    align-self: flex-end;
+    font: 500 12.5px/1.3 var(--mono);
+    color: var(--ink-3);
+    margin-top: -2px;
+  }
+  .jf-count.is-near {
+    color: var(--accent-text);
+  }
+
+  /* ---------- radio and checkbox tiles ---------- */
+  .jf-group .jf-label {
+    margin-bottom: 8px;
+  }
+  .jf-choices {
+    display: grid;
+    gap: 10px;
+  }
+  .jf-choices-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .jf-choices-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .jf-choice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 10px 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule-2);
+    font: 500 15.5px/1.3 var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+    transition:
+      border-color 0.15s,
+      background-color 0.15s;
+  }
+  .jf-choice:hover {
+    border-color: var(--ink-3);
+  }
+  .jf-choice:has(input:checked) {
+    border-color: var(--ink);
+    background: var(--accent-wash);
+    box-shadow: inset 0 0 0 0.5px var(--ink);
+  }
+  @supports selector(:has(*)) {
+    .jf-choice:has(input:focus-visible) {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .jf-choice input:focus-visible {
+      outline: none;
+    }
+  }
+  .jf-choice input {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: none;
+    margin: 0;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-content: center;
+    background: var(--paper);
+    border: 1.5px solid var(--ink-3);
+    cursor: pointer;
+  }
+  .jf-choice:hover input {
+    border-color: var(--ink);
+  }
+  .jf-radio {
+    border-radius: 50%;
+  }
+  .jf-radio::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    transform: scale(0);
+    transition: transform 0.15s var(--ease-out);
+  }
+  .jf-choice .jf-radio:checked {
+    border-color: var(--ink);
+  }
+  .jf-radio:checked::before {
+    transform: scale(1);
+  }
+  .jf-check {
+    border-radius: 0;
+  }
+  .jf-check::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: var(--on-accent);
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    transform: scale(0);
+    transition: transform 0.15s var(--ease-out);
+  }
+  .jf-choice .jf-check:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .jf-check:checked::before {
+    transform: scale(1);
+  }
+  .jf-choice input[aria-invalid='true'] {
+    border-color: var(--accent);
+  }
+  .jf-field.is-invalid .jf-choice {
+    border-color: var(--accent-line);
+  }
+  .jf-choice-consent {
+    align-items: flex-start;
+    padding: 16px;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  .jf-choice-consent input {
+    margin-top: 1px;
+  }
+  .jf-choice-consent .jf-req {
+    margin-left: 0.15em;
+  }
+  @media (forced-colors: active) {
+    .jf-choice input {
+      -webkit-appearance: auto;
+      appearance: auto;
+    }
+    .jf-choice input::before {
+      display: none;
+    }
+  }
+
+  /* ---------- honeypot: off-screen for everyone ---------- */
+  .jf-hp {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* ---------- submit ---------- */
+  .jf-submit {
+    padding-top: 26px;
+    border-top: 1px solid var(--rule-2);
+  }
+  .jf-btn {
+    min-width: 13em;
+    justify-content: space-between;
+  }
+  .jf-btn[disabled] .arr {
+    visibility: hidden;
+  }
+
+  /* ---------- error summary ---------- */
+  .jf-summary {
+    border: 2px solid var(--accent);
+    border-left-width: 8px;
+    background: var(--paper);
+    padding: 20px 22px 22px;
+  }
+  .jf-summary:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  .jf-summary h3 {
+    font: 400 clamp(23px, 2vw, 27px) / 1.15 var(--serif);
+    letter-spacing: -0.01em;
+  }
+  .jf-summary-msg {
+    margin-top: 10px;
+    font-size: 17px;
+    color: var(--ink-2);
+  }
+  .jf-summary-msg a {
+    color: var(--ink);
+  }
+  .jf-summary-list {
+    list-style: none;
+    margin-top: 12px;
+    display: grid;
+    gap: 4px;
+  }
+  .jf-summary-list:empty {
+    display: none;
+  }
+  /* The list items are built by join-form.ts, so they carry no scope attribute: :global. */
+  .jf-summary-list :global(a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 2px 0;
+    font: 600 15.5px/1.35 var(--sans);
+    color: var(--accent-text);
+    text-underline-offset: 0.2em;
+  }
+  .jf-summary-list :global(a:hover) {
+    color: var(--ink);
+  }
+
+  /* ---------- success ---------- */
+  .jf-success {
+    border-top: 3px solid var(--ink);
+    padding-top: 22px;
+    display: grid;
+    gap: 14px;
+    max-width: 38em;
+  }
+  .jf-success:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 6px;
+  }
+  .jf-success h3 {
+    font: 300 clamp(36px, 4vw, 54px) / 1 var(--serif);
+    letter-spacing: -0.02em;
+    font-variation-settings: 'opsz' 72;
+  }
+  .jf-success p:not(.label) {
+    font-size: 19px;
+    color: var(--ink-2);
+  }
+  .jf-success strong {
+    color: var(--ink);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .jf-success a {
+    color: var(--ink);
+  }
+  .jf-tie,
+  .jf-tie :global(.ph) {
+    white-space: nowrap;
+  }
+  .jf-success-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+  }
+  .jf-success-foot .qed {
+    font-size: 22px;
+  }
+
+  /* The grid follows the form's own width, wherever the page puts it. */
+  @container jf (max-width: 560px) {
+    .jf-choices-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .jf-row-3 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .jf-row-3 > :first-child {
+      grid-column: 1 / -1;
+      max-width: calc(50% - 12px);
+    }
+  }
+  @container jf (max-width: 480px) {
+    .jf-form {
+      gap: 30px;
+    }
+    .jf-row-2,
+    .jf-row-3,
+    .jf-choices-3,
+    .jf-choices-2 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .jf-row-3 > :first-child {
+      max-width: none;
+    }
+    .jf-btn {
+      width: 100%;
+    }
+    .jf-success-foot {
+      flex-wrap: wrap;
+    }
+  }
+  @media (max-width: 700px) {
+    .jf-field.is-invalid::before {
+      left: -12px;
+    }
+  }
+</style>

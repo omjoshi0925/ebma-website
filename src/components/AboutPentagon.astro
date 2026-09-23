@@ -1,0 +1,480 @@
+---
+/**
+ * Plate II on the About page: the compass-and-straightedge construction of a regular pentagon,
+ * which the reader steps through. The finished figure is rendered here at build time (so it is
+ * complete without JavaScript); scripts/about-pentagon.ts replays it from the same data.
+ * Geometry, timing and step text: scripts/about-pentagon-geometry.ts.
+ */
+import Plate from './Plate.astro';
+import TeX from './Math.astro';
+import { construction, STEPS, pathAt, VIEWBOX, type Layer } from '../scripts/about-pentagon-geometry';
+
+const { items } = construction;
+const layers: Layer[] = ['faint', 'ink', 'accent', 'pts', 'lbl'];
+const byLayer = (layer: Layer) => items.map((it, i) => ({ it, i })).filter(({ it }) => it.layer === layer);
+/** "$OQ$ = $r$" → segments, the $…$ ones set in the math italic. */
+const parts = (text: string) =>
+  text
+    .split(/\$([^$]+)\$/)
+    .map((seg, k) => ({ seg, math: k % 2 === 1 }))
+    .filter((p) => p.seg);
+const [, , vbW, vbH] = VIEWBOX.split(' ').map(Number);
+const f = (n: number) => n.toFixed(2);
+---
+
+<div class="pent" data-pentagon>
+  <Plate
+    id="fig-2"
+    class="pent-plate"
+    plate="Plate II"
+    corner="Compass &amp; straightedge"
+    fig="Fig. 2."
+    caption="A regular pentagon, built with nothing but a compass and a straightedge. No single step is hard: draw a circle, halve a radius, swing an arc. Seven small steps add up to a shape that is exactly right. That is how we think about learning mathematics: <em>hard problems yield to small steps.</em>"
+  >
+    <svg
+      class="pent-svg"
+      data-pentagon-svg
+      viewBox={VIEWBOX}
+      width={vbW}
+      height={vbH}
+      role="img"
+      aria-labelledby="pent-title pent-desc"
+    >
+      <title id="pent-title">Constructing a regular pentagon with a compass and a straightedge</title>
+      <desc id="pent-desc"
+        >A circle with center O and two perpendicular diameters, with ends A and B and top point P. An arc about A through O finds M, the midpoint of OA.
+        An arc about M through P meets the diameter at Q, so that OQ is the radius divided by the golden ratio φ. The segment PQ is the side of the
+        regular pentagon: stepped around the circle with the compass it marks five points, which are joined to form the pentagon, drawn in red, with
+        its star of diagonals.</desc
+      >
+      {
+        layers.map((layer) => (
+          <g class={`l-${layer}`}>
+            {byLayer(layer).map(({ it, i }) =>
+              it.kind === 'point' ? (
+                <circle class={it.cls} data-i={i} cx={f(it.at[0])} cy={f(it.at[1])} r={it.r} />
+              ) : it.kind === 'label' ? (
+                <text class={it.cls} data-i={i} x={f(it.x)} y={f(it.y)} text-anchor={it.anchor}>
+                  {parts(it.text).map((p) => (p.math ? <tspan class="mi">{p.seg}</tspan> : <tspan>{p.seg}</tspan>))}
+                </text>
+              ) : (
+                <path class={it.cls} data-i={i} d={pathAt(it, 1)} />
+              ),
+            )}
+          </g>
+        ))
+      }
+      <g class="tool" data-tool opacity="0" aria-hidden="true">
+        <rect class="ruler" data-ruler x="-34" y="1.5" width="0" height="16" rx="2" visibility="hidden"></rect>
+        <g data-compass visibility="hidden">
+          <path class="leg" data-leg-a d="M0 0"></path>
+          <path class="leg" data-leg-b d="M0 0"></path>
+          <path class="leg" data-handle d="M0 0"></path>
+          <circle class="hinge" data-hinge r="4.5" cx="0" cy="0"></circle>
+          <circle class="tip" data-tip r="3.2" cx="0" cy="0"></circle>
+        </g>
+      </g>
+    </svg>
+
+    <div class="pent-foot" data-foot hidden>
+      <div class="read-wrap">
+        <p class="pent-read" data-readout aria-live="polite" aria-atomic="true">
+          <span class="rn">Step {STEPS.length} of {STEPS.length}</span>
+          <span class="rt" set:html={STEPS[STEPS.length - 1]} />
+        </p>
+        {
+          STEPS.map((html, i) => (
+            <p class="pent-read sizer" aria-hidden="true">
+              <span class="rn">
+                Step {i + 1} of {STEPS.length}
+              </span>
+              <span class="rt" set:html={html} />
+            </p>
+          ))
+        }
+      </div>
+      <div class="pent-ctl" role="group" aria-label="Construction controls">
+        <button type="button" class="pbtn" data-prev>
+          <span class="arr" aria-hidden="true">←</span> Previous<span class="sr-only"> step</span>
+        </button>
+        <button type="button" class="pbtn" data-next>
+          Next<span class="sr-only"> step</span> <span class="arr" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="pbtn pbtn-toggle" data-toggle data-state="replay">
+          <span class="ic" aria-hidden="true"></span>
+          <svg class="ic-re" viewBox="0 0 12 12" aria-hidden="true" focusable="false"
+            ><path d="M10.2 6.9A4.3 4.3 0 1 1 8.8 2.7M9.4.8v2.6H6.8" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg
+          >
+          <span class="t">Replay</span>
+        </button>
+      </div>
+    </div>
+  </Plate>
+
+  <div class="procedure">
+    <p class="label">Construction 3.1</p>
+    <h3 class="proc-h">Seven steps to a regular pentagon</h3>
+    <p class="proc-intro">
+      Each step uses one tool: the compass for circles, the straightedge for lines.<span class="js-only">
+        Select a step to see it drawn.</span
+      >
+    </p>
+    <ol class="steps" data-steps>
+      {
+        STEPS.map((html, i) => (
+          <li data-step={i}>
+            <span class="n">
+              <span class="sr-only">Step </span>
+              {i + 1}
+            </span>
+            <span class="t" set:html={html} />
+          </li>
+        ))
+      }
+    </ol>
+
+    <details class="disclose why">
+      <summary>Why does it work?</summary>
+      <div class="disclose-body">
+        <p>
+          <em>Proof.</em> Let the radius be <span class="m">r</span>. <span class="m">M</span> is the midpoint of <span class="m">OA</span>, so
+          <TeX tex={String.raw`OM = \tfrac{r}{2}`} />, and by Pythagoras <TeX tex={String.raw`MP = \tfrac{\sqrt5}{2}\,r`} />. The arc about <span class="m">M</span> keeps
+          that length, so <TeX tex={String.raw`MQ = MP`} /> and
+        </p>
+        <TeX display tex={String.raw`OQ = MQ - OM = \frac{\sqrt5 - 1}{2}\,r = \frac{r}{\varphi},`} />
+        <p>where <TeX tex={String.raw`\varphi = \tfrac{1+\sqrt5}{2}`} /> is the golden ratio. By Pythagoras again,</p>
+        <TeX display tex={String.raw`PQ^2 = r^2 + OQ^2 = \frac{5 - \sqrt5}{2}\,r^2.`} />
+        <p>
+          A side of the regular pentagon in the circle spans <TeX tex={String.raw`72^\circ`} /> at the center, so its length is <TeX tex={String.raw`2r\sin 36^\circ`} />,
+          and <TeX tex={String.raw`(2r\sin 36^\circ)^2 = 2r^2(1 - \cos 72^\circ) = \tfrac{5-\sqrt5}{2}\,r^2`} /> because <TeX
+            tex={String.raw`\cos 72^\circ = \tfrac{\sqrt5 - 1}{4}`}
+          />. The two lengths agree, so the compass steps around the circle in exactly five equal steps.
+        </p>
+        <p class="end"><span class="qed" role="img" aria-label="End of proof"></span></p>
+      </div>
+    </details>
+  </div>
+</div>
+
+<style>
+  .pent {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(32px, 4vw, 64px);
+    align-items: start;
+  }
+
+  /* ---- the figure ---- */
+  .pent-svg {
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+  }
+  .pent-svg path {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .pent-svg .c {
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .pent-svg .arc {
+    stroke: var(--ink-3);
+    stroke-width: 1.2;
+  }
+  .pent-svg .f {
+    stroke: var(--ink-3);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 5;
+  }
+  .pent-svg .g {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+  }
+  .pent-svg .a {
+    stroke: var(--accent);
+    stroke-width: 2.6;
+  }
+  .pent-svg .a-thin {
+    stroke: var(--accent);
+    stroke-width: 1.8;
+  }
+  .pent-svg .pt {
+    fill: var(--ink);
+  }
+  .pent-svg .pt-a {
+    fill: var(--accent);
+  }
+  .pent-svg text {
+    paint-order: stroke;
+    stroke: var(--paper-2);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+  .pent-svg .lbl {
+    font-family: var(--math);
+    font-style: italic;
+    font-size: 25px;
+    fill: var(--ink);
+  }
+  .pent-svg .note {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 21px;
+    fill: var(--accent-text);
+  }
+  .pent-svg .mi {
+    font-family: var(--math);
+  }
+  .pent-svg .leg {
+    stroke: var(--ink-2);
+    stroke-width: 1.4;
+  }
+  .pent-svg .hinge {
+    fill: var(--paper-2);
+    stroke: var(--ink-2);
+    stroke-width: 1.4;
+    vector-effect: non-scaling-stroke;
+  }
+  .pent-svg .tip {
+    fill: var(--accent);
+  }
+  .pent-svg .ruler {
+    fill: color-mix(in srgb, var(--ink) 6%, transparent);
+    stroke: var(--rule-2);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* ---- the step readout and controls, inside the plate ---- */
+  .pent-foot {
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    gap: 14px;
+  }
+  .read-wrap {
+    display: grid;
+  }
+  .read-wrap > * {
+    grid-area: 1 / 1;
+  }
+  .pent-read {
+    font-size: 17.5px;
+    line-height: 1.45;
+    color: var(--ink);
+    text-wrap: pretty;
+  }
+  .sizer {
+    visibility: hidden;
+  }
+  /* Math italic capitals lean into the next word ("P to"); give them a hair of room. */
+  .pent-read :global(.m),
+  .steps .t :global(.m) {
+    padding-right: 0.06em;
+  }
+  .pent-read :global(.rn) {
+    display: block;
+    margin-bottom: 6px;
+    font: 600 12px/1.2 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+  .pent-ctl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pbtn {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    background: transparent;
+    border: 1px solid var(--rule-2);
+    color: var(--ink);
+    font: 600 14.5px/1 var(--sans);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      color 0.2s;
+  }
+  .pbtn:hover {
+    border-color: var(--ink);
+  }
+  .pbtn[aria-disabled='true'] {
+    color: var(--ink-3);
+    border-color: var(--rule);
+    cursor: default;
+  }
+  .pbtn-toggle {
+    margin-left: auto;
+    min-width: 7.5em;
+  }
+  .pbtn-toggle .ic {
+    width: 10px;
+    height: 11px;
+    border-left: 3px solid currentColor;
+    border-right: 3px solid currentColor;
+  }
+  .pbtn-toggle[data-state='paused'] .ic {
+    width: 0;
+    height: 0;
+    border: 0;
+    border-left: 10px solid currentColor;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+  }
+  .ic-re {
+    width: 13px;
+    height: 13px;
+    display: none;
+  }
+  .pbtn-toggle:is([data-state='replay'], [data-state='restart'], [data-state='finish']) .ic {
+    display: none;
+  }
+  .pbtn-toggle:is([data-state='replay'], [data-state='restart'], [data-state='finish']) .ic-re {
+    display: block;
+  }
+
+  /* ---- the written construction ---- */
+  .procedure {
+    min-width: 0;
+    border-top: 2px solid var(--ink);
+    padding-top: 16px;
+  }
+  .proc-h {
+    margin-top: 12px;
+    font: 400 clamp(27px, 2.4vw, 34px) / 1.1 var(--serif);
+    letter-spacing: -0.015em;
+  }
+  .proc-intro {
+    margin: 12px 0 18px;
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .js-only {
+    display: none;
+  }
+  .pent:global(.is-live) .js-only {
+    display: inline;
+  }
+  .steps {
+    list-style: none;
+    border-top: 1px solid var(--rule-2);
+    margin-bottom: 28px;
+  }
+  .steps li {
+    border-bottom: 1px solid var(--rule);
+  }
+  /* The no-JS list item and the button JS wraps its content in share one layout. */
+  .steps li:not(:has(button)),
+  .steps :global(.step-btn) {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.2em minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 0;
+    text-align: left;
+    font: 400 17px/1.45 var(--serif);
+    color: var(--ink-2);
+  }
+  .steps :global(.step-btn) {
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .steps .n {
+    font: 500 13px/1 var(--mono);
+    color: var(--ink-3);
+  }
+  .steps :global(.step-btn.done) .n {
+    color: var(--ink);
+  }
+  .steps :global(.step-btn[aria-current='step']) {
+    color: var(--ink);
+  }
+  .steps :global(.step-btn[aria-current='step']) .n {
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+  .steps :global(.step-btn[aria-current='step'])::before {
+    content: '';
+    position: absolute;
+    left: -14px;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    background: var(--accent);
+  }
+  .steps :global(.step-btn:hover) .t {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  .why .disclose-body {
+    font-size: 17.5px;
+  }
+  .why .disclose-body :global(.math-display) {
+    font-size: 17px;
+  }
+  .end {
+    text-align: right;
+  }
+
+  @media (max-width: 1180px) {
+    .pent {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    /* The figure element belongs to <Plate>, so the class needs :global to reach it. */
+    .pent > :global(.pent-plate) {
+      max-width: 600px;
+    }
+    .procedure {
+      max-width: 40em;
+    }
+  }
+  @media (max-width: 620px) {
+    .pent-ctl {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .pbtn {
+      padding: 0 8px;
+    }
+    .pbtn-toggle {
+      margin-left: 0;
+      min-width: 0;
+    }
+    .pent-read {
+      font-size: 16.5px;
+    }
+    /* The figure scales down with the screen; keep its lettering readable. */
+    .pent-svg .lbl {
+      font-size: 29px;
+    }
+    .pent-svg .note {
+      font-size: 24px;
+    }
+    .steps :global(.step-btn[aria-current='step'])::before {
+      left: -10px;
+    }
+  }
+</style>
+
+<script>
+  import { mountPentagon } from '../scripts/about-pentagon';
+  document.querySelectorAll<HTMLElement>('[data-pentagon]').forEach(mountPentagon);
+</script>

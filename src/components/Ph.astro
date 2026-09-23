@@ -21,10 +21,6 @@ const def = getPlaceholder(id);
   def.value !== null && def.kind !== 'list' ? (
     <Fragment>{def.value}</Fragment>
   ) : (
-    <span class:list={['ph', className]} data-placeholder={id}>
-      <span class="ph-q" aria-hidden="true">??</span>
-      <span class="sr-only">Placeholder: </span>
-      {label ?? def.label}
-    </span>
+    <span class:list={['ph', className]} data-placeholder={id}><span class="ph-q" aria-hidden="true">??</span><span class="sr-only">Placeholder: </span>{label ?? def.label}</span>
   )
 }

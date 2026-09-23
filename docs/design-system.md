@@ -69,7 +69,7 @@ no reading text under 16px on mobile; weight 300 only at 40px+.**
 | `EventCard` | An event (`event`) or a sample (`sample`) card. |
 | `LogoSlots` | Sponsor/partner logo wall with the "Your organization here" CTA. |
 | `Problem` | A practice problem with answer check, hint and solution. |
-| `Math` | `<Math tex="…" />` / `<Math display tex="…" />`, KaTeX at build time. |
+| `Math` | `<Math tex={String.raw`…`} />` / `<Math display tex={String.raw`…`} />`, KaTeX at build time. |
 | `Band` | Closing call-to-action band ("Corollary"). Every page ends with one. |
 | `DefFigure`, `TimesTableFigure`, `Mark` | Home-page figures and the logo. |
 
@@ -83,9 +83,20 @@ with tombstone), `.table-wrap > table.table` (data tables), `details.disclose > 
 .disclose-body` (FAQ, hints), `.runhead`, `.thm-label`, `.rise` + `style="--d:120"` (entrance
 stagger, above the fold only), `.sr-only`.
 
-Page-specific styles go in the page's or component's scoped `<style>`. Do not edit
+Page-specific styles go in the page's or component's scoped `<style>`. Note: a `class` passed
+to a child component (e.g. `<Plate class="x">`) does not carry the parent's style scope, so target
+it with `:global(.x)` from a scoped wrapper, or wrap the child in an element you own. Do not edit
 `global.css`, `tokens.css` or shared components. If one needs a change, describe it in your
 report instead.
+
+## Brand files
+
+`public/brand/` holds `mark.svg` (two-color), `mark-one-color.svg` (square with the quarter-disc
+knocked out, for single-color printing) and `lockup.svg` (mark + name). The favicon uses a slightly
+simplified cut (disc radius 22 of 30, plus a paper keyline in the ICO) so it doesn't read as a pie
+chart at 16 px; the header, touch icons and brand files use the true radius-26 mark. Regenerate
+icons with `npm run icons` and the social image with `npm run og` (re-run it if the home headline
+changes). Figures and plates are numbered by page: Plate I on the home page, Plate V on Sponsors, …
 
 ## Motion
 

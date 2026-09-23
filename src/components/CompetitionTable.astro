@@ -1,0 +1,270 @@
+---
+/**
+ * Table 2 on /events/: the competition calendar as a table, in three groups: dates posted by the
+ * organizers (soonest first), the usual timing where a 2027 date is not posted yet, and contests
+ * with no date listed. Carries the same data as Fig. 1 (CompetitionTimeline.astro).
+ */
+import { competitions, upcomingDates, formatRange, SEASON } from '../data/competitions';
+
+const dated = upcomingDates();
+const typical = competitions.filter((c) => c.typically && !c.dates.length);
+const undated = competitions.filter((c) => !c.dates.length && !c.typically);
+---
+
+<div class="table-wrap ct-wrap" data-calendar-root>
+  <table class="table ct">
+    <caption>
+      <b>Table 2.</b> The {SEASON.label} competition calendar: the dates in Fig. 1, with where each contest happens and who can enter. Names link to
+      the official sites; EBMA is not affiliated with these organizations.
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col" class="ct-date">Date</th>
+        <th scope="col">Competition</th>
+        <th scope="col" class="ct-wide">Where</th>
+        <th scope="col" class="ct-wide">Who can enter</th>
+      </tr>
+    </thead>
+    {
+      dated.length > 0 && (
+        <tbody>
+          <tr class="ct-group">
+            <th scope="rowgroup" colspan="4">Dates posted by the organizers</th>
+          </tr>
+          {dated.map((d) => (
+            <tr data-end={d.end ?? d.start}>
+              <td class="ct-date">
+                <span class="ct-when">{formatRange(d.start, d.end, { weekday: !d.end, year: true })}</span>
+                {d.kind === 'window' && <span class="ct-kind">Window</span>}
+                {d.kind === 'deadline' && <span class="ct-kind">Deadline</span>}
+              </td>
+              <th scope="row" class="ct-name">
+                <a href={d.competition.url} rel="noopener">
+                  {d.label}
+                  <span class="ext" aria-hidden="true">
+                    ↗
+                  </span>
+                  <span class="sr-only"> (external site)</span>
+                </a>
+                {d.note && <span class="ct-note">{d.note}</span>}
+                <span class="ct-narrow">
+                  {d.where && <span>{d.where}</span>}
+                  <span>{d.competition.levelShort}</span>
+                </span>
+              </th>
+              <td class="ct-wide">{d.where ?? '—'}</td>
+              <td class="ct-wide">{d.competition.levelShort}</td>
+            </tr>
+          ))}
+        </tbody>
+      )
+    }
+    <tbody>
+      <tr class="ct-group">
+        <th scope="rowgroup" colspan="4">Usual timing, 2027 date not posted yet</th>
+      </tr>
+      {
+        typical.map((c) => (
+          <tr>
+            <td class="ct-date">
+              <span class="ct-when ct-typ">{c.typicalWindow ? `Typically ${c.typicalWindow.label}` : 'Not posted'}</span>
+            </td>
+            <th scope="row" class="ct-name">
+              <a href={c.url} rel="noopener">
+                {c.name}
+                <span class="ext" aria-hidden="true">
+                  ↗
+                </span>
+                <span class="sr-only"> (external site)</span>
+              </a>
+              <span class="ct-note">{c.typically}</span>
+              <span class="ct-narrow">
+                {c.venue && <span>{c.venue}</span>}
+                <span>{c.levelShort}</span>
+              </span>
+            </th>
+            <td class="ct-wide">{c.venue ?? '—'}</td>
+            <td class="ct-wide">{c.levelShort}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+    <tbody>
+      <tr class="ct-group">
+        <th scope="rowgroup" colspan="4">No date listed here yet</th>
+      </tr>
+      {
+        undated.map((c) => (
+          <tr>
+            <td class="ct-date">
+              <span class="ct-when ct-typ">Not posted</span>
+            </td>
+            <th scope="row" class="ct-name">
+              <a href={c.url} rel="noopener">
+                {c.name}
+                <span class="ext" aria-hidden="true">
+                  ↗
+                </span>
+                <span class="sr-only"> (external site)</span>
+              </a>
+              {c.pending && <span class="ct-note">{c.pending}</span>}
+              <span class="ct-narrow">
+                {c.venue && <span>{c.venue}</span>}
+                <span>{c.levelShort}</span>
+              </span>
+            </th>
+            <td class="ct-wide">{c.venue ?? '—'}</td>
+            <td class="ct-wide">{c.levelShort}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .ct-wrap {
+    margin-top: clamp(40px, 5vw, 64px);
+  }
+  .ct {
+    font-size: 16.5px;
+  }
+  .ct caption {
+    caption-side: bottom;
+    text-align: left;
+    padding-top: 16px;
+    font-size: 15.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .ct caption b {
+    font: 600 12.5px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 0.4em;
+  }
+  .ct th,
+  .ct td {
+    padding: 13px 20px 13px 0;
+  }
+  .ct th:last-child,
+  .ct td:last-child {
+    padding-right: 0;
+  }
+  .ct-date {
+    width: 13.5em;
+  }
+  .ct-when {
+    font: 500 14px/1.4 var(--mono);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .ct-typ {
+    font-style: italic;
+    color: var(--ink-3);
+    white-space: normal;
+  }
+  .ct-kind,
+  .ct :global(.ct-passed) {
+    display: inline-block;
+    margin-left: 8px;
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    vertical-align: 1px;
+  }
+  .ct :global(.ct-passed) {
+    color: var(--ink);
+    border: 1px solid var(--rule-2);
+    padding: 3px 5px 2px;
+  }
+  .ct tbody th.ct-name {
+    font: 400 18px/1.35 var(--serif);
+    color: var(--ink);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .ct-name a {
+    color: var(--ink);
+    text-decoration-color: var(--rule-2);
+  }
+  .ct-name a:hover {
+    color: var(--accent-text);
+    text-decoration-color: currentColor;
+  }
+  .ext {
+    font-family: var(--sans);
+    font-size: 0.8em;
+    margin-left: 0.2em;
+    color: var(--accent-text);
+  }
+  .ct-note {
+    display: block;
+    margin-top: 3px;
+    font: italic 15.5px/1.4 var(--serif);
+    color: var(--ink-3);
+  }
+  .ct-narrow {
+    display: none;
+  }
+  .ct td.ct-wide {
+    color: var(--ink-2);
+  }
+  .ct-group th {
+    padding: 22px 0 8px;
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .ct tbody:first-of-type .ct-group th {
+    padding-top: 14px;
+  }
+  .ct tbody tr:last-child > * {
+    border-bottom: 1px solid var(--rule);
+  }
+  .ct tbody:last-of-type tr:last-child > * {
+    border-bottom: 0;
+  }
+  .ct tr:global(.is-past) > * {
+    color: var(--ink-3);
+  }
+  .ct tr:global(.is-past) .ct-name a {
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 700px) {
+    .ct-wide {
+      display: none;
+    }
+    .ct-date {
+      width: 7.5em;
+    }
+    .ct-when {
+      white-space: normal;
+      font-size: 13.5px;
+    }
+    .ct-kind {
+      display: block;
+      margin: 6px 0 0;
+    }
+    .ct tbody th.ct-name {
+      font-size: 17px;
+    }
+    .ct-narrow {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 6px;
+      font: 500 14px/1.4 var(--sans);
+      color: var(--ink-2);
+    }
+    .ct th,
+    .ct td {
+      padding-right: 14px;
+    }
+  }
+</style>

@@ -26,7 +26,8 @@ await fs.mkdir(outDir, { recursive: true });
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 
 const report = { base: base.href, pages: {}, internalLinks: {}, externalLinks: {}, summary: {} };
-const queue = [base.pathname];
+// Seeds: the home page, plus pages nothing links to (the no-JS form confirmation and a 404).
+const queue = [base.pathname, '/get-involved/thanks/', '/missing-page-404-check/'];
 const seen = new Set(queue);
 
 const slug = (p) => (p === '/' ? 'home' : p.replace(/^\/|\/$/g, '').replace(/\//g, '_'));
@@ -137,6 +138,7 @@ while (queue.length) {
         if (!link.href || /^(mailto|tel|javascript):/.test(link.href)) continue;
         const u = new URL(link.href);
         if (u.origin === base.origin) {
+          if (u.hash.length > 1 && u.pathname !== new URL(url).pathname) (report.crossAnchors ??= {})[`${u.pathname}${u.hash}`] = pathname;
           const key = u.pathname;
           (report.internalLinks[key] ??= { from: new Set(), texts: new Set() }).from.add(pathname);
           report.internalLinks[key].texts.add(link.text);
@@ -149,6 +151,17 @@ while (queue.length) {
       }
     }
     await ctx.close();
+  }
+}
+
+// Verify every cross-page anchor (/about/#faq) points at an element id on the target page.
+const htmlCache = {};
+for (const [target, from] of Object.entries(report.crossAnchors ?? {})) {
+  const [p, hash] = target.split('#');
+  htmlCache[p] ??= await (await fetch(new URL(p, base))).text();
+  const id = decodeURIComponent(hash);
+  if (!new RegExp(`\\bid=["']?${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'\\s>]`).test(htmlCache[p])) {
+    (report.brokenAnchors ??= []).push(`${target} (linked from ${from})`);
   }
 }
 
@@ -182,9 +195,11 @@ for (const [p, pr] of Object.entries(report.pages)) {
 for (const [p, info] of Object.entries(report.internalLinks)) {
   if (info.status !== 200) problems.push(`broken internal link ${p} (HTTP ${info.status}) from ${info.from.join(', ')}`);
 }
+for (const a of report.brokenAnchors ?? []) problems.push(`cross-page link to a missing anchor: ${a}`);
 report.summary = {
   pages: Object.keys(report.pages),
   internalLinkCount: Object.keys(report.internalLinks).length,
+  crossPageAnchors: Object.keys(report.crossAnchors ?? {}).length,
   externalLinkCount: Object.keys(report.externalLinks).length,
   placeholdersPerPage: Object.fromEntries(Object.entries(report.pages).map(([p, pr]) => [p, pr.widths['1440']?.placeholders])),
   problems: [...new Set(problems)],
@@ -193,6 +208,6 @@ await fs.writeFile(path.join(outDir, 'report.json'), JSON.stringify(report, null
 await browser.close();
 
 console.log(`Crawled ${report.summary.pages.length} pages × ${WIDTHS.length} widths: ${report.summary.pages.join(' ')}`);
-console.log(`Internal links: ${report.summary.internalLinkCount}, external links: ${report.summary.externalLinkCount}`);
+console.log(`Internal pages linked: ${report.summary.internalLinkCount}, cross-page anchors: ${report.summary.crossPageAnchors}, external links: ${report.summary.externalLinkCount}`);
 console.log(report.summary.problems.length ? `PROBLEMS (${report.summary.problems.length}):\n- ` + report.summary.problems.join('\n- ') : 'No problems found.');
 process.exitCode = report.summary.problems.length ? 1 : 0;

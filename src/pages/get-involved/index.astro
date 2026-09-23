@@ -1,0 +1,690 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Section from '../../components/Section.astro';
+import Band from '../../components/Band.astro';
+import Ph from '../../components/Ph.astro';
+import PhLink from '../../components/PhLink.astro';
+import TeX from '../../components/Math.astro';
+import JoinForm from '../../components/JoinForm.astro';
+import GetInvolvedHat from '../../components/GetInvolvedHat.astro';
+
+const contents = [
+  { href: '#ways', num: '1', title: 'Ways in' },
+  { href: '#join', num: '2', title: 'Join EBMA' },
+  { href: '#schools', num: '3', title: 'Schools & teachers' },
+  { href: '#contact', num: '4', title: 'Contact' },
+];
+
+const joinAs = (role: string) => `/get-involved/?role=${role}#join`;
+
+interface Way {
+  audience: string;
+  body: string;
+  next: { href: string; text: string };
+  alt: { href: string; text: string };
+}
+const ways: Way[] = [
+  {
+    audience: 'Students',
+    body: 'Come to events, work on problems that go past the curriculum, and meet students from other schools who like a hard problem as much as you do. You don’t need to be a competition star to start.',
+    next: { href: joinAs('student'), text: 'Join as a student' },
+    alt: { href: '/resources/#problems', text: 'Try a problem first' },
+  },
+  {
+    audience: 'Parents & guardians',
+    body: 'See what EBMA offers, what it costs and how students are looked after, then sign your child up or ask us anything first. Students under 13 need you to fill in the form for them.',
+    next: { href: joinAs('parent'), text: 'Sign up your child' },
+    alt: { href: '/about/#faq', text: 'Questions parents ask' },
+  },
+  {
+    audience: 'Teachers & schools',
+    body: 'Bring your math team or club to events, pass opportunities on to your students, and tell us what would help them most.',
+    next: { href: '#schools', text: 'Partner with us' },
+    alt: { href: '/events/', text: 'See upcoming events' },
+  },
+  {
+    audience: 'Volunteers & mentors',
+    body: 'Coach, write problems, check answers, or help run an event on the day. If you can explain an idea patiently, we’d like to hear from you.',
+    next: { href: joinAs('volunteer'), text: 'Offer to help' },
+    alt: { href: '/about/', text: 'About EBMA' },
+  },
+  {
+    audience: 'Sponsors & partners',
+    body: 'Fund a competition, host an event, or donate prizes or printing, and be recognized in front of the families you serve.',
+    next: { href: '/sponsors/#become', text: 'Become a sponsor' },
+    alt: { href: '/sponsors/', text: 'Sponsors & partners' },
+  },
+];
+
+const setBuilder =
+  String.raw`\mathrm{EBMA} = \left\{\, x \;:\; \begin{aligned} &x \text{ is in the East Bay,} \\ &x \text{ likes a hard problem} \end{aligned} \,\right\}`;
+---
+
+<Base
+  title="Get Involved"
+  description="Join the East Bay Math Association as a student, parent, teacher, volunteer or sponsor: one short form, a way in for every reader, and every way to reach us."
+>
+  <PageHeader
+    chapter={4}
+    label="Chapter 4"
+    note="(in which you find your place in the pattern)"
+    title="Get *involved*"
+    lede="Students, parents, teachers, volunteers and sponsors: there is more than one way into EBMA. Find yours below, fill in one short form, or just say hello. We’ll take it from there."
+  >
+    <div slot="lede" class="gi-head-more">
+      <div class="cta-row rise" style="--d:380">
+        <a class="btn" href="#join">Join EBMA <span class="arr" aria-hidden="true">↓</span></a>
+        <a class="xref" href="#contact">Or just say hello <span class="arr" aria-hidden="true">↓</span></a>
+      </div>
+      <nav class="gi-toc rise" style="--d:480" aria-labelledby="gi-toc-h">
+        <p class="gi-toc-h" id="gi-toc-h">In this chapter</p>
+        <ol>
+          {
+            contents.map((c) => (
+              <li>
+                <a href={c.href}>
+                  <span class="gi-toc-n">§{c.num}</span>
+                  <span class="gi-toc-t">{c.title}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+    </div>
+    <GetInvolvedHat slot="aside" />
+  </PageHeader>
+
+  <Section
+    id="ways"
+    num="1"
+    title="Ways *in*"
+    dek="Five kinds of people, one association. Find yourself below; each case ends in one concrete next step."
+    note="Not sure which case you are? Pick the closest one. You can tell us more in the form."
+  >
+    <ol class="gi-ways">
+      {
+        ways.map((w, i) => (
+          <li class="gi-way">
+            <div class="gi-way-head">
+              <p class="label">Case {i + 1}</p>
+              <h3>{w.audience}</h3>
+            </div>
+            <p class="gi-way-body">{w.body}</p>
+            <div class="gi-way-next">
+              <p class="gi-next-label">Next step</p>
+              <a class="xref" href={w.next.href}>
+                {w.next.text} <span class="arr" aria-hidden="true">→</span>
+              </a>
+              <a class="gi-alt" href={w.alt.href}>{w.alt.text}</a>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="conclude gi-conclude">
+      <span>None of the above? <a href="#contact">Say hello</a> and we’ll work it out together.</span><span class="qed" aria-hidden="true"></span>
+    </p>
+  </Section>
+
+  <Section
+    id="join"
+    num="2"
+    title="Join *EBMA*"
+    dek="One short form for everyone. Tell us who you are and what you’re after, and a person will write back."
+    note="Would you rather write an email? That works too: see §4, Contact."
+  >
+    <div class="gi-def">
+      <div class="gi-def-math">
+        <p class="thm-label"><span class="label">Definition 2.1</span><span class="note">(informal)</span></p>
+        <TeX display tex={setBuilder} />
+      </div>
+      <p class="gi-def-plain">
+        In plain English: if you’re in the East Bay and you like a hard problem, we’d like to meet you. The fine print is just below.
+      </p>
+    </div>
+    <div class="gi-join">
+      <aside class="gi-before" aria-labelledby="gi-before-h">
+        <h3 class="gi-before-h" id="gi-before-h">Before you start</h3>
+        <dl class="gi-facts">
+          <div>
+            <dt>Cost</dt>
+            <dd><Ph id="org.membership-cost" /></dd>
+          </div>
+          <div>
+            <dt>Who can join</dt>
+            <dd><Ph id="org.eligibility" label="Grades, ages and area" /></dd>
+          </div>
+          <div>
+            <dt>Under 13?</dt>
+            <dd>Students under 13: please ask a parent or guardian to fill this in.</dd>
+          </div>
+          <div>
+            <dt>Your privacy</dt>
+            <dd>We use what you send only to reply to you, and to send updates if you ask for them. <a href="/privacy/">Read the privacy notice</a>.</dd>
+          </div>
+          <div>
+            <dt>What happens next</dt>
+            <dd>We reply by email, usually within <span class="gi-tie"><Ph id="get-involved.response-time" />.</span></dd>
+          </div>
+        </dl>
+      </aside>
+      <JoinForm />
+    </div>
+  </Section>
+
+  <Section
+    id="schools"
+    num="3"
+    title="Schools & *teachers*"
+    dek="For math teachers, club advisors and coaches who want more for their students."
+    note="A partnership can start as small as passing one announcement on to your class."
+  >
+    <div class="gi-schools">
+      <div>
+        <p class="label">Proposition 3.1</p>
+        <h3>What partnering can look like</h3>
+        <ul class="gi-list">
+          <li>Bring a team, a club or a whole class to EBMA events.</li>
+          <li>Pass competitions and practice problems on to your students.</li>
+          <li>Host an event or a problem-solving session at your school.</li>
+          <li>Tell us what your students need, and help shape what we plan next.</li>
+        </ul>
+        <div class="gi-schools-links">
+          <a class="xref" href="/events/">Events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="/resources/">Student resources <span class="arr" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      <div>
+        <p class="label">Proof sketch</p>
+        <h3>How to start</h3>
+        <ol class="gi-steps">
+          <li>
+            <span class="gi-step-n" aria-hidden="true">1</span>
+            <div>
+              <h4>Write to us</h4>
+              <p>Send the form with “Teacher or school staff” selected, or email us. Tell us about your school and what you have in mind.</p>
+            </div>
+          </li>
+          <li>
+            <span class="gi-step-n" aria-hidden="true">2</span>
+            <div>
+              <h4>We talk it through</h4>
+              <p>We’ll get back to you to hear about your students and suggest what might fit.</p>
+            </div>
+          </li>
+          <li>
+            <span class="gi-step-n" aria-hidden="true">3</span>
+            <div>
+              <h4>Start small</h4>
+              <p>One event, one club visit or one shared problem set. Then keep what works.</p>
+            </div>
+          </li>
+        </ol>
+        <dl class="gi-who">
+          <div>
+            <dt>Who to talk to</dt>
+            <dd><Ph id="get-involved.schools-contact" /></dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd><PhLink id="org.email" /></dd>
+          </div>
+        </dl>
+        <div class="cta-row gi-schools-cta">
+          <a class="btn" href={joinAs('educator')}>Write to us as a teacher <span class="arr" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section
+    id="contact"
+    num="4"
+    title="Get in *touch*"
+    dek="Write to us, follow along, or get announcements by email."
+    note="Asking about a particular event? Include its name and date so we can answer faster."
+  >
+    <dl class="gi-corr">
+      <div class="gi-corr-row">
+        <dt>Email</dt>
+        <dd class="gi-corr-v"><PhLink id="org.email" /></dd>
+        <dd class="gi-corr-n">Questions from students, parents, schools and sponsors.</dd>
+      </div>
+      <div class="gi-corr-row">
+        <dt>Instagram</dt>
+        <dd class="gi-corr-v"><PhLink id="org.instagram">EBMA on Instagram</PhLink></dd>
+        <dd class="gi-corr-n">Follow along between events.</dd>
+      </div>
+      <div class="gi-corr-row">
+        <dt>Mailing list</dt>
+        <dd class="gi-corr-v"><PhLink id="org.mailing-list">Join the mailing list</PhLink></dd>
+        <dd class="gi-corr-n">Announcements about events and competitions. You can also tick “Email updates” in the form.</dd>
+      </div>
+      <div class="gi-corr-row">
+        <dt>Post</dt>
+        <dd class="gi-corr-v"><Ph id="org.mailing-address" /></dd>
+        <dd class="gi-corr-n">For paperwork and checks.</dd>
+      </div>
+      <div class="gi-corr-row">
+        <dt>Replies</dt>
+        <dd class="gi-corr-v">Usually within <Ph id="get-involved.response-time" /></dd>
+        <dd class="gi-corr-n">For email and for the form alike.</dd>
+      </div>
+      <div class="gi-corr-row">
+        <dt>Sponsorship</dt>
+        <dd class="gi-corr-v"><a href="/sponsors/#become">How to sponsor EBMA</a></dd>
+        <dd class="gi-corr-n">Ways to support students, and how we thank the people who do.</dd>
+      </div>
+    </dl>
+    <p class="tcap">
+      <b>Table 4.</b> Where to reach the East Bay Math Association. What we do with your messages is in the <a href="/privacy/">privacy notice</a>.
+    </p>
+  </Section>
+
+  <Band label="Corollary 4.1" title="The pattern needs *your* piece." text="Fill in the form, come to an event, or just say hello. We’ll take it from there.">
+    <a class="btn" href="#join">Join EBMA <span class="arr" aria-hidden="true">↑</span></a>
+    <a class="btn btn-quiet" href="/events/">See upcoming events</a>
+  </Band>
+</Base>
+
+<style>
+  /* ---------- page header extras: actions + "In this chapter" ---------- */
+  .gi-head-more .cta-row {
+    margin-top: clamp(26px, 3vw, 40px);
+  }
+  .gi-toc {
+    margin-top: clamp(28px, 3vw, 40px);
+    border-top: 2px solid var(--ink);
+    padding-top: 12px;
+    max-width: 40em;
+  }
+  .gi-toc-h {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .gi-toc ol {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+  }
+  .gi-toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-height: 44px;
+    padding: 11px 0 9px;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    font-size: 18px;
+    line-height: 1.3;
+  }
+  .gi-toc-n {
+    flex: none;
+    width: 2.4em;
+    font: 500 12.5px/1 var(--mono);
+    color: var(--accent-text);
+  }
+  .gi-toc a:hover .gi-toc-t {
+    color: var(--accent-text);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+
+  /* ---------- §1 ways in ---------- */
+  .gi-ways {
+    list-style: none;
+    border-top: 1px solid var(--rule-2);
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .gi-way {
+    display: grid;
+    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) minmax(0, 14rem);
+    gap: 14px clamp(24px, 3.4vw, 48px);
+    align-items: start;
+    padding: 28px 0 30px;
+  }
+  .gi-way + .gi-way {
+    border-top: 1px solid var(--rule);
+  }
+  .gi-way h3 {
+    margin-top: 10px;
+    font: 400 clamp(26px, 2.3vw, 33px) / 1.08 var(--serif);
+    letter-spacing: -0.015em;
+  }
+  .gi-way-body {
+    font-size: 17.5px;
+    color: var(--ink-2);
+    max-width: 34em;
+    padding-top: 22px;
+  }
+  .gi-way-next {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .gi-next-label {
+    font: 600 12px/1.2 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 2px;
+  }
+  .gi-alt {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    font: 500 14.5px/1.3 var(--sans);
+    color: var(--ink-2);
+  }
+  .gi-alt:hover {
+    color: var(--accent-text);
+  }
+  .gi-conclude a {
+    color: var(--ink);
+  }
+
+  /* ---------- §2 join ---------- */
+  .gi-join {
+    display: grid;
+    grid-template-columns: minmax(0, 20.5rem) minmax(0, 1fr);
+    gap: clamp(36px, 4.5vw, 72px);
+    align-items: start;
+  }
+  /* The epigraph: a set-builder "definition" of the association, then the plain version. */
+  .gi-def {
+    display: grid;
+    grid-template-columns: auto minmax(0, 24em);
+    gap: 12px clamp(32px, 5vw, 72px);
+    align-items: center;
+    padding-bottom: clamp(28px, 3vw, 40px);
+    margin-bottom: clamp(36px, 4vw, 56px);
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .gi-def .thm-label {
+    margin-bottom: 4px;
+  }
+  .gi-def :global(.math-display) {
+    margin-left: -2px;
+  }
+  .gi-def :global(.katex-display) {
+    text-align: left;
+    margin: 0.3em 0 0;
+  }
+  .gi-def :global(.katex-display > .katex) {
+    text-align: left;
+    font-size: clamp(1.1em, 1.9vw, 1.45em);
+  }
+  .gi-def-plain {
+    font-size: clamp(17px, 1.45vw, 19.5px);
+    line-height: 1.5;
+    color: var(--ink-2);
+    font-style: italic;
+    padding-left: clamp(20px, 2.4vw, 32px);
+    border-left: 2px solid var(--accent);
+  }
+  .gi-before-h {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 14px 0 12px;
+    border-top: 2px solid var(--ink);
+  }
+  .gi-facts > div {
+    padding: 14px 0 16px;
+    border-top: 1px solid var(--rule);
+  }
+  .gi-facts > div:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+  .gi-facts dt,
+  .gi-who dt,
+  .gi-corr dt {
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .gi-facts dd {
+    margin: 6px 0 0;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .gi-facts a {
+    color: var(--ink);
+  }
+  /* Keep a placeholder chip and the punctuation after it on one line. */
+  .gi-tie,
+  .gi-tie :global(.ph) {
+    white-space: nowrap;
+  }
+  @media (min-width: 1201px) and (min-height: 860px) {
+    .gi-before {
+      position: sticky;
+      top: calc(var(--head-h) + 28px);
+    }
+  }
+
+  /* ---------- §3 schools ---------- */
+  .gi-schools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(40px, 5vw, 80px);
+    align-items: start;
+  }
+  .gi-schools h3 {
+    margin: 12px 0 20px;
+    font: 400 clamp(26px, 2.3vw, 33px) / 1.1 var(--serif);
+    letter-spacing: -0.015em;
+  }
+  .gi-list {
+    list-style: none;
+    display: grid;
+    border-top: 1px solid var(--rule-2);
+  }
+  .gi-list li {
+    position: relative;
+    padding: 14px 0 14px 26px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 18px;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .gi-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: calc(14px + 0.55em);
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+  }
+  .gi-schools-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+    margin-top: 24px;
+  }
+  .gi-steps {
+    list-style: none;
+    border-top: 2px solid var(--ink);
+  }
+  .gi-steps li {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 16px;
+    padding: 18px 0 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .gi-step-n {
+    font: 200 46px/0.85 var(--serif);
+    font-variation-settings: 'opsz' 72;
+    color: var(--accent);
+  }
+  .gi-steps h4 {
+    font: 600 16px/1.3 var(--sans);
+    margin: 0 0 4px;
+  }
+  .gi-steps p {
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+  .gi-who {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+    margin-top: 24px;
+  }
+  .gi-who dd {
+    margin: 6px 0 0;
+    font-size: 17px;
+  }
+  .gi-schools-cta {
+    margin-top: 28px;
+  }
+
+  /* ---------- §4 contact ---------- */
+  .gi-corr {
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+  .gi-corr-row {
+    display: grid;
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 6px clamp(20px, 3vw, 40px);
+    align-items: baseline;
+    padding: 18px 0;
+  }
+  .gi-corr-row + .gi-corr-row {
+    border-top: 1px solid var(--rule);
+  }
+  .gi-corr dd {
+    margin: 0;
+    min-width: 0;
+  }
+  .gi-corr-v {
+    font-size: 21px;
+    line-height: 1.35;
+  }
+  .gi-corr-v a {
+    color: var(--ink);
+  }
+  .gi-corr-v a:hover {
+    color: var(--accent-text);
+  }
+  .gi-corr-n {
+    font-size: 16px;
+    line-height: 1.45;
+    font-style: italic;
+    color: var(--ink-2);
+  }
+  .tcap {
+    margin-top: 18px;
+    font-size: 15.5px;
+    color: var(--ink-2);
+  }
+  .tcap b {
+    font: 600 12.5px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 0.4em;
+  }
+  .tcap a {
+    color: var(--ink);
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 1100px) {
+    .gi-way {
+      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    }
+    .gi-way-next {
+      grid-column: 2;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 20px;
+    }
+    .gi-next-label {
+      width: 100%;
+    }
+  }
+  /* Below 1200px the form needs the full width: the facts sit above it instead. */
+  @media (max-width: 1200px) {
+    .gi-join {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .gi-join > :global(.jf) {
+      max-width: 48rem;
+    }
+  }
+  @media (min-width: 621px) and (max-width: 1200px) {
+    .gi-facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 28px;
+    }
+    .gi-facts > div:last-child {
+      border-bottom: 0;
+    }
+  }
+  @media (max-width: 860px) {
+    .gi-schools {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .gi-corr-row {
+      grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+    }
+    .gi-corr-n {
+      grid-column: 2;
+    }
+  }
+  @media (max-width: 620px) {
+    .gi-toc ol {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .gi-way {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 24px 0 26px;
+    }
+    .gi-way-body {
+      padding-top: 0;
+    }
+    .gi-way-next {
+      grid-column: 1;
+    }
+    .gi-corr-row {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 6px;
+    }
+    .gi-corr-n {
+      grid-column: 1;
+    }
+    .gi-who {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 760px) {
+    .gi-def {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 400px) {
+    .gi-def :global(.katex-display > .katex) {
+      font-size: 0.96em;
+    }
+  }
+  @media (max-width: 359px) {
+    .gi-def :global(.katex-display > .katex) {
+      font-size: 0.84em;
+    }
+  }
+</style>

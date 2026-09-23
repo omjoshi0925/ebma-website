@@ -1,0 +1,241 @@
+---
+/**
+ * Fig. 2 on /events/: how the MAA contests connect, as a small directed graph.
+ * AMC 8 → AMC 10/12 → AIME → USAJMO/USAMO, plus USAMTS as another route to the AIME.
+ * Only relations stated by the organizers: the AIME needs a qualifying AMC 10/12 score, USAJMO
+ * and USAMO invitations are based mainly on AIME scores, and USAMTS is one way to qualify for
+ * the AIME. The AMC 8 → AMC 10/12 edge is dashed: it is the next contest up, not a qualifier.
+ *
+ * Two layouts (a row for wide containers, a column for narrow ones) keep SVG text at 12px+.
+ */
+import Plate from './Plate.astro';
+
+interface Node {
+  id: string;
+  title: string;
+  lines: string[];
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  hot?: boolean;
+  side?: boolean;
+}
+interface Edge {
+  from: string;
+  to: string;
+  label: string[];
+  dashed?: boolean;
+}
+
+const nodeText: Record<string, { title: string; lines: string[] }> = {
+  amc8: { title: 'AMC 8', lines: ['grade 8 & below', 'every January'] },
+  amc: { title: 'AMC 10/12', lines: ['grade 10/12 & below', 'every November'] },
+  aime: { title: 'AIME', lines: ['by invitation', 'Feb 5–6, 2027'] },
+  usamo: { title: 'USAJMO/USAMO', lines: ['by invitation', 'proof-based'] },
+  usamts: { title: 'USAMTS', lines: ['free', 'proof-based'] },
+};
+const edges: Edge[] = [
+  { from: 'amc8', to: 'amc', label: ['the next', 'contest up'], dashed: true },
+  { from: 'amc', to: 'aime', label: ['qualifying', 'score'] },
+  { from: 'aime', to: 'usamo', label: ['invitation, based', 'mainly on AIME'] },
+  { from: 'usamts', to: 'aime', label: ['also a way', 'to qualify'] },
+];
+
+/* Wide: a row of four, USAMTS below the AIME. */
+const WW = 800;
+const wide: Node[] = [
+  { id: 'amc8', x: 0, y: 8, w: 148, h: 78 },
+  { id: 'amc', x: 190, y: 8, w: 200, h: 78 },
+  { id: 'aime', x: 432, y: 8, w: 136, h: 78 },
+  { id: 'usamo', x: 610, y: 8, w: 190, h: 78, hot: true },
+  { id: 'usamts', x: 432, y: 200, w: 136, h: 78, side: true },
+].map((n) => ({ ...nodeText[n.id], ...n }));
+const WH = 280;
+
+/* Narrow: a column, USAMTS beside the AIME. */
+const NW = 300;
+const narrow: Node[] = [
+  { id: 'amc8', x: 0, y: 0, w: 188, h: 78 },
+  { id: 'amc', x: 0, y: 142, w: 188, h: 78 },
+  { id: 'aime', x: 0, y: 284, w: 188, h: 78 },
+  { id: 'usamo', x: 0, y: 426, w: 188, h: 78, hot: true },
+  { id: 'usamts', x: 202, y: 284, w: 98, h: 78, side: true, lines: ['free'] },
+].map((n) => ({ ...nodeText[n.id], ...n }));
+const NH = 506;
+
+const byId = (nodes: Node[]) => Object.fromEntries(nodes.map((n) => [n.id, n]));
+
+/** Edge geometry: a straight arrow between facing sides, with its label beside it. */
+function wideEdge(e: Edge, n: Record<string, Node>) {
+  const a = n[e.from];
+  const b = n[e.to];
+  if (e.from === 'usamts') {
+    const x = b.x + b.w / 2;
+    return { d: `M${x} ${a.y} V${b.y + b.h + 9}`, tip: { x, y: b.y + b.h + 1, dir: 'up' }, lx: x + 14, ly: a.y - 34, anchor: 'start' };
+  }
+  const y = a.y + a.h / 2;
+  const x1 = a.x + a.w;
+  const x2 = b.x;
+  return { d: `M${x1} ${y} H${x2 - 8}`, tip: { x: x2 - 1, y, dir: 'right' }, lx: (x1 + x2) / 2, ly: a.y + a.h + 26, anchor: 'middle' };
+}
+function narrowEdge(e: Edge, n: Record<string, Node>) {
+  const a = n[e.from];
+  const b = n[e.to];
+  if (e.from === 'usamts') {
+    const y = b.y + b.h / 2;
+    return { d: `M${a.x} ${y} H${b.x + b.w + 8}`, tip: { x: b.x + b.w + 1, y, dir: 'left' }, lx: a.x + a.w / 2, ly: a.y + a.h + 22, anchor: 'middle' };
+  }
+  const x = a.x + 40;
+  return { d: `M${x} ${a.y + a.h} V${b.y - 8}`, tip: { x, y: b.y - 1, dir: 'down' }, lx: x + 16, ly: a.y + a.h + 26, anchor: 'start' };
+}
+const arrow = (t: { x: number; y: number; dir: string }) => {
+  const { x, y, dir } = t;
+  if (dir === 'right') return `M${x} ${y} l-9 -4.5 v9 z`;
+  if (dir === 'left') return `M${x} ${y} l9 -4.5 v9 z`;
+  if (dir === 'up') return `M${x} ${y} l-4.5 9 h9 z`;
+  return `M${x} ${y} l-4.5 -9 h9 z`;
+};
+
+const layouts = [
+  { id: 'w', W: WW, H: WH, nodes: wide, edge: wideEdge },
+  { id: 'n', W: NW, H: NH, nodes: narrow, edge: narrowEdge },
+].map((l) => {
+  const n = byId(l.nodes);
+  return { ...l, edges: edges.map((e) => ({ ...e, ...l.edge(e, n) })) };
+});
+const label =
+  'Directed graph of the MAA competition pathway: AMC 8 leads on to AMC 10 and AMC 12; a qualifying AMC 10 or 12 score earns an invitation to the AIME; USAJMO and USAMO invitations are based mainly on AIME scores. USAMTS is another way to qualify for the AIME.';
+---
+
+<Plate
+  id="fig-pathway"
+  plate="Plate II"
+  corner="AMC → AIME → USA(J)MO"
+  fig="Fig. 2."
+  caption="How the MAA contests connect. Solid arrows are qualifying routes stated by the organizers: a qualifying AMC 10 or 12 score earns an invitation to the AIME, and USAJMO and USAMO invitations are based mainly on AIME scores. USAMTS is another way to qualify for the AIME. The dashed arrow is simply the next contest up as students grow."
+  class="pw-plate"
+>
+  <div class="pw-box">
+    {
+      layouts.map((l) => (
+        <svg class={`pw-svg pw-${l.id}`} viewBox={`-2 -2 ${l.W + 4} ${l.H + 4}`} role="img" aria-labelledby={`pw-${l.id}-t`} data-reveal>
+          <title id={`pw-${l.id}-t`}>{label}</title>
+          {l.edges.map((e, i) => (
+            <g class:list={['pw-edge', { dashed: e.dashed }]} style={`--i:${i}`}>
+              <path d={e.d} class="pw-line" pathLength={e.dashed ? undefined : 1} />
+              <path d={arrow(e.tip)} class="pw-tip" />
+              {e.label.map((t, j) => (
+                <text x={e.lx} y={e.ly + j * 18} text-anchor={e.anchor} class="pw-elabel">
+                  {t}
+                </text>
+              ))}
+            </g>
+          ))}
+          {l.nodes.map((n) => (
+            <g class:list={['pw-node', { hot: n.hot, side: n.side }]}>
+              <rect x={n.x} y={n.y} width={n.w} height={n.h} />
+              <text x={n.x + 14} y={n.y + 29} class="pw-title">
+                {n.title}
+              </text>
+              {n.lines.map((t, j) => (
+                <text x={n.x + 14} y={n.y + 50 + j * 18} class="pw-sub">
+                  {t}
+                </text>
+              ))}
+            </g>
+          ))}
+        </svg>
+      ))
+    }
+  </div>
+</Plate>
+
+<style>
+  .pw-box {
+    container-type: inline-size;
+  }
+  .pw-svg {
+    display: none;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .pw-n {
+    display: block;
+    max-width: 380px;
+    margin-inline: auto;
+  }
+  @container (min-width: 700px) {
+    .pw-n {
+      display: none;
+    }
+    .pw-w {
+      display: block;
+      max-width: 900px;
+    }
+  }
+  .pw-node rect {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .pw-node.side rect {
+    stroke: var(--ink-3);
+    stroke-dasharray: none;
+  }
+  .pw-node.hot rect {
+    fill: var(--accent-wash);
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .pw-title {
+    font: 400 19px var(--serif);
+    fill: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .pw-node.hot .pw-title {
+    fill: var(--accent-text);
+  }
+  .pw-sub {
+    font: 500 14px var(--mono);
+    fill: var(--ink-3);
+  }
+  .pw-line {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  .pw-edge.dashed .pw-line {
+    stroke-dasharray: 5 4;
+    stroke: var(--ink-3);
+  }
+  .pw-tip {
+    fill: var(--ink);
+  }
+  .pw-edge.dashed .pw-tip {
+    fill: var(--ink-3);
+  }
+  .pw-elabel {
+    font: italic 15px var(--serif);
+    fill: var(--ink-2);
+  }
+
+  /* Draw the solid arrows in, one after another, when scrolled into view. */
+  .pw-svg:global(.armed) .pw-edge:not(.dashed) .pw-line {
+    stroke-dashoffset: 1;
+  }
+  .pw-svg:global(.armed) .pw-tip {
+    opacity: 0;
+  }
+  .pw-svg:global(.armed.in) .pw-edge:not(.dashed) .pw-line {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.7s cubic-bezier(0.6, 0, 0.2, 1) calc(0.2s + var(--i) * 0.45s);
+  }
+  .pw-svg:global(.armed.in) .pw-tip {
+    opacity: 1;
+    transition: opacity 0.25s calc(0.8s + var(--i) * 0.45s);
+  }
+</style>

@@ -114,7 +114,9 @@ async function fillValid(page, suffix) {
 
 // ---------- Without JavaScript ----------
 {
-  const ctx = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 1280, height: 900 } });
+  // reducedMotion: the site's `scroll-behavior: smooth` stalls Playwright's "stable" check when
+  // page JavaScript is off (check()/click() below the fold time out). Motion is irrelevant here.
+  const ctx = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce', viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await test('no-JS: native form post stores the row and lands on the thanks page', async () => {
     await page.goto(formURL);

@@ -1,0 +1,821 @@
+---
+/**
+ * Chapter 5: Sponsors & Partners. For businesses, foundations, universities and individual
+ * donors deciding whether EBMA is worth supporting: why, where the money goes, the ways to help,
+ * what sponsors receive, who already does, and how to start. Every EBMA-specific fact here is a
+ * placeholder (src/data/placeholders/sponsors.ts and global.ts).
+ */
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import LogoSlots from '../components/LogoSlots.astro';
+import Band from '../components/Band.astro';
+import Ph from '../components/Ph.astro';
+import PhLink from '../components/PhLink.astro';
+import SponsorSupportFigure from '../components/SponsorSupportFigure.astro';
+import { valueOf } from '../data/placeholders';
+import { contactHref, joinHref } from '../data/site';
+
+const sponsorFormHref = '/get-involved/?role=sponsor#join';
+// Once filled, the packet and donation links render as real cross-reference links.
+const packetClass = valueOf('sponsors.packet') ? 'xref' : undefined;
+const donateClass = valueOf('sponsors.donate') ? 'xref' : undefined;
+
+const contents = [
+  { href: '#why', num: '1', title: 'Why support EBMA' },
+  { href: '#uses', num: '2', title: 'Where support goes' },
+  { href: '#ways', num: '3', title: 'Ways to support' },
+  { href: '#recognition', num: '4', title: 'What sponsors receive' },
+  { href: '#current', num: '5', title: 'Current sponsors & partners' },
+  { href: '#become', num: '6', title: 'Become a sponsor' },
+];
+---
+
+<Base
+  title="Sponsors & Partners"
+  description="Support math enrichment for East Bay students: why it matters, where support goes, the ways to help (sponsorship, in-kind gifts, volunteering, individual gifts), and how to become a sponsor of the East Bay Math Association."
+>
+  <PageHeader
+    chapter={5}
+    label="Acknowledgments"
+    note="(to everyone who makes this possible)"
+    title="Sponsors & *partners*"
+    lede="Support from local businesses, foundations, universities and individual donors helps East Bay students do real mathematics together. Here is why it matters, where support goes, and how to give."
+    contents={contents}
+  >
+    <Fragment slot="actions">
+      <a class="btn" href="#become">Become a sponsor <span class="arr" aria-hidden="true">↓</span></a>
+      <PhLink id="sponsors.packet" label="Sponsor packet (PDF)" class={packetClass}
+        >Sponsor packet (PDF) <span class="arr" aria-hidden="true">↓</span></PhLink
+      >
+    </Fragment>
+  </PageHeader>
+
+  <!-- §1 -->
+  <Section
+    id="why"
+    num="1"
+    title="Why support EBMA"
+    dek="What local math enrichment gives students, in plain terms."
+    note="A proposition is a claim worth proving. We think this one holds on sight, but the proof follows anyway."
+  >
+    <div class="why">
+      <div class="why-claim">
+        <p class="label">Proposition 1.1</p>
+        <p class="claim">
+          Curiosity about mathematics turns up in every school in the East Bay. The chance to follow it further should not depend on which school that
+          is.
+        </p>
+        <div class="why-links">
+          <a class="xref" href="/about/">About the association <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="/resources/">What students work on <span class="arr" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      <div class="why-proof">
+        <p class="proof-lead"><em>Proof.</em> Three reasons, each enough on its own.</p>
+        <ol class="reasons">
+          <li>
+            <span class="rn" aria-hidden="true">(i)</span>
+            <div>
+              <h3>Close to home</h3>
+              <p>
+                Enrichment nearby is enrichment students can actually reach: after school or on a weekend, with friends, without a long trip or a
+                special program to get into.
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="rn" aria-hidden="true">(ii)</span>
+            <div>
+              <h3>Past the textbook</h3>
+              <p>
+                Hard problems teach students to try, get stuck, and try again, and to explain why an answer is right. Those habits outlast any single
+                test, in mathematics and well beyond it.
+              </p>
+            </div>
+          </li>
+          <li>
+            <span class="rn" aria-hidden="true">(iii)</span>
+            <div>
+              <h3>In good company</h3>
+              <p>
+                Meeting students from other schools who also love a hard problem makes it easier to keep going, and to aim higher than you would on
+                your own.
+              </p>
+            </div>
+          </li>
+        </ol>
+        <p class="conclude">
+          <span>Support for local math enrichment reaches students where they already are.</span><span class="qed" aria-hidden="true"></span>
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <!-- §2 -->
+  <Section
+    id="uses"
+    num="2"
+    title="Where support *goes*"
+    dek="What support pays for, and how you’ll hear back about it."
+    note="Fig. 1 is a pun, but an honest one: a function’s support is where it does its work."
+  >
+    <div class="uses">
+      <div class="uses-text">
+        <p class="uses-lede">
+          Support pays for the practical things that turn a good problem into an afternoon students can come to. We’d rather show you than tell you.
+        </p>
+        <div class="ledger" role="group" aria-labelledby="ledger-h">
+          <p class="ledger-top">
+            <span class="label" id="ledger-h">Table 2. How funds are used</span>
+          </p>
+          <p class="ledger-body"><Ph id="sponsors.funding-uses" /></p>
+          <p class="note ledger-note">Published here so you can see where a gift goes before you give it.</p>
+        </div>
+        <div class="promise">
+          <p class="label">Lemma 2.1 <span class="note">(reporting back)</span></p>
+          <h3>We’ll tell you what your support made possible.</h3>
+          <p>
+            After each school year, every sponsor receives a short report: what took place, how many students took part, and where the money went.
+            Questions in between get a straight answer.
+          </p>
+          <a class="xref" href="#recognition">What sponsors receive <span class="arr" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      <div class="uses-fig">
+        <SponsorSupportFigure />
+      </div>
+    </div>
+  </Section>
+
+  <!-- §3 -->
+  <Section
+    id="ways"
+    num="3"
+    title="Ways to support"
+    dek="Money is one way to help. Rooms, prizes, printing and time are others."
+    note="A lemma is a smaller result that helps prove a bigger one. Each of these helps."
+  >
+    <div class="cells cells-4 ways">
+      <article class="cell">
+        <p class="label">Lemma 3.1</p>
+        <h3>Become a <em>sponsor.</em></h3>
+        <p class="body">A gift from a business, foundation or university department, recognized on this site and at events.</p>
+        <ul class="gets">
+          <li>Levels: <Ph id="sponsors.tiers" /></li>
+          <li>Recognition to match: <a href="#recognition">what sponsors receive</a></li>
+        </ul>
+        <a class="xref" href="#become">Talk to us about sponsoring <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Lemma 3.2</p>
+        <h3>Give <em>in kind.</em></h3>
+        <p class="body">Not every gift is money. An organization can help with what it already has, for example:</p>
+        <ul class="gets">
+          <li>A room for an event</li>
+          <li>Prizes or books for students</li>
+          <li>Printing for problem sets</li>
+          <li>Food for a long competition day</li>
+        </ul>
+        <a class="xref" href={sponsorFormHref}>Offer an in-kind gift <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Lemma 3.3</p>
+        <h3>Give your <em>time.</em></h3>
+        <p class="body">Mathematicians, engineers, teachers and college students: an afternoon of your time goes a long way.</p>
+        <ul class="gets">
+          <li>Help run an event</li>
+          <li>Write or check problems</li>
+          <li>Mentor students who want to go further</li>
+        </ul>
+        <a class="xref" href={joinHref}>Volunteer with EBMA <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+      <article class="cell">
+        <p class="label">Lemma 3.4</p>
+        <h3>Give as an <em>individual.</em></h3>
+        <p class="body">Parents, neighbors, and anyone who remembers the teacher who made math click: gifts of any size help.</p>
+        <ul class="gets">
+          <li>
+            Online: <PhLink id="sponsors.donate" label="Donation link" class={donateClass}
+              >Give online <span class="arr" aria-hidden="true">→</span></PhLink
+            >
+          </li>
+          <li>By check: the mailing address is in §6</li>
+        </ul>
+        <a class="xref" href="#give-details">Giving and tax details <span class="arr" aria-hidden="true">→</span></a>
+      </article>
+    </div>
+    <p class="aside-line">
+      Teach at a school or run a club? That’s a partnership rather than a sponsorship: see <a href="/get-involved/#schools">schools and teachers</a>.
+    </p>
+  </Section>
+
+  <!-- §4 -->
+  <Section
+    id="recognition"
+    num="4"
+    title="What sponsors *receive*"
+    dek="Thanks in public, and an honest account in private."
+    note="A theorem is only as strong as its hypotheses. This one depends on the sponsorship level."
+  >
+    <div class="recv-grid">
+      <div class="thm">
+        <p class="thm-head">
+          <span class="label">Theorem 4.1</span>
+          <span class="note">(recognition)</span>
+        </p>
+        <p class="thm-stmt">Depending on the level of support, a sponsor receives:</p>
+        <ol class="recv">
+          <li>
+            <span class="rl" aria-hidden="true">(a)</span>
+            <div>
+              <h3>Your logo on this site</h3>
+              <p>On this page and in the acknowledgments on the <a href="/">home page</a>, linked to your website.</p>
+            </div>
+          </li>
+          <li>
+            <span class="rl" aria-hidden="true">(b)</span>
+            <div>
+              <h3>Thanks at events</h3>
+              <p>Named and thanked in person, in front of the students and families your support reaches.</p>
+            </div>
+          </li>
+          <li>
+            <span class="rl" aria-hidden="true">(c)</span>
+            <div>
+              <h3>A short impact report</h3>
+              <p>What took place, how many students took part, and what your support made possible (see <a href="#uses">where support goes</a>).</p>
+            </div>
+          </li>
+        </ol>
+        <p class="hyp">
+          <span class="hyp-k">Hypothesis.</span> The exact benefits depend on the level you choose: <Ph id="sponsors.tiers" />
+        </p>
+      </div>
+      <div class="remark">
+        <p class="label">Remark 4.2</p>
+        <h3>Recognition, not access.</h3>
+        <p>
+          Sponsorship thanks you in public. It does not come with students’ names or contact details. Our privacy notice explains how we handle
+          information about students and families.
+        </p>
+        <a class="xref" href="/privacy/">Privacy notice <span class="arr" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </Section>
+
+  <!-- §5 -->
+  <Section
+    id="current"
+    num="5"
+    title="Current sponsors & partners"
+    dek="Organizations that support mathematics for East Bay students through EBMA."
+    note="Only organizations that have agreed to be named appear here."
+  >
+    <div class="current">
+      <div class="defs-col">
+        <dl class="defs">
+          <div>
+            <dt><span class="label">Definition 5.1</span> <dfn>Sponsor</dfn></dt>
+            <dd>An organization or person that supports EBMA with money or in-kind gifts.</dd>
+          </div>
+          <div>
+            <dt><span class="label">Definition 5.2</span> <dfn>Partner</dfn></dt>
+            <dd>An organization that works with EBMA on programs for students, such as a school, a library, or a university department.</dd>
+          </div>
+        </dl>
+        <div class="defs-links">
+          <a class="xref" href="/get-involved/#schools">Partner with us <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="/events/">See our events <span class="arr" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+      <figure class="wall">
+        <LogoSlots />
+        <figcaption><b>Fig. 2.</b> Logos appear here as partnerships are confirmed.</figcaption>
+      </figure>
+    </div>
+  </Section>
+
+  <!-- §6 -->
+  <Section
+    id="become"
+    num="6"
+    title="Become a *sponsor*"
+    dek="Tell us what you have in mind. We’ll reply and work out the details with you."
+    note="Unlike most problems on this site, this one has a short solution."
+  >
+    <div class="become">
+      <div class="how">
+        <ol class="steps">
+          <li>
+            <span class="step-n" aria-hidden="true">1</span>
+            <div>
+              <h3>Tell us you’re interested</h3>
+              <p>Use the short form, or email us. A sentence or two about what you’d like to support is plenty.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-n" aria-hidden="true">2</span>
+            <div>
+              <h3>Talk it through</h3>
+              <p>We’ll suggest a sponsorship level or an in-kind gift that fits, and answer any questions from your team.</p>
+            </div>
+          </li>
+          <li>
+            <span class="step-n" aria-hidden="true">3</span>
+            <div>
+              <h3>Confirm and be thanked</h3>
+              <p>We confirm the details in writing, and your logo goes up once you approve it.</p>
+            </div>
+          </li>
+        </ol>
+        <div class="cta-row">
+          <a class="btn" href={sponsorFormHref}>Start the conversation <span class="arr" aria-hidden="true">→</span></a>
+          <PhLink id="sponsors.packet" label="Sponsor packet (PDF)" class={packetClass}
+            >Sponsor packet (PDF) <span class="arr" aria-hidden="true">↓</span></PhLink
+          >
+        </div>
+      </div>
+      <div class="facts" id="give-details">
+        <h3 class="facts-h"><span class="label">Table 6.</span> Details for your records</h3>
+        <dl>
+          <div>
+            <dt>Sponsorship contact</dt>
+            <dd><PhLink id="sponsors.contact" /></dd>
+          </div>
+          <div>
+            <dt>Legal status</dt>
+            <dd>The East Bay Math Association is <Ph id="org.legal-status" /></dd>
+          </div>
+          <div>
+            <dt>Tax-deductibility</dt>
+            <dd><Ph id="sponsors.tax-deductible" /></dd>
+          </div>
+          <div>
+            <dt>Checks by mail</dt>
+            <dd><Ph id="org.mailing-address" /></dd>
+          </div>
+        </dl>
+        <p class="facts-foot">
+          Another question? <a href={contactHref}>Contact us</a>, or read <a href="/about/">about the association</a>.
+        </p>
+      </div>
+    </div>
+  </Section>
+
+  <Band
+    label="Corollary 5.1"
+    title="Help write the next *chapter.*"
+    text="Sponsor an event, lend a room, or give an afternoon. Tell us what you have in mind, and we’ll find the right fit."
+  >
+    <a class="btn" href={sponsorFormHref}>Become a sponsor <span class="arr" aria-hidden="true">→</span></a>
+    <a class="btn btn-quiet" href={contactHref}>Contact us</a>
+  </Band>
+</Base>
+
+<style>
+  /* Placeholder chips are 0.78em of their context; never let them drop under 12px here. */
+  .why :global(.ph),
+  .uses :global(.ph),
+  .ways :global(.ph),
+  .recv-grid :global(.ph),
+  .become :global(.ph) {
+    font-size: max(12px, 0.78em);
+  }
+
+  /* ---------- §1 why ---------- */
+  .why {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: start;
+  }
+  .why-claim {
+    border-top: 2px solid var(--ink);
+    padding-top: 18px;
+  }
+  .why-claim .label {
+    margin-bottom: 16px;
+  }
+  .claim {
+    font: 350 clamp(25px, 2.3vw, 33px) / 1.3 var(--serif);
+    letter-spacing: -0.012em;
+    font-variation-settings: 'opsz' 36;
+    text-wrap: pretty;
+  }
+  .why-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin-top: 28px;
+  }
+  .proof-lead {
+    font-size: clamp(18px, 1.5vw, 20px);
+    color: var(--ink-2);
+    padding-top: 12px;
+  }
+  .proof-lead em {
+    color: var(--ink);
+    margin-right: 0.25em;
+  }
+  .reasons {
+    list-style: none;
+    margin-top: 18px;
+    border-top: 1px solid var(--rule-2);
+  }
+  .reasons li {
+    display: grid;
+    grid-template-columns: 3.2em minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px 0 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .rn {
+    font: italic 400 22px/1.2 var(--serif);
+    color: var(--accent-text);
+  }
+  .reasons h3 {
+    font: 400 clamp(22px, 1.8vw, 26px) / 1.2 var(--serif);
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .reasons p {
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .why .conclude {
+    font-size: clamp(18px, 1.5vw, 20px);
+  }
+
+  /* ---------- §2 where support goes ---------- */
+  .uses {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 6fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: start;
+  }
+  .uses-lede {
+    font: 350 clamp(21px, 1.9vw, 26px) / 1.4 var(--serif);
+    font-variation-settings: 'opsz' 30;
+    text-wrap: pretty;
+  }
+  .ledger {
+    margin-top: 28px;
+    border-top: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    padding: 14px 0 18px;
+  }
+  .ledger-top {
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .ledger-top .label {
+    color: var(--ink);
+  }
+  .ledger-body {
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  .ledger-note {
+    margin-top: 10px;
+  }
+  .promise {
+    margin-top: 36px;
+    padding-left: 22px;
+    border-left: 3px solid var(--accent);
+    display: grid;
+    gap: 12px;
+  }
+  .promise .label .note {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    font-size: 15.5px;
+    margin-left: 4px;
+  }
+  .promise h3 {
+    font: 400 clamp(24px, 2.1vw, 30px) / 1.15 var(--serif);
+    letter-spacing: -0.012em;
+  }
+  .promise p:not(.label) {
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .promise .xref {
+    justify-self: start;
+    margin-top: 4px;
+  }
+  .uses-fig {
+    position: sticky;
+    top: calc(var(--head-h) + 24px);
+  }
+
+  /* ---------- §3 ways ---------- */
+  .gets {
+    list-style: none;
+    display: grid;
+    gap: 8px;
+    font: 500 15px/1.4 var(--sans);
+    color: var(--ink-2);
+    margin-bottom: 4px;
+  }
+  .gets li {
+    position: relative;
+    padding-left: 20px;
+  }
+  .gets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+  }
+  .gets a {
+    color: var(--ink);
+  }
+  .gets .xref {
+    padding: 0;
+    font-size: inherit;
+  }
+  .aside-line {
+    margin-top: 22px;
+    font-size: 17px;
+    color: var(--ink-2);
+  }
+  .aside-line a {
+    color: var(--ink);
+  }
+
+  /* ---------- §4 recognition ---------- */
+  .recv-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: start;
+  }
+  .thm {
+    border-top: 2px solid var(--ink);
+    padding-top: 18px;
+  }
+  .thm-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .thm-stmt {
+    margin-top: 14px;
+    font: italic 400 clamp(20px, 1.7vw, 23px) / 1.4 var(--serif);
+  }
+  .recv {
+    list-style: none;
+    margin-top: 10px;
+  }
+  .recv li {
+    display: grid;
+    grid-template-columns: 3.2em minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .rl {
+    font: italic 400 26px/1.1 var(--serif);
+    color: var(--accent-text);
+  }
+  .recv h3 {
+    font: 400 clamp(24px, 2.1vw, 30px) / 1.15 var(--serif);
+    letter-spacing: -0.012em;
+    margin-bottom: 6px;
+  }
+  .recv p {
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .recv a,
+  .remark a:not(.xref) {
+    color: var(--ink);
+  }
+  .hyp {
+    margin-top: 18px;
+    font-size: 17px;
+    color: var(--ink-2);
+  }
+  .hyp-k {
+    font-style: italic;
+    color: var(--ink);
+    margin-right: 0.2em;
+  }
+  .remark {
+    background: var(--paper-2);
+    padding: clamp(22px, 2.4vw, 32px);
+    display: grid;
+    gap: 12px;
+  }
+  .remark h3 {
+    font: 400 clamp(24px, 2.1vw, 30px) / 1.15 var(--serif);
+    letter-spacing: -0.012em;
+  }
+  .remark p:not(.label) {
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .remark .xref {
+    justify-self: start;
+  }
+
+  /* ---------- §5 current ---------- */
+  .current {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: clamp(28px, 4vw, 64px);
+    align-items: start;
+  }
+  .defs {
+    display: grid;
+    gap: 22px;
+    margin: 0;
+  }
+  .defs dt {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  dfn {
+    font: italic 400 clamp(24px, 2.1vw, 30px) / 1.1 var(--serif);
+    letter-spacing: -0.012em;
+  }
+  .defs dd {
+    margin: 8px 0 0;
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .defs > div {
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .defs-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin-top: 22px;
+  }
+  .wall {
+    margin: 0;
+    min-width: 0;
+  }
+  .wall figcaption {
+    margin-top: 16px;
+    font-size: 16px;
+    color: var(--ink-2);
+  }
+  .wall figcaption b {
+    font: 600 13px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 0.35em;
+  }
+
+  /* ---------- §6 become ---------- */
+  .become {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: start;
+  }
+  .steps {
+    list-style: none;
+    border-top: 2px solid var(--ink);
+  }
+  .steps li {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 16px;
+    padding: 20px 0 22px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .step-n {
+    font: 200 48px/0.9 var(--serif);
+    font-variation-settings: 'opsz' 72;
+    color: var(--accent);
+  }
+  .steps h3 {
+    font: 400 clamp(22px, 1.8vw, 26px) / 1.2 var(--serif);
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .steps p {
+    color: var(--ink-2);
+    font-size: 17.5px;
+  }
+  .how .cta-row {
+    margin-top: 30px;
+  }
+  .facts {
+    background: var(--paper-2);
+    padding: clamp(22px, 2.4vw, 32px);
+    scroll-margin-top: calc(var(--head-h) + 16px);
+  }
+  .facts-h {
+    font: 400 clamp(22px, 1.8vw, 26px) / 1.2 var(--serif);
+    letter-spacing: -0.01em;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .facts dl {
+    margin: 0;
+  }
+  .facts dl > div {
+    padding: 14px 0 15px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .facts dt {
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .facts dd {
+    margin: 0;
+    font-size: 17.5px;
+    color: var(--ink);
+  }
+  /* On the tinted panel the chip's own wash drops under 4.5:1; sit it on plain paper instead. */
+  .facts :global(.ph) {
+    background: var(--paper);
+  }
+  .facts-foot {
+    margin-top: 18px;
+    font-size: 16.5px;
+    color: var(--ink-2);
+  }
+  .facts-foot a {
+    color: var(--ink);
+  }
+
+  /* ---------- responsive ---------- */
+  /* Below this width the figure column would shrink its labels under 12px: stack instead. */
+  @media (max-width: 1180px) {
+    .uses {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .uses-text {
+      max-width: 40em;
+    }
+    .uses-fig {
+      position: static;
+      max-width: 480px;
+    }
+  }
+  /* The logo wall and the records table need the full body width below this. */
+  @media (max-width: 1180px) {
+    .current,
+    .become {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .facts {
+      max-width: 44em;
+    }
+  }
+  @media (min-width: 621px) and (max-width: 1180px) {
+    .defs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: clamp(24px, 4vw, 48px);
+    }
+  }
+  @media (max-width: 1100px) {
+    .recv-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .remark {
+      max-width: 40em;
+    }
+  }
+  @media (max-width: 980px) {
+    .why {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 620px) {
+    .reasons li,
+    .recv li {
+      grid-template-columns: 2.4em minmax(0, 1fr);
+      gap: 8px;
+    }
+    .steps li {
+      grid-template-columns: 40px minmax(0, 1fr);
+      gap: 12px;
+    }
+    .step-n {
+      font-size: 40px;
+    }
+  }
+</style>

@@ -5,9 +5,11 @@
 //
 // 1. Makes sure the D1 database `ebma-forms` exists and wrangler.toml points at it.
 // 2. Applies any pending migrations to the remote database.
-// 3. Makes sure the Pages project `east-bay-math` exists (production branch: main).
+// 3. Makes sure the Pages project `east-bay-math` exists (production branch: main) and has a
+//    random IP_SALT secret for the join form's rate limiting.
 // 4. Builds the site and uploads dist/ as a production deployment.
 import { execFileSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -53,6 +55,23 @@ const exists = projects.some((p) => (p['Project Name'] ?? p.name) === PROJECT);
 if (!exists) {
   console.log(`Creating Pages project ${PROJECT}…`);
   wrangler(['pages', 'project', 'create', PROJECT, '--production-branch', 'main']);
+}
+
+// 3b. A secret salt for the hashed IPs used by the form's rate limit (set once, never printed).
+const secrets = (() => {
+  try {
+    return json(['pages', 'secret', 'list', '--project-name', PROJECT]);
+  } catch {
+    return [];
+  }
+})();
+if (!JSON.stringify(secrets).includes('IP_SALT')) {
+  console.log('Setting the IP_SALT secret…');
+  execFileSync('npx', ['wrangler', 'pages', 'secret', 'put', 'IP_SALT', '--project-name', PROJECT], {
+    cwd: root,
+    input: crypto.randomBytes(32).toString('hex'),
+    stdio: ['pipe', 'inherit', 'inherit'],
+  });
 }
 
 // 4. Build and deploy.

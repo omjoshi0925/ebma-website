@@ -1,0 +1,589 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import Band from '../components/Band.astro';
+import Ph from '../components/Ph.astro';
+import PhLink from '../components/PhLink.astro';
+import TeX from '../components/Math.astro';
+import AboutPentagon from '../components/AboutPentagon.astro';
+import AboutPerson from '../components/AboutPerson.astro';
+import { team, SAMPLE_COUNT } from '../data/team';
+import { joinHref, contactHref } from '../data/site';
+
+// Geography, not a claim of presence: the incorporated cities of the two East Bay counties.
+const alameda = ['Alameda', 'Albany', 'Berkeley', 'Dublin', 'Emeryville', 'Fremont', 'Hayward', 'Livermore', 'Newark', 'Oakland', 'Piedmont', 'Pleasanton', 'San Leandro', 'Union City'];
+const contraCosta = ['Antioch', 'Brentwood', 'Clayton', 'Concord', 'Danville', 'El Cerrito', 'Hercules', 'Lafayette', 'Martinez', 'Moraga', 'Oakley', 'Orinda', 'Pinole', 'Pittsburg', 'Pleasant Hill', 'Richmond', 'San Pablo', 'San Ramon', 'Walnut Creek'];
+const sets = [
+  { id: 'set-a', sym: 'A', county: 'Alameda County', cities: alameda },
+  { id: 'set-c', sym: 'C', county: 'Contra Costa County', cities: contraCosta },
+];
+
+const contents = [
+  { href: '#mission', num: '1', title: 'Our mission' },
+  { href: '#values', num: '2', title: 'What we value' },
+  { href: '#construction', num: '3', title: 'Step by step' },
+  { href: '#who', num: '4', title: 'Who we serve' },
+  { href: '#people', num: '5', title: 'The people' },
+  { href: '#faq', num: '6', title: 'Questions parents ask' },
+];
+---
+
+<Base
+  title="About"
+  description="What the East Bay Math Association is for, what it values, how it thinks about learning, who it serves, and straight answers to the questions parents ask."
+>
+  <PageHeader
+    chapter={1}
+    label="Preliminaries"
+    note="(in which we introduce ourselves)"
+    title="About the *Association*"
+    lede="<em>Who we are.</em> The East Bay Math Association is a place for students across the East Bay who like a hard problem, and for the families and teachers who back them. This chapter sets out what we are for, what we value, and who we are."
+    contents={contents}
+  />
+
+  <Section
+    id="mission"
+    num="1"
+    title="Our *mission*"
+    dek="Why the association exists: first in one sentence, then in plain terms."
+    note="A definition in mathematics says exactly what something is. This one says what we are for."
+  >
+    <div class="mission">
+      <p class="thm-label"><span class="label">Definition 1.1</span><span class="note">(the mission)</span></p>
+      <p class="statement">
+        To give every curious student in the East Bay a way into <em>real</em> mathematics, whatever school they attend and wherever they are
+        starting from.
+      </p>
+      <div class="plain">
+        <div class="prose">
+          <p>
+            <strong>In plain terms:</strong> the East Bay Math Association (EBMA) is a math organization for students in the East Bay area of
+            California. It was founded in <Ph id="org.founded" />.
+          </p>
+          <p>
+            We bring students from different schools and cities together for competitions, events and problem solving, and we gather good problems
+            and free resources so the mathematics doesn’t stop when an event does.
+          </p>
+        </div>
+        <ul class="see" aria-label="Read next">
+          <li><a class="xref" href="/events/">Events &amp; competitions <span class="arr" aria-hidden="true">→</span></a></li>
+          <li><a class="xref" href="/resources/">Student resources <span class="arr" aria-hidden="true">→</span></a></li>
+          <li><a class="xref" href="#faq">Questions parents ask <span class="arr" aria-hidden="true">↓</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </Section>
+
+  <Section
+    id="values"
+    num="2"
+    title="What we *value*"
+    dek="Four axioms: the things we take as given, and build everything else on."
+    note="An axiom is a starting point: a statement you accept without proof, then build on."
+  >
+    <div class="cells cells-4 axioms">
+      <article class="cell">
+        <p class="formal" aria-hidden="true">curiosity <span class="op">≥</span> head start</p>
+        <p class="label">Axiom 1</p>
+        <h3>Curiosity <em>counts</em> most.</h3>
+        <p class="body">A student who enjoys a good puzzle belongs here, whatever their grades say and wherever they are starting from.</p>
+      </article>
+      <article class="cell">
+        <p class="formal" aria-hidden="true">stuck <span class="op">≠</span> lost</p>
+        <p class="label">Axiom 2</p>
+        <h3>Being stuck is <em>part</em> of it.</h3>
+        <p class="body">Good problems take a while. Getting stuck is where the thinking happens, not a sign you’re in the wrong place.</p>
+      </article>
+      <article class="cell">
+        <p class="formal upright" aria-hidden="true">1 + 1 <span class="op">&gt;</span> 2</p>
+        <p class="label">Axiom 3</p>
+        <h3>Better <em>together</em>.</h3>
+        <p class="body">Mathematics is more fun with company. Students learn as much from each other’s ideas as from any lesson.</p>
+      </article>
+      <article class="cell">
+        <p class="formal" aria-hidden="true">unknown <span class="op">⇒</span> say so</p>
+        <p class="label">Axiom 4</p>
+        <h3>Straight <em>answers</em>.</h3>
+        <p class="body">Families should know the dates, the costs and who is supervising before anyone signs up. If we don’t know something yet, we say so.</p>
+      </article>
+    </div>
+    <p class="conclude"><span>Everything else we do is built on these four.</span><span class="qed" aria-hidden="true"></span></p>
+  </Section>
+
+  <Section
+    id="construction"
+    num="3"
+    title="Step by *step*"
+    dek="How we think about learning, shown rather than told: a construction you can step through."
+    note="In geometry, a construction is a recipe that uses only a compass and a straightedge. Nothing is measured; every length is found."
+  >
+    <AboutPentagon />
+  </Section>
+
+  <Section
+    id="who"
+    num="4"
+    title="Who we *serve*"
+    dek="Students in the East Bay, whichever city they live in and whichever school they attend."
+    note="The domain of a function is the set of inputs it is defined for. Ours is the East Bay."
+  >
+    <div class="domain">
+      <div class="domain-top">
+        <p class="thm-label"><span class="label">Definition 4.1</span><span class="note">(the domain)</span></p>
+        <p class="union"><TeX tex={String.raw`D \supseteq A \cup C`} /></p>
+      </div>
+      {
+        sets.map((set) => (
+          <div class="set">
+            <h3 class="set-h" id={`${set.id}-h`}>
+              {set.county}
+              <span class="count">{set.cities.length} cities</span>
+            </h3>
+            <div class="set-body">
+              <span class="lhs" aria-hidden="true">
+                <span class="m">{set.sym}</span> = <span class="br">{'{'}</span>
+              </span>
+              <ul class="cities" aria-labelledby={`${set.id}-h`}>
+                {set.cities.map((city) => (
+                  <li>{city}</li>
+                ))}
+              </ul>
+              <span class="br" aria-hidden="true">
+                {'}'}
+              </span>
+            </div>
+          </div>
+        ))
+      }
+      <div class="domain-foot">
+        <p class="tcap">
+          <b>Table 4.1.</b> The incorporated cities of Alameda County (<span class="m">A</span>) and Contra Costa County (<span class="m">C</span>),
+          the two counties usually meant by “the East Bay”. The domain <span class="m">D</span> also includes the unincorporated communities in both,
+          such as Castro Valley and El Sobrante. This is geography, not a list of places where EBMA holds events: for those, see
+          <a href="/events/">Events</a>.
+        </p>
+        <div class="elig cropped">
+          <p class="label">Who can take part</p>
+          <p class="elig-v"><Ph id="org.eligibility" /></p>
+          <p class="elig-sub">Not sure whether that includes your child? <a href={contactHref}>Ask&nbsp;us</a>.</p>
+          <div class="elig-links">
+            <a class="xref" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+            <a class="xref" href="/get-involved/#schools">For schools &amp; teachers <span class="arr" aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section id="people" num="5" title="The *people*" dek="The students and adults behind the association.">
+    <p slot="note">Want to help run things? Volunteers are welcome: see <a href="/get-involved/">Get involved</a>.</p>
+    <ul class="team">
+      {
+        team.length
+          ? team.map((member) => (
+              <li>
+                <AboutPerson member={member} />
+              </li>
+            ))
+          : Array.from({ length: SAMPLE_COUNT }, (_, i) => (
+              <li class:list={{ 'sample-extra': i > 1 }}>
+                <AboutPerson sample={i + 1} />
+              </li>
+            ))
+      }
+    </ul>
+    <div class="advisor">
+      <p class="advisor-line"><span class="label">Adult advisor</span> <Ph id="about.advisor" /></p>
+      <div class="cta-row">
+        <a class="xref" href={contactHref}>Contact a person <span class="arr" aria-hidden="true">→</span></a>
+        <a class="xref" href="/get-involved/">Volunteer with us <span class="arr" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </Section>
+
+  <Section
+    id="faq"
+    num="6"
+    title="Questions parents *ask*"
+    dek="Short, straight answers. If yours isn’t here, ask a person."
+    note="If you read only one section of this page, make it this one."
+  >
+    <div class="faq">
+      <div class="faq-list">
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q1</span><span class="qt">Who can join?</span></summary>
+          <div class="disclose-body">
+            <p><Ph id="org.eligibility" /></p>
+            <p>Not sure whether your child qualifies? <a href={contactHref}>Ask us</a>. Ready to sign up? Use the <a href={joinHref}>join form</a>.</p>
+          </div>
+        </details>
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q2</span><span class="qt">What does it cost?</span></summary>
+          <div class="disclose-body">
+            <p><Ph id="org.membership-cost" /></p>
+            <p>
+              Every EBMA event lists its cost, if it has one, before anyone signs up. Outside competitions set their own fees; the
+              <a href="/events/">Events page</a> links to each one’s official site.
+            </p>
+          </div>
+        </details>
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q3</span><span class="qt">When and where do you meet?</span></summary>
+          <div class="disclose-body">
+            <p><Ph id="org.meetings" /></p>
+            <p>Dates, times and places for upcoming events are on the <a href="/events/">Events page</a>.</p>
+          </div>
+        </details>
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q4</span><span class="qt">Who supervises students, and how do you keep them safe?</span></summary>
+          <div class="disclose-body">
+            <p><Ph id="org.safety-policy" /></p>
+            <p>If you have a question about a particular event, <a href={contactHref}>ask us</a> before the day.</p>
+          </div>
+        </details>
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q5</span><span class="qt">Does my child need to be “good at math”?</span></summary>
+          <div class="disclose-body">
+            <p>
+              No. Curiosity matters more than a head start: it is our <a href="#values">first axiom</a>. Our problems and events are meant to welcome
+              beginners and still stretch students who have been at it for years. Being stuck is normal, and nobody is expected to know everything
+              already.
+            </p>
+            <p>A good way to find out: <a href="/resources/">try a problem together</a>.</p>
+          </div>
+        </details>
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q6</span><span class="qt">How is my child’s information used?</span></summary>
+          <div class="disclose-body">
+            <p>
+              We ask only for what we need to run the association and to reply to you. Our <a href="/privacy/">privacy notice</a> explains what the
+              join form collects and how it is used.
+            </p>
+          </div>
+        </details>
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q7</span><span class="qt">Is EBMA a nonprofit?</span></summary>
+          <div class="disclose-body">
+            <p>The East Bay Math Association is <Ph id="org.legal-status" />.</p>
+            <p>Organizations that would like to support EBMA can find out how on the <a href="/sponsors/#become">Sponsors page</a>.</p>
+          </div>
+        </details>
+        <details class="disclose">
+          <summary><span class="qn" aria-hidden="true">Q8</span><span class="qt">How do I reach a real person?</span></summary>
+          <div class="disclose-body">
+            <p>
+              Email <PhLink id="org.email" />, or use the contact details on the <a href={contactHref}>Get involved page</a>. A real person reads
+              every message.
+            </p>
+          </div>
+        </details>
+      </div>
+      <div class="faq-aside cropped">
+        <p class="label">Still wondering?</p>
+        <p class="aside-h">We would rather you ask than guess.</p>
+        <p class="aside-sub">Questions about events, supervision, cost or anything else are welcome.</p>
+        <a class="btn btn-quiet" href={contactHref}>Contact us</a>
+        <a class="xref" href="/privacy/">Privacy notice <span class="arr" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </Section>
+
+  <Band label="Corollary 6.1" title="Now you know *us.*" text="Join the association, or ask us a question first. Either way, we’d be glad to hear from you." m={6}>
+    <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+    <a class="btn btn-quiet" href={contactHref}>Contact us</a>
+  </Band>
+</Base>
+
+<style>
+  /* §1 mission */
+  .mission .thm-label {
+    margin-bottom: 18px;
+  }
+  .statement {
+    max-width: 17em;
+    font: 350 clamp(30px, 3.4vw, 50px) / 1.14 var(--serif);
+    letter-spacing: -0.018em;
+    font-variation-settings: 'opsz' 60;
+    text-wrap: balance;
+  }
+  .statement em {
+    font-style: italic;
+    color: var(--accent);
+    padding-right: 0.03em;
+  }
+  @media (min-width: 1180px) {
+    .statement {
+      font-weight: 300;
+    }
+  }
+  .plain {
+    margin-top: clamp(32px, 4vw, 52px);
+    padding-top: 24px;
+    border-top: 1px solid var(--rule-2);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px clamp(32px, 5vw, 80px);
+    align-items: start;
+  }
+  .see {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+
+  /* §2 axioms */
+  .formal {
+    font: italic 400 clamp(21px, 1.8vw, 24px) / 1.1 var(--serif);
+    color: var(--ink-3);
+    margin-bottom: 8px;
+    white-space: nowrap;
+  }
+  .formal.upright {
+    font-style: normal;
+  }
+  .formal .op {
+    font-style: normal;
+    color: var(--accent);
+    margin: 0 0.12em;
+  }
+  .axioms h3 em {
+    font-style: italic;
+  }
+  .conclude {
+    border-top: 0;
+  }
+
+  /* §4 the domain */
+  .domain-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule-2);
+  }
+  .domain-top .thm-label {
+    margin: 0;
+  }
+  .union {
+    font-size: 21px;
+    color: var(--ink);
+  }
+  .set {
+    padding: clamp(22px, 2.6vw, 32px) 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .set-h {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    margin-bottom: 12px;
+    font: 600 12.5px/1.3 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .count {
+    font: 500 12.5px/1.3 var(--mono);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--ink-3);
+  }
+  .set-body {
+    font: 350 clamp(23px, 2.35vw, 34px) / 1.4 var(--serif);
+    letter-spacing: -0.01em;
+    font-variation-settings: 'opsz' 36;
+    text-wrap: pretty;
+  }
+  .lhs .m {
+    color: var(--accent);
+    font-size: 1.08em;
+  }
+  .br {
+    font-weight: 300;
+    color: var(--accent);
+    font-size: 1.15em;
+    line-height: 1;
+    margin: 0 0.06em;
+  }
+  /* Each city is one unbreakable box; lines break only between cities. */
+  .cities {
+    display: inline;
+  }
+  .cities li {
+    display: inline-block;
+    margin-right: 0.3em;
+  }
+  .cities li:last-child {
+    margin-right: 0.12em;
+  }
+  .cities li:not(:last-child)::after {
+    content: ',';
+    color: var(--ink-3);
+  }
+  .domain-foot {
+    margin-top: clamp(24px, 3vw, 36px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 28px clamp(28px, 4vw, 64px);
+    align-items: start;
+  }
+  .tcap {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+  .tcap b {
+    font: 600 12.5px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-right: 0.4em;
+  }
+  .tcap a,
+  .elig a:not(.xref),
+  .faq a:not(.xref, .btn),
+  .advisor a:not(.xref) {
+    color: var(--ink);
+  }
+  .elig {
+    padding: 22px 24px 24px;
+    background-color: var(--paper-2);
+    --l: 12px;
+    --w: 1px;
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+  }
+  .elig-v {
+    font-size: 19px;
+  }
+  .elig-sub {
+    font-size: 16.5px;
+    color: var(--ink-2);
+  }
+  .elig-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+  }
+
+  /* §5 people */
+  .team {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(20px, 2.4vw, 32px);
+  }
+  .team > li {
+    display: grid;
+    min-width: 0;
+  }
+  .advisor {
+    margin-top: clamp(28px, 3vw, 40px);
+    padding-top: 18px;
+    border-top: 1px solid var(--rule-2);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px 32px;
+  }
+  .advisor-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+    font-size: 18px;
+  }
+  .advisor-line .label {
+    color: var(--ink);
+  }
+
+  /* §6 FAQ */
+  .faq {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+    gap: 32px clamp(32px, 4vw, 64px);
+    align-items: start;
+  }
+  .faq summary {
+    justify-content: flex-start;
+  }
+  .qn {
+    flex: none;
+    min-width: 2.4em;
+    font: 500 13px/1 var(--mono);
+    color: var(--accent-text);
+    transform: translateY(-2px);
+  }
+  .qt {
+    flex: 1;
+    min-width: 0;
+  }
+  .faq-aside {
+    padding: 24px;
+    background-color: var(--paper-2);
+    --l: 12px;
+    --w: 1px;
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    position: sticky;
+    top: calc(var(--head-h) + 24px);
+  }
+  .aside-h {
+    font: 400 24px/1.2 var(--serif);
+    letter-spacing: -0.01em;
+  }
+  .aside-sub {
+    font-size: 16.5px;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+
+  @media (max-width: 1100px) {
+    .team {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 980px) {
+    .faq {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .faq-aside {
+      position: static;
+      max-width: 34em;
+    }
+  }
+  @media (max-width: 760px) {
+    .plain,
+    .domain-foot {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 620px) {
+    .team {
+      gap: 20px 16px;
+    }
+    /* Identical sample cards add length without information on a phone. */
+    .team > li.sample-extra {
+      display: none;
+    }
+    .elig {
+      padding: 18px 16px 20px;
+    }
+    .faq-aside {
+      padding: 20px 16px;
+    }
+  }
+  @media (max-width: 380px) {
+    .formal {
+      white-space: normal;
+    }
+  }
+</style>

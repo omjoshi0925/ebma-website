@@ -26,7 +26,7 @@ html {
   background: var(--paper);
 }
 @media (prefers-reduced-motion: no-preference) {
-  html {
+  html.js {
     scroll-behavior: smooth;
   }
 }
@@ -105,6 +105,11 @@ textarea {
   max-width: var(--wrap);
   margin-inline: auto;
   padding-inline: var(--gut);
+}
+/* Keep a phrase (e.g. a placeholder chip and the punctuation after it) on one line. */
+.nowrap,
+.nowrap .ph {
+  white-space: nowrap;
 }
 .sr-only {
   position: absolute !important;
@@ -206,10 +211,10 @@ textarea {
  * association has not supplied yet. Rendered by <Ph> / <PhLink>; data-placeholder carries the id.
  */
 .ph {
-  font: 500 0.78em/1.25 var(--mono);
+  font: 500 max(12px, 0.78em) / 1.25 var(--mono);
   letter-spacing: 0.01em;
-  color: var(--accent-text);
-  background: var(--accent-wash);
+  color: var(--ph-text);
+  background: var(--ph-bg);
   border: 1px dashed var(--accent-line);
   border-radius: 2px;
   padding: 0.12em 0.5em 0.14em;
@@ -408,6 +413,10 @@ textarea {
 .frame {
   padding: clamp(14px, 1.8vw, 24px);
   background-color: var(--paper-2);
+}
+.frame-top .m {
+  text-transform: none;
+  letter-spacing: 0;
 }
 .frame-top {
   display: flex;
