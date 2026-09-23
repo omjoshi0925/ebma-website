@@ -41,6 +41,7 @@ For the join form locally, create the local database once: `npm run db:migrate:l
 npm run check          # types, the form function, and the placeholder registry
 npm run preview &      # then, in another terminal:
 npm run test:crawl     # every page × 5 widths: accessibility (axe), overflow, links, screenshots
+npm run test:interactions  # menus, theme, figures, problem checkers, keyboard, reduced motion
 npm run test:form      # join form end to end (validation, no-JS path, spam traps, rate limit)
 npm run test:links     # every external link still resolves
 ```
@@ -70,11 +71,13 @@ Optional settings (Cloudflare dashboard → Pages project → Settings → Varia
 The site deploys to Cloudflare Pages as the project `east-bay-math`.
 
 ```bash
-npx wrangler login                       # once
-npx wrangler d1 create ebma-forms        # once; put the printed database_id in wrangler.toml
-npm run db:migrate:remote                # once, and after adding a migration
-npm run deploy                           # build and upload to production
+npx wrangler login     # once per machine
+npm run deploy         # creates the database and project if needed, migrates, builds, uploads
 ```
+
+`scripts/deploy.mjs` is safe to re-run: it creates the D1 database and the Pages project on the
+first run (and writes the database id into `wrangler.toml`; commit that change), applies pending
+migrations, then builds and uploads `dist/` as the production deployment.
 
 To deploy automatically on every push instead, connect this repository in the Cloudflare dashboard
 (Workers & Pages → the project → Settings → Builds) with build command `npm run build` and output

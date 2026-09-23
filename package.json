@@ -18,7 +18,7 @@
     "test:interactions": "node tests/interactions.mjs http://127.0.0.1:8788/",
     "test:form": "node tests/form.mjs http://127.0.0.1:8788",
     "test:links": "node tests/external-links.mjs",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name east-bay-math --branch main",
+    "deploy": "node scripts/deploy.mjs",
     "astro": "astro"
   },
   "dependencies": {
