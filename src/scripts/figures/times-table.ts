@@ -238,6 +238,13 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
     show(fig.state.m);
     fig.draw();
   };
+  // Printing before the figure was ever on screen: print it finished, not blank.
+  addEventListener('beforeprint', () => {
+    if (intro.done) return;
+    intro.done = true;
+    Object.assign(fig.state, { circle: 1, chords: 1, envelope: 1 });
+    fig.draw();
+  });
   play?.addEventListener('click', () => setPlaying(!playing));
   slider?.addEventListener('input', () => {
     const m = Number(slider.value); // read first: pausing writes the figure's own m back

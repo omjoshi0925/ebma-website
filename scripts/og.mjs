@@ -16,6 +16,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
+import sharp from 'sharp';
 
 const root = path.resolve(import.meta.dirname, '..');
 const out = path.join(root, 'public', 'og', 'default.png');
@@ -182,7 +183,10 @@ try {
   );
   if (failed.length || missing.length) throw new Error(`og: fonts failed to load: ${[...failed, ...missing].join(', ')}`);
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  await tab.screenshot({ path: out, clip: { x: 0, y: 0, width: 1200, height: 630 } });
+  // Palette PNG: the image is flat paper, ink and one accent, so 256 colors lose nothing visible and
+  // keep the file well under the ~300 KB some messaging apps accept for link previews.
+  const shot = await tab.screenshot({ clip: { x: 0, y: 0, width: 1200, height: 630 } });
+  await sharp(shot).png({ palette: true, quality: 90, effort: 10, dither: 0 }).toFile(out);
   console.log(`og: ${path.relative(root, out)} (${fs.statSync(out).size} bytes)`);
 } finally {
   await browser.close();

@@ -15,6 +15,18 @@
   src: url('../../node_modules/katex/dist/fonts/KaTeX_Math-Italic.woff2') format('woff2'); /* KaTeX fonts, MIT licensed */
 }
 
+/* Newsreader's double-acute letters (ő ű, as in "Erdős"), cut from its 87 KB latin-ext file into a
+ * 4 KB subset with pyftsubset (both variation axes kept). Declared after the Fontsource faces, so
+ * browsers use this face for these characters and skip downloading latin-ext for them. */
+@font-face {
+  font-family: 'Newsreader Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('../fonts/newsreader-dblac-opsz-normal.woff2') format('woff2-variations');
+  unicode-range: U+0150-0151, U+0170-0171;
+}
+
 /* ---------- reset & base ---------- */
 *,
 *::before,
