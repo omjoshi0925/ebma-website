@@ -10,7 +10,7 @@ import CompetitionTimeline from '../components/CompetitionTimeline.astro';
 import CompetitionTable from '../components/CompetitionTable.astro';
 import CompetitionPathway from '../components/CompetitionPathway.astro';
 import CompetitionEntry from '../components/CompetitionEntry.astro';
-import { events, SAMPLE_COUNT } from '../data/events';
+import { events, upcomingEvents, SAMPLE_COUNT } from '../data/events';
 import { competitions, groups, upcomingDates, gradeFit, gradeFitNote, calendarFile, FINDER_GRADES, SEASON } from '../data/competitions';
 import { joinHref, contactHref } from '../data/site';
 
@@ -70,8 +70,21 @@ const notation: [string, string][] = [
     ]}
   >
     <Fragment slot="actions">
-      <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
-      <a class="xref" href="#calendar">See the competition calendar <span class="arr" aria-hidden="true">↓</span></a>
+      {
+        /* While no EBMA events are scheduled, the verified competition calendar is this page's real
+           content, so it gets the primary button. */
+        upcomingEvents(events).length ? (
+          <>
+            <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+            <a class="xref" href="#calendar">See the competition calendar <span class="arr" aria-hidden="true">↓</span></a>
+          </>
+        ) : (
+          <>
+            <a class="btn" href="#calendar">See the competition calendar <span class="arr" aria-hidden="true">↓</span></a>
+            <a class="xref" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+          </>
+        )
+      }
     </Fragment>
   </PageHeader>
 
@@ -240,8 +253,8 @@ const notation: [string, string][] = [
           The Mathematical Association of America (MAA) runs a ladder of contests. The first rung is the American Mathematics Competitions (AMC):
           the multiple-choice AMC 8, AMC 10, and AMC 12, taken through a host school or site. A qualifying AMC 10 or 12 score earns an invitation to
           the AIME (American Invitational Mathematics Examination), and invitations to the USAJMO and USAMO (USA Junior Mathematical Olympiad and
-          USA Mathematical Olympiad) are based mainly on AIME scores. The USA Mathematical Talent Search (USAMTS), a free proof-based contest, is
-          another way to qualify for the AIME.
+          USA Mathematical Olympiad) are based mainly on AIME scores. The USA Mathematical Talent Search (USAMTS), a free proof-based contest run by the Art of Problem Solving
+          Initiative, is another way to qualify for the AIME.
         </p>
       </div>
       <CompetitionPathway />
@@ -260,7 +273,7 @@ const notation: [string, string][] = [
         <div class="cgroup" id={`competitions-${g.id}`}>
           <div class="cg-head">
             <p class="cg-num" aria-hidden="true">
-              4.{gi + 2}
+              4.{gi + 1}
             </p>
             <div>
               <h3>{g.title}</h3>
@@ -595,6 +608,7 @@ const notation: [string, string][] = [
     font-size: 17.5px;
     color: var(--ink-2);
     flex: 1;
+    text-wrap: pretty;
   }
   .lemma .fact {
     font-size: 17px;

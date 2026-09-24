@@ -60,7 +60,7 @@ const titles: Record<string, string> = {
   resources: 'Student Resources page (/resources/)',
   'get-involved': 'Get Involved page (/get-involved/)',
   sponsors: 'Sponsors & Partners page (/sponsors/)',
-  privacy: 'Privacy notice (/privacy/)',
+  privacy: 'Privacy Notice (/privacy/)',
 };
 let total = 0;
 let filled = 0;

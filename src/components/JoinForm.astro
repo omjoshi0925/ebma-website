@@ -426,8 +426,9 @@ const richHTML = (parts: Rich) =>
   .jf-input:hover {
     border-color: var(--ink);
   }
+  /* Ink, not the site's vermilion: in a form, red reads as an error. */
   .jf-input:focus-visible {
-    outline: 2px solid var(--focus);
+    outline: 2px solid var(--ink);
     outline-offset: 2px;
     border-color: var(--ink);
   }
@@ -511,7 +512,7 @@ const richHTML = (parts: Rich) =>
   }
   @supports selector(:has(*)) {
     .jf-choice:has(input:focus-visible) {
-      outline: 2px solid var(--focus);
+      outline: 2px solid var(--ink);
       outline-offset: 2px;
     }
     .jf-choice input:focus-visible {

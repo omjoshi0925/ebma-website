@@ -14,11 +14,13 @@ import { sponsors, SAMPLE_SLOTS } from '../data/sponsors';
 
 interface Props {
   ctaHref?: string;
+  /** On phones, show one sample tile and the call to action instead of the whole empty wall. */
+  compact?: boolean;
 }
-const { ctaHref = '/sponsors/' } = Astro.props;
+const { ctaHref = '/sponsors/', compact = false } = Astro.props;
 ---
 
-<ul class="slots" aria-label="Sponsors and partners">
+<ul class:list={['slots', { 'slots-compact': compact }]} aria-label="Sponsors and partners">
   {
     sponsors.length
       ? sponsors.map((s) => (
@@ -130,6 +132,9 @@ const { ctaHref = '/sponsors/' } = Astro.props;
     .slots {
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+    }
+    .slots-compact .slot.sample[aria-hidden='true'] {
+      display: none;
     }
     .slot-cta {
       padding: 14px;

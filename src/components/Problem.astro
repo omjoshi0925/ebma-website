@@ -343,7 +343,10 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
   if ('ResizeObserver' in window) {
     const fit = new ResizeObserver((entries) => {
       for (const { target } of entries) {
-        const box = target as HTMLElement;
+        // Both the box and the equation inside it are observed: the equation can widen (e.g. with
+        // larger text spacing) while the box stays the same size.
+        const box = (target as HTMLElement).closest<HTMLElement>('.katex-display');
+        if (!box) continue;
         const scrolls = box.clientWidth > 0 && box.scrollWidth > box.clientWidth + 1;
         if (scrolls && !box.hasAttribute('tabindex')) {
           box.tabIndex = 0;
@@ -356,6 +359,9 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
         }
       }
     });
-    document.querySelectorAll('.problem .katex-display').forEach((el) => fit.observe(el));
+    document.querySelectorAll('.problem .katex-display').forEach((el) => {
+      fit.observe(el);
+      if (el.firstElementChild) fit.observe(el.firstElementChild);
+    });
   }
 </script>

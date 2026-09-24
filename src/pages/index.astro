@@ -44,7 +44,13 @@ const featured = problems.find((p) => p.id === 'frog')!;
         </p>
         <div class="cta-row rise" style="--d:420">
           <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
-          <a class="xref" href="#events">See upcoming events <span class="arr" aria-hidden="true">↓</span></a>
+          {
+            upcoming.length ? (
+              <a class="xref" href="#events">See upcoming events <span class="arr" aria-hidden="true">↓</span></a>
+            ) : (
+              <a class="xref" href="/events/#calendar">See the competition calendar <span class="arr" aria-hidden="true">→</span></a>
+            )
+          }
         </div>
         <div class="hero-foot rise" style="--d:540">
           <p class="next-up">
@@ -219,7 +225,7 @@ const featured = problems.find((p) => p.id === 'frog')!;
       <article class="cell">
         <p class="label">Case 3.4</p>
         <h3>You’d like to <em>help.</em></h3>
-        <p class="body">Fund a competition, host an event, or give an afternoon, and be thanked in front of the students and families your support reaches.</p>
+        <p class="body">Fund a competition, host an event, or give an afternoon of your time to East Bay students who love a hard problem.</p>
         <ul class="gets">
           <li>Recognition at events and on this site</li>
           <li>A clear account of what your support made possible</li>
@@ -231,7 +237,7 @@ const featured = problems.find((p) => p.id === 'frog')!;
         </div>
       </article>
     </div>
-    <p class="conclude"><span>In every case, there is a place for you at EBMA.</span><span class="qed" aria-hidden="true"></span></p>
+    <p class="conclude"><span>In every case, there is a place for you at&nbsp;EBMA.</span><span class="qed" aria-hidden="true"></span></p>
   </Section>
 
   <Section
@@ -239,7 +245,7 @@ const featured = problems.find((p) => p.id === 'frog')!;
     num="4"
     title="A problem to *try*"
     dek="No sign-up required. Work it out, check your answer, then compare methods."
-    note="These are classic problems, written up for this site with a hint and a full solution. Every answer has been checked."
+    note="A classic problem, written up for this site with a hint and a full solution. Five more are on Student Resources."
   >
     <a slot="actions" class="xref" href="/resources/#problems">More problems <span class="arr" aria-hidden="true">→</span></a>
     <div class="exercise">
@@ -260,7 +266,7 @@ const featured = problems.find((p) => p.id === 'frog')!;
         <p class="ack-sub">We are grateful to the organizations that support mathematics for students in the East Bay.</p>
         <a class="xref" href="/sponsors/">Sponsors &amp; Partners <span class="arr" aria-hidden="true">→</span></a>
       </div>
-      <LogoSlots />
+      <LogoSlots compact />
     </div>
   </Section>
 
@@ -281,7 +287,9 @@ const featured = problems.find((p) => p.id === 'frog')!;
   h1 {
     font-family: var(--serif-display);
     font-weight: 300;
-    font-size: clamp(46px, 6.9vw, 106px);
+    /* Capped by the viewport height too, so on laptop screens (1366×768, 1440×790) the Join button and
+       the "Start here" links stay above the fold. The 46px floor keeps it scaling with browser zoom. */
+    font-size: clamp(46px, min(6.9vw, 10.5vh), 106px);
     line-height: 0.96;
     letter-spacing: -0.028em;
     font-variation-settings: 'opsz' 72;

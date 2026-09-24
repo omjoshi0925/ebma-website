@@ -149,6 +149,10 @@ const setBuilder =
       <p class="gi-def-plain">In plain English: if you’re in the East Bay and you like a hard problem, we’d like to meet you.</p>
     </div>
     <div class="gi-join">
+      <div class="gi-form">
+        <span id="join" class="gi-anchor"></span>
+        <JoinForm />
+      </div>
       <aside class="gi-before" aria-labelledby="gi-before-h">
         <h3 class="gi-before-h" id="gi-before-h">Good to know</h3>
         <dl class="gi-facts">
@@ -175,10 +179,6 @@ const setBuilder =
           </div>
         </dl>
       </aside>
-      <div class="gi-form">
-        <span id="join" class="gi-anchor"></span>
-        <JoinForm />
-      </div>
     </div>
   </Section>
 
@@ -418,8 +418,16 @@ const setBuilder =
     gap: clamp(36px, 4.5vw, 72px);
     align-items: start;
   }
+  /* Source order is form, then facts, so keyboard focus meets the form first in every layout;
+     on wide screens the grid draws the facts in the left column. */
   .gi-form {
     min-width: 0;
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .gi-before {
+    grid-column: 1;
+    grid-row: 1;
   }
   /* The #join target. On wide screens it sits at the top of §2, so a Join link lands on the
      section heading; in one column it sits right above the form (see the 980px query below). */
@@ -666,8 +674,10 @@ const setBuilder =
     .gi-form {
       max-width: 48rem;
     }
+    .gi-form,
     .gi-before {
-      order: 2;
+      grid-column: auto;
+      grid-row: auto;
     }
     /* Here the facts follow the form, whose consent box ends with this same sentence. */
     .gi-fact-privacy {

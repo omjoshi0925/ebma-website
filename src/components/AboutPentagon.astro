@@ -507,6 +507,24 @@ const f = (n: number) => n.toFixed(2);
       left: -10px;
     }
   }
+  /* Forced colors: the current step's bar and the Play triangle are drawn with backgrounds and
+     transparent borders, and disabled buttons would look enabled. Redraw them in system colors. */
+  @media (forced-colors: active) {
+    .steps :global(.step-btn[aria-current='step'])::before {
+      forced-color-adjust: none;
+      background: Highlight;
+    }
+    .pbtn-toggle[data-state='paused'] .ic {
+      forced-color-adjust: none;
+      border-left-color: ButtonText;
+      border-top-color: transparent;
+      border-bottom-color: transparent;
+    }
+    .pbtn[aria-disabled='true'] {
+      color: GrayText;
+      border-color: GrayText;
+    }
+  }
 </style>
 
 <script>

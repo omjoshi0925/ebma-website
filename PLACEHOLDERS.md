@@ -78,7 +78,7 @@ File: `src/data/placeholders/sponsors.ts`
 | `sponsors.contact` | Sponsorship contact email | Who a business, foundation, or university should write to about sponsorship. If sponsorship goes to the general inbox, use the same address as org.email. Shown in “For your records” at the top of /sponsors/; once filled, the closing band’s second button becomes “Email us about sponsoring” (until then it is “Contact us”, to /get-involved/#contact). | `sponsors@eastbaymath.org` | ☐ to fill |
 | `sponsors.tax-deductible` | Tax-deductibility of gifts | Whether gifts to EBMA are tax-deductible, in wording a tax adviser or your fiscal sponsor has approved, with the EIN that businesses need for a W-9 or a matching-gift form (yours, or your fiscal sponsor’s; leave it out here if org.legal-status already gives it). Depends on org.legal-status. Shown in “For your records” at the top of /sponsors/. Examples: “Gifts are tax-deductible to the extent allowed by law; EIN 00-0000000.” or “EBMA is not a tax-exempt organization, so gifts are not tax-deductible.” | `Gifts are tax-deductible to the extent allowed by law. We send a written acknowledgment for every gift.` | ☐ to fill |
 
-## Privacy notice (/privacy/)
+## Privacy Notice (/privacy/)
 
 File: `src/data/placeholders/privacy.ts`
 

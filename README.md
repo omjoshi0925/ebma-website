@@ -22,6 +22,8 @@ a dashed chip that starts with `??`, LaTeX's sign for an undefined reference.
 - Lists (events, officers, sponsors) live in `src/data/events.ts`, `src/data/team.ts` and
   `src/data/sponsors.ts`. While a list is empty, sample entries with placeholders are shown.
 - Run `npm run placeholders` to refresh `PLACEHOLDERS.md` and check for mistakes.
+- Read **[`docs/copy-to-review.md`](docs/copy-to-review.md)**: the draft copy's commitments
+  (mission wording, promises to families and sponsors, privacy promises) to confirm or edit.
 
 ### Then flip the launch switch
 

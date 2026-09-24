@@ -191,6 +191,11 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
     color: var(--ink-3);
     vertical-align: 1px;
   }
+  /* The kind tag (WINDOW, DEADLINE) always sits on its own line under the date, at every width. */
+  .ct-kind {
+    display: block;
+    margin: 6px 0 0;
+  }
   .ct :global(.ct-passed) {
     color: var(--ink);
     border: 1px solid var(--rule-2);

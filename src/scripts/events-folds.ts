@@ -17,7 +17,14 @@ function sync() {
 
 /** If the URL points at something inside a closed group, open that group and bring it into view. */
 function revealTarget() {
-  const id = decodeURIComponent(location.hash.slice(1));
+  // A malformed escape in the address (e.g. #50%) must not throw: this module shares a bundle with
+  // the grade finder, and an uncaught error here would stop both.
+  let id = '';
+  try {
+    id = decodeURIComponent(location.hash.slice(1));
+  } catch {
+    return;
+  }
   const target = id ? document.getElementById(id) : null;
   const fold = target?.closest<HTMLDetailsElement>('details[data-fold]');
   if (!target || !fold || fold.open) return;

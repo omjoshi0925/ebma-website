@@ -817,6 +817,9 @@ input[type='range']::-moz-range-thumb {
   padding: 22px 0 0;
   font-size: clamp(19px, 1.6vw, 22px);
 }
+.conclude > span:first-child {
+  text-wrap: pretty;
+}
 
 /* ---------- plain data table ("Table 2.") ---------- */
 .table-wrap {
@@ -1081,6 +1084,13 @@ input[type='range']::-moz-range-thumb {
   }
   input[type='range']::-moz-range-thumb {
     background: Highlight;
+  }
+  /* The Play triangle is drawn with transparent borders; keep them transparent. */
+  .fig-btn[data-state='paused'] .ic {
+    forced-color-adjust: none;
+    border-left-color: ButtonText;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
   }
 }
 

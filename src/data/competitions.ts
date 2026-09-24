@@ -125,7 +125,9 @@ export const competitions: Competition[] = [
       'National middle school program of live contests that advance from school to chapter, state, and national levels. Students whose school doesn’t take part can register on their own.',
     level: 'Grades 6–8',
     levelShort: 'Grades 6–8',
-    format: 'Four rounds, about 3 hours in all: Sprint and Target (individual), Team (a school’s team of 4), and Countdown (a speed round)',
+    // Format re-checked on mathcounts.org on September 23, 2026 (about 3 hours; a school team of 4;
+    // Countdown is optional below the national level).
+    format: 'Four rounds, about 3 hours in all: Sprint and Target (individual), Team (a school’s team of 4), and Countdown (a speed round, optional below nationals)',
     cost: 'paid',
     costNote: 'Title I schools (those serving many low-income families) get 50% off',
     when: 'Chapter contests in February, state in March, national in May.',

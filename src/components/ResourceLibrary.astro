@@ -32,11 +32,13 @@ const summerFree = resources.filter((r) => r.category === 'summer' && isFree(r))
 const words = ['None', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
 const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summerFree === 1 ? 'is' : 'are'} free; the rest offer need-based aid.` : 'Most offer need-based aid.';
 
-// Group headings: keep "&" with the next word and never break inside a hyphenated word, so
-// "Summer & year-round programs" can't wrap as "Summer & year-" / "round programs".
+// Group headings: keep "&" with the word before it, keep the last two words together, and never
+// break inside a hyphenated word, so "Summer & year-round programs" wraps as
+// "Summer &" / "year-round programs", never "Summer & year-" / "round programs" or a lone "programs".
 const headingParts = (title: string) =>
   title
-    .replace(/& /g, '&\u00a0')
+    .replace(/ & /g, '\u00a0& ')
+    .replace(/ (\S+)$/, '\u00a0$1')
     .split(/(\S*-\S*)/)
     .filter(Boolean);
 ---

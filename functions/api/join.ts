@@ -287,7 +287,7 @@ async function errorPage(status: number, heading: string, items: string[]): Prom
   const list = items.length ? `<ul>${items.map((i) => `<li>${escapeHTML(i)}</li>`).join('')}</ul>` : '';
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex"><title>Form not sent · East Bay Math Association</title>
+<meta name="robots" content="noindex"><link rel="icon" href="data:,"><title>Form not sent · East Bay Math Association</title>
 <style>${ERROR_CSS}</style>
 </head><body><main>
 <a class="home" href="/">East Bay Math Association</a>
@@ -297,7 +297,9 @@ async function errorPage(status: number, heading: string, items: string[]): Prom
 <p class="back">Use your browser’s Back button to return to the form. What you typed is still there.</p>
 <p class="more"><a href="/get-involved/#join">Or start a fresh form</a><a href="/get-involved/#contact">Other ways to reach us</a></p>
 </main></body></html>`;
-  const csp = `default-src 'none'; style-src 'sha256-${await errorCSSHash}'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`;
+  // img-src data: only for the empty icon above, so browsers don't fetch /favicon.ico (which this
+  // policy would block and Firefox would log); the page still loads nothing from the network.
+  const csp = `default-src 'none'; img-src data:; style-src 'sha256-${await errorCSSHash}'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`;
   return new Response(html, {
     status,
     headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'content-security-policy': csp },

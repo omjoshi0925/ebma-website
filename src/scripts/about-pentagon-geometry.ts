@@ -64,8 +64,8 @@ const m = (x: string) => `<span class="m">${x}</span>`;
 export const STEPS: string[] = [
   `Draw a circle with center ${m('O')}.`,
   `Draw two diameters at right angles. Label the ends ${m('A')} and ${m('B')}, and the top point ${m('P')}.`,
-  `With the compass at ${m('A')}, swing an arc through ${m('O')}. The line through its two crossings cuts ${m('OA')} in half at ${m('M')}.`,
-  `With the compass at ${m('M')}, swing an arc through ${m('P')}. It meets the diameter at ${m('Q')}.`,
+  `With the compass at ${m('A')}, swing an arc through ${m('O')}. It crosses the circle twice; the line through those two points cuts ${m('OA')} in half at ${m('M')}.`,
+  `With the compass at ${m('M')}, swing an arc through ${m('P')}. It meets ${m('AB')} at ${m('Q')}.`,
   `Join ${m('P')} to ${m('Q')}. That length is exactly the side of the pentagon.`,
   `Keep the compass at that width and step it around the circle, marking five points.`,
   `Join the five points. The regular pentagon is done.`,

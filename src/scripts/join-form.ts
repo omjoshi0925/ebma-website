@@ -273,10 +273,11 @@ export function mountJoinForm(form: HTMLFormElement): void {
     summaryMsg.hidden = !message;
     renderSummaryList();
     summary.hidden = false;
-    // Bring it to the top of the screen (under the sticky header), then focus it: focus alone
-    // scrolls only as far as it must and can leave the summary at the bottom edge.
-    summary.scrollIntoView({ block: 'start', behavior: scrollBehavior() });
+    // Focus it, then bring it to the top of the screen (under the sticky header) on the next frame:
+    // focus alone scrolls only as far as it must, and WebKit cancels a smooth scroll that starts
+    // before the focus or before the button/status updates that follow a failed send.
     summary.focus({ preventScroll: true });
+    requestAnimationFrame(() => summary.scrollIntoView({ block: 'start', behavior: scrollBehavior() }));
   };
 
   const hideSummary = () => {
@@ -293,8 +294,8 @@ export function mountJoinForm(form: HTMLFormElement): void {
     const el = target(field);
     if (!el) return;
     e.preventDefault();
-    (wrapper(field) ?? el).scrollIntoView({ block: 'start', behavior: scrollBehavior() });
     el.focus({ preventScroll: true });
+    requestAnimationFrame(() => (wrapper(field) ?? el).scrollIntoView({ block: 'start', behavior: scrollBehavior() }));
   });
 
   // Once a shown error is fixed, clear it (on input for text, on change/blur for the rest).

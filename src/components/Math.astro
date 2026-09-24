@@ -20,6 +20,34 @@ const html = katex.renderToString(tex, { displayMode: display, throwOnError: tru
 
 {display ? <div class="math-display" set:html={html} /> : <span class="math-inline" set:html={html} />}
 
+<script>
+  // A display equation wider than its column scrolls sideways: make that box focusable (and name it)
+  // so it can be scrolled from the keyboard. The equation itself is observed too, since it can widen
+  // (e.g. with larger text spacing) while its box keeps the same size.
+  if ('ResizeObserver' in window) {
+    const fit = new ResizeObserver((entries) => {
+      for (const { target } of entries) {
+        const box = (target as HTMLElement).closest<HTMLElement>('.math-display');
+        if (!box) continue;
+        const scrolls = box.clientWidth > 0 && box.scrollWidth > box.clientWidth + 1;
+        if (scrolls && !box.hasAttribute('tabindex')) {
+          box.tabIndex = 0;
+          box.setAttribute('role', 'group');
+          box.setAttribute('aria-label', 'Equation (scrolls sideways)');
+        } else if (!scrolls && box.hasAttribute('tabindex')) {
+          box.removeAttribute('tabindex');
+          box.removeAttribute('role');
+          box.removeAttribute('aria-label');
+        }
+      }
+    });
+    document.querySelectorAll('.math-display').forEach((el) => {
+      fit.observe(el);
+      if (el.firstElementChild) fit.observe(el.firstElementChild);
+    });
+  }
+</script>
+
 <style>
   .math-display {
     overflow-x: auto;

@@ -5,7 +5,7 @@
  * All links are root-relative so they work from any depth.
  *
  * The figure: a curve y = f(x) with a removable discontinuity at x = 404, where f(404) is
- * "??", the site's mark for an undefined reference.
+ * undefined. (Not "??": that is the site's placeholder marker.)
  */
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
@@ -85,7 +85,7 @@ const ticks = [100, 200, 300, 500].map(X);
       <Plate
         id="fig-404"
         plate="Plate I"
-        corner={`<span class="m" style="text-transform:none">f</span>(404) = ??`}
+        corner={`<span class="m" style="text-transform:none">f</span>(404) undefined`}
         fig="Fig. 1."
         caption={`A curve defined at every point but one. At <span class="nowrap"><span class="m">x</span> = 404</span> it has a hole, which mathematicians call a <i>removable</i> discontinuity. The links below remove it.`}
       >
@@ -101,7 +101,7 @@ const ticks = [100, 200, 300, 500].map(X);
           <path class="guide" d={`M${hx} ${hy + 9} V${oy} M${hx - 9} ${hy} H${ox}`}></path>
           <path class="ax" d={`M${hx} ${oy} v6`}></path>
           <text class="lbl hot" x={hx} y={oy + 26} text-anchor="middle">404</text>
-          <text class="lbl hot" x={ox - 8} y={hy + 5} text-anchor="end">??</text>
+          <text class="lbl hot" x={ox - 8} y={hy + 5} text-anchor="end">?</text>
           <!-- the curve, in two pieces, and the hole between them -->
           <path class="curve c1" d={left} pathLength="1"></path>
           <path class="curve c2" d={right} pathLength="1"></path>

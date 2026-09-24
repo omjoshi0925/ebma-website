@@ -110,10 +110,9 @@ if (lib) {
       requestAnimationFrame(() => {
         let cover = headerBottom();
         const stuck = lib.dataset.stick === 'bar' ? bar : lib.dataset.stick === 'strip' ? strip : null;
-        if (stuck && !stuck.contains(el)) {
-          const r = stuck.getBoundingClientRect();
-          if (r.top <= cover + 1) cover = Math.max(cover, r.bottom);
-        }
+        // The bar (or strip) re-sticks under the header whenever a library item is on screen, so count
+        // it even mid smooth-scroll, when its current rect may still be off screen.
+        if (stuck && !stuck.contains(el)) cover += stuck.offsetHeight;
         const top = el.getBoundingClientRect().top;
         if (top < cover + 4) scrollBy({ top: top - cover - 12, behavior: 'instant' });
       });
