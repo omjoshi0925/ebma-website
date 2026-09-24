@@ -3,9 +3,11 @@
  * chords are drawn, yet their envelope is an epicycloid with m − 1 cusps, traced in the accent:
  *   z(θ) = (m·e^{iθ} + e^{imθ}) / (m + 1)
  *
- * Markup (see components/TimesTableFigure.astro):
- *   <canvas data-times-table data-n="240" data-m="2" data-ticks data-variant="plate|band">
- * Optional controls, looked up by the ids in data-controls="play,slider,output".
+ * Hero markup (components/TimesTableFigure.astro):
+ *   <canvas data-hero-figure data-n="240" data-controls="play,slider,readout">
+ * with the controls looked up by those ids. Band markup (components/Band.astro):
+ *   <canvas data-band-figure data-m="3">
+ * The canvas gets data-drawn when it first draws, so a static fallback under it can hide.
  */
 
 type Variant = 'plate' | 'band';
@@ -50,6 +52,7 @@ export function createTimesTable(canvas: HTMLCanvasElement, variant: Variant, n:
 
   function draw() {
     if (!ctx || !width) return;
+    if (!('drawn' in canvas.dataset)) canvas.dataset.drawn = '';
     const { m, circle, chords, envelope } = state;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, width);
@@ -156,7 +159,14 @@ export function createTimesTable(canvas: HTMLCanvasElement, variant: Variant, n:
   return { state, draw };
 }
 
-/** Hero plate: plotter-style intro, then m drifts through whole numbers with a pause at each. */
+/**
+ * Hero plate: plotter-style intro, then m drifts through whole numbers with a pause at each.
+ *
+ * Accessibility: the readout next to the slider is visual only (aria-hidden); the slider's
+ * aria-valuetext carries the value and is always written together with slider.value. Nothing is
+ * a live region, and focusing the slider pauses the animation, so a screen reader never hears a
+ * stream of values. The readout is only rewritten when its text changes.
+ */
 export function mountHeroFigure(canvas: HTMLCanvasElement) {
   const reduceQuery = matchMedia('(prefers-reduced-motion: reduce)');
   const reduce = reduceQuery.matches;
@@ -164,17 +174,26 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
   const [playId, sliderId, outputId] = (canvas.dataset.controls ?? '').split(',');
   const play = document.getElementById(playId) as HTMLButtonElement | null;
   const slider = document.getElementById(sliderId) as HTMLInputElement | null;
-  const output = document.getElementById(outputId) as HTMLOutputElement | null;
-  const MIN = Number(slider?.min ?? 2);
-  const MAX = Number(slider?.max ?? 9);
+  const readout = document.getElementById(outputId);
+  const readM = readout?.querySelector('.fig-out-m');
+  const readName = readout?.querySelector('.fig-out-name');
+  const MIN = Number(slider?.min || 2);
+  const MAX = Number(slider?.max || 9);
+  const STEP = Number(slider?.step) || 0.05;
+  /** The nearest value the slider can hold, so the readout, the slider and its valuetext agree. */
+  const snap = (m: number) => Math.min(MAX, Math.max(MIN, Number((Math.round(m / STEP) * STEP).toFixed(4))));
 
-  /** Update the readout every frame, but the slider's spoken value only when m settles. */
-  const show = (m: number, announce: boolean) => {
+  let shown = '';
+  const show = (m: number) => {
+    const num = m.toFixed(2);
     const name = curveName(m);
-    if (output) output.innerHTML = `${m.toFixed(2)} <span>${name || '&nbsp;'}</span>`;
+    if (`${num} ${name}` === shown) return;
+    shown = `${num} ${name}`;
+    if (readM) readM.textContent = num;
+    if (readName) readName.textContent = name || ' ';
     if (slider) {
       slider.value = String(m);
-      if (announce) slider.setAttribute('aria-valuetext', `m = ${m.toFixed(2)}${name ? `, ${name}` : ''}`);
+      slider.setAttribute('aria-valuetext', `m = ${num}${name ? `, ${name}` : ''}`);
     }
   };
 
@@ -201,27 +220,43 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
       phase = 'hold';
       t0 = performance.now() - HOLD; // start moving right away
       kick();
+    } else if (intro.done) {
+      // Stop on a value the slider can hold, and say it.
+      fig.state.m = snap(fig.state.m);
+      show(fig.state.m);
+      fig.draw();
     }
   };
   const setM = (m: number) => {
     intro.done = true;
-    Object.assign(fig.state, { circle: 1, chords: 1, envelope: 1, m: Math.min(MAX, Math.max(MIN, m)) });
-    show(fig.state.m, true);
+    Object.assign(fig.state, { circle: 1, chords: 1, envelope: 1, m: snap(m) });
+    show(fig.state.m);
     fig.draw();
   };
   play?.addEventListener('click', () => setPlaying(!playing));
   slider?.addEventListener('input', () => {
+    const m = Number(slider.value); // read first: pausing writes the figure's own m back
     if (playing) setPlaying(false);
-    setM(Number(slider.value));
+    setM(m);
+  });
+  // Reaching the slider stops the motion, so its value holds still while it has focus.
+  slider?.addEventListener('focus', () => {
+    if (playing) setPlaying(false);
   });
 
   // Direct manipulation: drag sideways across the figure to scrub m. Vertical drags still scroll.
-  let drag: { x: number; y: number; m: number; active: boolean } | null = null;
+  let drag: { id: number; x: number; y: number; m: number; active: boolean } | null = null;
+  const endDrag = () => {
+    drag = null;
+  };
   canvas.addEventListener('pointerdown', (e) => {
-    drag = { x: e.clientX, y: e.clientY, m: fig.state.m, active: false };
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, m: fig.state.m, active: false };
   });
   canvas.addEventListener('pointermove', (e) => {
-    if (!drag) return;
+    if (!drag || e.pointerId !== drag.id) return;
+    // A press that was released outside the canvas never sent us its pointerup.
+    if (e.buttons === 0) return endDrag();
     const dx = e.clientX - drag.x;
     if (!drag.active) {
       if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(e.clientY - drag.y)) return;
@@ -232,11 +267,13 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
     const perPixel = (MAX - MIN) / canvas.getBoundingClientRect().width;
     setM(drag.m + dx * perPixel);
   });
-  const endDrag = () => {
-    drag = null;
-  };
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('lostpointercapture', endDrag);
+  // Also end a press that leaves the canvas before it became a drag (no capture yet).
+  canvas.addEventListener('pointerleave', () => {
+    if (drag && !drag.active) endDrag();
+  });
 
   reduceQuery.addEventListener('change', (e) => {
     if (e.matches) {
@@ -247,7 +284,7 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
 
   if (!reduce) Object.assign(fig.state, { circle: 0, chords: 0, envelope: 0 });
   setPlaying(playing);
-  show(2, true);
+  show(fig.state.m);
 
   new IntersectionObserver((entries) => {
     visible = entries[0].isIntersecting;
@@ -280,16 +317,11 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
     } else if (playing && visible && !document.hidden) {
       if (phase === 'hold') {
         if (now - t0 > HOLD) {
+          // Head for the next whole number in the current direction, bouncing at the ends.
           from = fig.state.m;
-          to = Math.round(from) + dir;
-          if (to > MAX) {
-            dir = -1;
-            to = Math.round(from) - 1;
-          }
-          if (to < MIN) {
-            dir = 1;
-            to = Math.round(from) + 1;
-          }
+          if (dir > 0 && Math.floor(from) + 1 > MAX) dir = -1;
+          if (dir < 0 && Math.ceil(from) - 1 < MIN) dir = 1;
+          to = dir > 0 ? Math.floor(from) + 1 : Math.ceil(from) - 1;
           phase = 'move';
           t0 = now;
         }
@@ -301,9 +333,9 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
           phase = 'hold';
           t0 = now;
         }
+        show(fig.state.m);
+        fig.draw();
       }
-      show(fig.state.m, phase === 'hold');
-      fig.draw();
       more = true;
     }
     if (more) kick();

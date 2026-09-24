@@ -11,12 +11,15 @@ import { INTERESTS, LIMITS, ROLES, validateJoin, type JoinErrors, type JoinField
 const FIELDS: JoinField[] = ['name', 'email', 'role', 'grade', 'school', 'city', 'interests', 'message', 'consent'];
 
 const SEND_FAILED = 'We couldn’t send your form';
+/** Our own wording for each failure. The server's `message` is for the no-JavaScript error page. */
 const STATUS_MESSAGES: Record<number, string> = {
+  400: 'We couldn’t read that form. Please reload the page and try again.',
   403: 'This form can only be sent from the EBMA website. Please reload the page and try again.',
   429: 'We’ve received several forms from you in the last few minutes. Please wait a little while, then try again.',
+  503: 'The form isn’t taking messages right now. Please email us instead (see §4, Get in touch).',
 };
-const FALLBACK_MESSAGE = 'Something went wrong on our end. Please try again in a minute, or write to us directly (see Contact, below).';
-const OFFLINE_MESSAGE = 'We couldn’t reach our server. Check your internet connection and try again, or write to us directly (see Contact, below).';
+const FALLBACK_MESSAGE = 'Something went wrong on our end. Please try again in a minute, or email us instead (see §4, Get in touch).';
+const OFFLINE_MESSAGE = 'We couldn’t reach our server. Check your internet connection and try again, or email us instead (see §4, Get in touch).';
 
 /** Preselect an interest that matches the role a page linked in with (e.g. Sponsors → partnering). */
 const ROLE_INTEREST: Partial<Record<string, (typeof INTERESTS)[number]['value']>> = {
@@ -34,9 +37,10 @@ export function mountJoinForm(form: HTMLFormElement): void {
   const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
   const buttonLabel = button.querySelector<HTMLElement>('[data-btn-label]')!;
   const status = form.querySelector<HTMLElement>('[data-status]');
-  const startedAt = form.querySelector<HTMLInputElement>('input[name="started_at"]');
+  const elapsed = form.querySelector<HTMLInputElement>('input[name="elapsed_ms"]');
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const idleLabel = buttonLabel.textContent ?? 'Send';
+  const scrollBehavior = (): ScrollBehavior => (reduceMotion.matches ? 'auto' : 'smooth');
 
   /** Fields whose error is currently on screen. */
   const shown = new Map<JoinField, string>();
@@ -44,20 +48,22 @@ export function mountJoinForm(form: HTMLFormElement): void {
 
   // Our validation replaces the browser's; the `required` attributes stay for no-JS readers.
   form.noValidate = true;
-  const stamp = () => {
-    if (startedAt) startedAt.value = String(Date.now());
-  };
-  stamp();
+
+  // The server's fill-time check gets a duration from this page's monotonic clock, never a
+  // timestamp, so a device clock that is off can't make a person look like a bot.
+  const openedAt = performance.now();
 
   /* ---------- ?role=sponsor → preselect the matching radio ---------- */
-  const wanted = new URLSearchParams(location.search).get('role');
-  if (wanted && ROLES.some((r) => r.value === wanted)) {
+  const applyRoleFromURL = () => {
+    const wanted = new URLSearchParams(location.search).get('role');
+    if (!wanted || !ROLES.some((r) => r.value === wanted)) return;
     const radio = form.querySelector<HTMLInputElement>(`input[name="role"][value="${wanted}"]`);
     if (radio) radio.checked = true;
     const interest = ROLE_INTEREST[wanted];
     const box = interest && form.querySelector<HTMLInputElement>(`input[name="interests"][value="${interest}"]`);
     if (box) box.checked = true;
-  }
+  };
+  applyRoleFromURL();
 
   /* ---------- reading the form ---------- */
   const read = (): JoinInput => {
@@ -71,7 +77,8 @@ export function mountJoinForm(form: HTMLFormElement): void {
   };
   const controls = (field: JoinField) =>
     [...form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`[name="${field}"]`)];
-  const wrapper = (field: JoinField) => form.querySelector<HTMLElement>(`[data-field="${field}"]`);
+  // Scoped to the field containers: the summary links (inside the form too) must never match.
+  const wrapper = (field: JoinField) => form.querySelector<HTMLElement>(`.jf-field[data-field="${field}"]`);
   const target = (field: JoinField) => document.getElementById(`join-${field}`);
 
   /* ---------- showing and clearing errors ---------- */
@@ -86,10 +93,8 @@ export function mountJoinForm(form: HTMLFormElement): void {
         out.append(prefix, message);
       }
     }
-    for (const c of controls(field)) {
-      if (message) c.setAttribute('aria-invalid', 'true');
-      else c.removeAttribute('aria-invalid');
-    }
+    // Always an explicit value: removing it would let Chrome fall back to native validity.
+    for (const c of controls(field)) c.setAttribute('aria-invalid', message ? 'true' : 'false');
     wrapper(field)?.classList.toggle('is-invalid', Boolean(message));
     if (message) shown.set(field, message);
     else shown.delete(field);
@@ -106,7 +111,7 @@ export function mountJoinForm(form: HTMLFormElement): void {
         const a = document.createElement('a');
         a.href = `#join-${field}`;
         a.textContent = shown.get(field)!;
-        a.dataset.field = field;
+        a.dataset.target = field;
         li.append(a);
         return li;
       }),
@@ -119,7 +124,10 @@ export function mountJoinForm(form: HTMLFormElement): void {
     summaryMsg.hidden = !message;
     renderSummaryList();
     summary.hidden = false;
-    summary.focus();
+    // Bring it to the top of the screen (under the sticky header), then focus it: focus alone
+    // scrolls only as far as it must and can leave the summary at the bottom edge.
+    summary.scrollIntoView({ block: 'start', behavior: scrollBehavior() });
+    summary.focus({ preventScroll: true });
   };
 
   const hideSummary = () => {
@@ -130,13 +138,13 @@ export function mountJoinForm(form: HTMLFormElement): void {
 
   // Summary links move focus to the field and bring its label into view.
   summary.addEventListener('click', (e) => {
-    const link = (e.target as Element).closest<HTMLAnchorElement>('a[data-field]');
+    const link = (e.target as Element).closest<HTMLAnchorElement>('a[data-target]');
     if (!link) return;
-    const field = link.dataset.field as JoinField;
+    const field = link.dataset.target as JoinField;
     const el = target(field);
     if (!el) return;
     e.preventDefault();
-    (wrapper(field) ?? el).scrollIntoView({ block: 'start', behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+    (wrapper(field) ?? el).scrollIntoView({ block: 'start', behavior: scrollBehavior() });
     el.focus({ preventScroll: true });
   });
 
@@ -192,10 +200,23 @@ export function mountJoinForm(form: HTMLFormElement): void {
   message?.addEventListener('input', updateCount);
   updateCount();
 
+  /** Back to a blank form (plus any ?role= preselection), with no errors showing. */
+  const clearForm = () => {
+    form.reset();
+    applyRoleFromURL();
+    renderErrors({});
+    hideSummary();
+    lastBand = -1;
+    updateCount();
+  };
+
   /* ---------- sending ---------- */
+  // aria-disabled rather than `disabled`: disabling the focused button would drop keyboard
+  // focus to <body> for the whole request. The `sending` flag blocks a second submit.
   const setSending = (on: boolean) => {
     sending = on;
-    button.disabled = on;
+    if (on) button.setAttribute('aria-disabled', 'true');
+    else button.removeAttribute('aria-disabled');
     buttonLabel.textContent = on ? 'Sending…' : idleLabel;
     form.toggleAttribute('aria-busy', on);
     if (status) status.textContent = on ? 'Sending your form…' : '';
@@ -204,6 +225,8 @@ export function mountJoinForm(form: HTMLFormElement): void {
   const showSuccess = (email: string) => {
     const out = success.querySelector<HTMLElement>('[data-success-email]');
     if (out && email) out.textContent = email;
+    // Empty the form now, so Back/Forward can't bring it back filled in and invite a duplicate.
+    clearForm();
     form.hidden = true;
     success.hidden = false;
     success.focus();
@@ -222,6 +245,7 @@ export function mountJoinForm(form: HTMLFormElement): void {
     }
     hideSummary();
 
+    if (elapsed) elapsed.value = String(Math.max(0, Math.round(performance.now() - openedAt)));
     setSending(true);
     try {
       const res = await fetch(form.action, {
@@ -230,14 +254,15 @@ export function mountJoinForm(form: HTMLFormElement): void {
         body: new FormData(form),
         credentials: 'same-origin',
       });
-      const data = (await res.json().catch(() => null)) as { ok?: boolean; errors?: JoinErrors; message?: string } | null;
-      if (res.ok && data?.ok !== false) {
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; errors?: JoinErrors } | null;
+      // Only our API's own `{ ok: true }` is a success: a captive portal or proxy page is not.
+      if (res.ok && data?.ok === true) {
         showSuccess(values.email);
       } else if (res.status === 422 && data?.errors) {
         renderErrors(data.errors);
         showSummary('Please check the form');
       } else {
-        showSummary(SEND_FAILED, data?.message ?? STATUS_MESSAGES[res.status] ?? FALLBACK_MESSAGE);
+        showSummary(SEND_FAILED, STATUS_MESSAGES[res.status] ?? FALLBACK_MESSAGE);
       }
     } catch {
       showSummary(SEND_FAILED, OFFLINE_MESSAGE);
@@ -248,19 +273,9 @@ export function mountJoinForm(form: HTMLFormElement): void {
 
   /* ---------- "Send another response" ---------- */
   success.querySelector<HTMLButtonElement>('[data-join-again]')?.addEventListener('click', () => {
-    form.reset();
-    renderErrors({});
-    hideSummary();
-    stamp();
-    lastBand = -1;
-    updateCount();
+    clearForm();
     success.hidden = true;
     form.hidden = false;
     document.getElementById('join-name')?.focus();
-  });
-
-  // Coming back through the back/forward cache: restart the fill timer.
-  addEventListener('pageshow', (e) => {
-    if (e.persisted) stamp();
   });
 }

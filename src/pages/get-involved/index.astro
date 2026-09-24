@@ -13,10 +13,15 @@ const contents = [
   { href: '#ways', num: '1', title: 'Ways in' },
   { href: '#join', num: '2', title: 'Join EBMA' },
   { href: '#schools', num: '3', title: 'Schools & teachers' },
-  { href: '#contact', num: '4', title: 'Contact' },
+  { href: '#contact', num: '4', title: 'Get in touch' },
 ];
 
 const joinAs = (role: string) => `/get-involved/?role=${role}#join`;
+
+// The one summary of what the form's data is used for (the same sentence as in JoinForm.astro and
+// on /privacy/). Change all three together.
+const privacySentence =
+  'We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit students. We never sell it or share it, including with sponsors.';
 
 interface Way {
   audience: string;
@@ -27,33 +32,33 @@ interface Way {
 const ways: Way[] = [
   {
     audience: 'Students',
-    body: 'Come to events, work on problems that go past the curriculum, and meet students from other schools who like a hard problem as much as you do. You don’t need to be a competition star to start.',
+    body: 'Come to events, work on problems that go past the curriculum, and meet students from other schools who enjoy the same puzzles you do. You don’t need to be a competition star to start.',
     next: { href: joinAs('student'), text: 'Join as a student' },
     alt: { href: '/resources/#problems', text: 'Try a problem first' },
   },
   {
-    audience: 'Parents & guardians',
-    body: 'See what EBMA offers, what it costs and how students are looked after, then sign your child up or ask us anything first. Students under 13 need you to fill in the form for them.',
+    audience: 'Parents &\u00a0guardians',
+    body: 'See what EBMA offers, what it costs, and how students are looked after, then sign your child up or ask us anything first. Students under 13 need you to fill in the form for them.',
     next: { href: joinAs('parent'), text: 'Sign up your child' },
     alt: { href: '/about/#faq', text: 'Questions parents ask' },
   },
   {
-    audience: 'Teachers & schools',
+    audience: 'Schools &\u00a0teachers',
     body: 'Bring your math team or club to events, pass opportunities on to your students, and tell us what would help them most.',
-    next: { href: '#schools', text: 'Partner with us' },
-    alt: { href: '/events/', text: 'See upcoming events' },
+    next: { href: joinAs('educator'), text: 'Partner with us' },
+    alt: { href: '#schools', text: 'How partnering works' },
   },
   {
-    audience: 'Volunteers & mentors',
+    audience: 'Volunteers &\u00a0mentors',
     body: 'Coach, write problems, check answers, or help run an event on the day. If you can explain an idea patiently, we’d like to hear from you.',
     next: { href: joinAs('volunteer'), text: 'Offer to help' },
     alt: { href: '/about/', text: 'About EBMA' },
   },
   {
-    audience: 'Sponsors & partners',
+    audience: 'Sponsors &\u00a0partners',
     body: 'Fund a competition, host an event, or donate prizes or printing, and be recognized in front of the families you serve.',
-    next: { href: '/sponsors/#become', text: 'Become a sponsor' },
-    alt: { href: '/sponsors/', text: 'Sponsors & partners' },
+    next: { href: joinAs('sponsor'), text: 'Start the conversation' },
+    alt: { href: '/sponsors/', text: 'Sponsors & Partners' },
   },
 ];
 
@@ -63,14 +68,14 @@ const setBuilder =
 
 <Base
   title="Get Involved"
-  description="Join the East Bay Math Association as a student, parent, teacher, volunteer or sponsor: one short form, a way in for every reader, and every way to reach us."
+  description="Join the East Bay Math Association as a student, parent, teacher, volunteer, or sponsor: one short form, a way in for every reader, and every way to reach us."
 >
   <PageHeader
     chapter={4}
-    label="Chapter 4"
+    label="Correspondence"
     note="(in which you find your place in the pattern)"
     title="Get *involved*"
-    lede="Students, parents, teachers, volunteers and sponsors: there is more than one way into EBMA. Find yours below, fill in one short form, or just say hello. We’ll take it from there."
+    lede="Students, parents, teachers, volunteers, and sponsors: there is more than one way into EBMA. Find yours below, then fill in one short form, or write to us if you’d rather."
   >
     <div slot="lede" class="gi-head-more">
       <div class="cta-row rise" style="--d:380">
@@ -108,7 +113,7 @@ const setBuilder =
         ways.map((w, i) => (
           <li class="gi-way">
             <div class="gi-way-head">
-              <p class="label">Case {i + 1}</p>
+              <p class="label">Case 1.{i + 1}</p>
               <h3>{w.audience}</h3>
             </div>
             <p class="gi-way-body">{w.body}</p>
@@ -128,25 +133,29 @@ const setBuilder =
     </p>
   </Section>
 
+  {/*
+    Every "Join EBMA" link on the site points at #join. On wide screens it lands on the §2 heading;
+    in one column (phones, small tablets) it lands on the form itself, so the first field is on the
+    first screen: see .gi-anchor below. The section keeps its own id for its heading.
+  */}
   <Section
-    id="join"
+    id="sign-up"
+    class="gi-join-sec"
     num="2"
     title="Join *EBMA*"
     dek="One short form for everyone. Tell us who you are and what you’re after, and a person will write back."
-    note="Would you rather write an email? That works too: see §4, Contact."
+    note="Would you rather write an email? That works too: see §4, Get in touch."
   >
     <div class="gi-def">
       <div class="gi-def-math">
         <p class="thm-label"><span class="label">Definition 2.1</span><span class="note">(informal)</span></p>
         <TeX display tex={setBuilder} />
       </div>
-      <p class="gi-def-plain">
-        In plain English: if you’re in the East Bay and you like a hard problem, we’d like to meet you. The fine print is just below.
-      </p>
+      <p class="gi-def-plain">In plain English: if you’re in the East Bay and you like a hard problem, we’d like to meet you.</p>
     </div>
     <div class="gi-join">
       <aside class="gi-before" aria-labelledby="gi-before-h">
-        <h3 class="gi-before-h" id="gi-before-h">Before you start</h3>
+        <h3 class="gi-before-h" id="gi-before-h">Good to know</h3>
         <dl class="gi-facts">
           <div>
             <dt>Cost</dt>
@@ -154,15 +163,11 @@ const setBuilder =
           </div>
           <div>
             <dt>Who can join</dt>
-            <dd><Ph id="org.eligibility" label="Grades, ages and area" /></dd>
+            <dd><Ph id="org.eligibility" label="Grades, ages, and area" /></dd>
           </div>
-          <div>
-            <dt>Under 13?</dt>
-            <dd>Students under 13: please ask a parent or guardian to fill this in.</dd>
-          </div>
-          <div>
+          <div class="gi-fact-privacy">
             <dt>Your privacy</dt>
-            <dd>We use what you send only to reply to you, and to send updates if you ask for them. <a href="/privacy/">Read the privacy notice</a>.</dd>
+            <dd>{privacySentence} <a href="/privacy/">Read the Privacy Notice</a>.</dd>
           </div>
           <div>
             <dt>What happens next</dt>
@@ -170,7 +175,10 @@ const setBuilder =
           </div>
         </dl>
       </aside>
-      <JoinForm />
+      <div class="gi-form">
+        <span id="join" class="gi-anchor"></span>
+        <JoinForm />
+      </div>
     </div>
   </Section>
 
@@ -178,7 +186,7 @@ const setBuilder =
     id="schools"
     num="3"
     title="Schools & *teachers*"
-    dek="For math teachers, club advisors and coaches who want more for their students."
+    dek="For math teachers, club advisors, and coaches who want more for their students."
     note="A partnership can start as small as passing one announcement on to your class."
   >
     <div class="gi-schools">
@@ -186,14 +194,14 @@ const setBuilder =
         <p class="label">Proposition 3.1</p>
         <h3>What partnering can look like</h3>
         <ul class="gi-list">
-          <li>Bring a team, a club or a whole class to EBMA events.</li>
+          <li>Bring a team, a club, or a whole class to EBMA events.</li>
           <li>Pass competitions and practice problems on to your students.</li>
           <li>Host an event or a problem-solving session at your school.</li>
           <li>Tell us what your students need, and help shape what we plan next.</li>
         </ul>
         <div class="gi-schools-links">
-          <a class="xref" href="/events/">Events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
-          <a class="xref" href="/resources/">Student resources <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="/events/">Events &amp; Competitions <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="/resources/">Student Resources <span class="arr" aria-hidden="true">→</span></a>
         </div>
       </div>
       <div>
@@ -218,7 +226,7 @@ const setBuilder =
             <span class="gi-step-n" aria-hidden="true">3</span>
             <div>
               <h4>Start small</h4>
-              <p>One event, one club visit or one shared problem set. Then keep what works.</p>
+              <p>One event, one club visit, or one shared problem set. Then keep what works.</p>
             </div>
           </li>
         </ol>
@@ -250,7 +258,7 @@ const setBuilder =
       <div class="gi-corr-row">
         <dt>Email</dt>
         <dd class="gi-corr-v"><PhLink id="org.email" /></dd>
-        <dd class="gi-corr-n">Questions from students, parents, schools and sponsors.</dd>
+        <dd class="gi-corr-n">Questions from students, parents, schools, and sponsors.</dd>
       </div>
       <div class="gi-corr-row">
         <dt>Instagram</dt>
@@ -260,7 +268,7 @@ const setBuilder =
       <div class="gi-corr-row">
         <dt>Mailing list</dt>
         <dd class="gi-corr-v"><PhLink id="org.mailing-list">Join the mailing list</PhLink></dd>
-        <dd class="gi-corr-n">Announcements about events and competitions. You can also tick “Email updates” in the form.</dd>
+        <dd class="gi-corr-n">Announcements about events and competitions. You can also check “Email updates” in the form.</dd>
       </div>
       <div class="gi-corr-row">
         <dt>Post</dt>
@@ -279,11 +287,11 @@ const setBuilder =
       </div>
     </dl>
     <p class="tcap">
-      <b>Table 4.</b> Where to reach the East Bay Math Association. What we do with your messages is in the <a href="/privacy/">privacy notice</a>.
+      <b>Table 1.</b> Where to reach the East Bay Math Association. What we do with your messages is in the <a href="/privacy/">Privacy Notice</a>.
     </p>
   </Section>
 
-  <Band label="Corollary 4.1" title="The pattern needs *your* piece." text="Fill in the form, come to an event, or just say hello. We’ll take it from there.">
+  <Band m={7} label="Corollary 4.1" title="The pattern needs *your* piece." text="Pick a way in above, or write to us. A person will reply.">
     <a class="btn" href="#join">Join EBMA <span class="arr" aria-hidden="true">↑</span></a>
     <a class="btn btn-quiet" href="/events/">See upcoming events</a>
   </Band>
@@ -385,6 +393,11 @@ const setBuilder =
   .gi-alt:hover {
     color: var(--accent-text);
   }
+  @media (pointer: coarse) {
+    .gi-alt {
+      min-height: 44px;
+    }
+  }
   .gi-conclude a {
     color: var(--ink);
   }
@@ -395,6 +408,19 @@ const setBuilder =
     grid-template-columns: minmax(0, 20.5rem) minmax(0, 1fr);
     gap: clamp(36px, 4.5vw, 72px);
     align-items: start;
+  }
+  .gi-form {
+    min-width: 0;
+  }
+  /* The #join target. On wide screens it sits at the top of §2, so a Join link lands on the
+     section heading; in one column it sits right above the form (see the 980px query below). */
+  :global(.gi-join-sec) {
+    position: relative;
+  }
+  .gi-anchor {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
   /* The epigraph: a set-builder "definition" of the association, then the plain version. */
   .gi-def {
@@ -617,13 +643,28 @@ const setBuilder =
       width: 100%;
     }
   }
-  /* Below 1200px the form needs the full width: the facts sit above it instead. */
+  /* Below 1200px the form needs the full width, and comes first: the facts follow it. */
   @media (max-width: 1200px) {
     .gi-join {
       grid-template-columns: minmax(0, 1fr);
     }
-    .gi-join > :global(.jf) {
+    .gi-form {
       max-width: 48rem;
+    }
+    .gi-before {
+      order: 2;
+    }
+    /* Here the facts follow the form, whose consent box ends with this same sentence. */
+    .gi-fact-privacy {
+      display: none;
+    }
+  }
+  /* In one column the section heading, dek, note and Definition 2.1 stack up to a screen or more,
+     so a Join link lands on the form itself, with the first field on the first screen. */
+  @media (max-width: 980px) {
+    .gi-anchor {
+      position: static;
+      display: block;
     }
   }
   @media (min-width: 621px) and (max-width: 1200px) {

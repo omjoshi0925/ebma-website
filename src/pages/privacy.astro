@@ -5,6 +5,10 @@
  * Every factual statement here describes what this repository's code does; keep them in sync:
  *   form fields and options     shared/join.ts (imported below, so the lists stay current)
  *   what is stored, and how     functions/api/join.ts, migrations/0001_create_submissions.sql
+ *                               (IP hash only when the IP_SALT secret is set; scripts/deploy.mjs sets it)
+ *   sign-up alerts              functions/api/join.ts, NOTIFY_WEBHOOK_URL (see `privacy.notifications`)
+ *   how we use it               the privacy sentence below is used verbatim on the join form
+ *                               (src/components/JoinForm.astro, src/pages/get-involved/index.astro)
  *   what the browser keeps      src/layouts/Base.astro + src/scripts/site.ts (theme, localStorage)
  *   no outside requests         public/_headers + scripts/csp.mjs (Content-Security-Policy)
  * If any of those change (analytics, a new form, a new third-party embed), update this page and
@@ -29,6 +33,10 @@ const roles = listOf(ROLES);
 const interests = listOf(INTERESTS);
 const messageLimit = LIMITS.message.toLocaleString('en-US');
 
+/** The one summary of how form data is used; the join form repeats it word for word. */
+const USE =
+  'We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit students. We never sell it or share it, including with sponsors.';
+
 const contents = [
   { href: '#short', num: '1', title: 'The short version' },
   { href: '#form', num: '2', title: 'What the form collects' },
@@ -36,22 +44,22 @@ const contents = [
   { href: '#under-13', num: '4', title: 'Students under 13' },
   { href: '#device', num: '5', title: 'On your device' },
   { href: '#choices', num: '6', title: 'Your choices' },
-  { href: '#changes', num: '7', title: 'Changes to this notice' },
+  { href: '#changes', num: '7', title: 'About this notice' },
 ];
 ---
 
 <Base
-  title="Privacy notice"
+  title="Privacy Notice"
   description="What the East Bay Math Association website collects, why, where it is kept, and how to have it deleted. No cookies, no analytics, no ads."
 >
   <PageHeader
     chapter={0}
     runLeft="Appendix A"
-    runRight="Privacy notice"
-    label="Appendix A"
-    note="(the fine print, in large print)"
+    runRight="Privacy Notice"
+    label="Fine print"
+    note="(in large print)"
     title="Privacy, in *plain* English."
-    lede="The short version: this site collects personal information in one place only, the join form, and only what you type into it. It sets no cookies and runs no analytics, ads or trackers."
+    lede="This site collects personal information in one place only: the join form. It keeps what you type there, plus the time you sent it, the page you sent it from, and a scrambled version of your IP address. It sets no cookies and runs no analytics, ads, or trackers."
     contents={contents}
   >
     <p slot="lede" class="effective rise" style="--d:320"><span class="meta">Effective</span> <Ph id="privacy.effective-date" /></p>
@@ -72,18 +80,18 @@ const contents = [
       </li>
       <li>
         <span class="tally-n" aria-hidden="true">0</span>
-        <p class="tally-k"><span class="sr-only">Zero </span>analytics, ads or trackers</p>
+        <p class="tally-k"><span class="sr-only">Zero </span>analytics, ads, or trackers</p>
         <p class="tally-b">No visitor tracking, no advertising, no tracking pixels.</p>
       </li>
       <li>
         <span class="tally-n" aria-hidden="true">0</span>
-        <p class="tally-k"><span class="sr-only">Zero </span>outside services</p>
-        <p class="tally-b">Fonts, images and scripts all come from this website itself.</p>
+        <p class="tally-k"><span class="sr-only">Zero </span>outside scripts, fonts, or images</p>
+        <p class="tally-b">Everything your browser loads here comes from this website itself.</p>
       </li>
       <li>
         <span class="tally-n" aria-hidden="true">1</span>
         <p class="tally-k"><span class="sr-only">One </span>form that collects personal information</p>
-        <p class="tally-b">The <a href={joinHref}>join form</a>. It keeps what you type, plus the three details in §2.</p>
+        <p class="tally-b">The <a href={joinHref}>join form</a>. It keeps what you type, plus the three details recorded automatically in Table&nbsp;1.</p>
       </li>
     </ul>
     <p class="conclude"><span>The rest of this page is the detail behind those four numbers.</span><span class="qed" aria-hidden="true"></span></p>
@@ -108,7 +116,7 @@ const contents = [
           </tr>
           <tr>
             <th scope="row">Email address <span class="tag req">Required</span></th>
-            <td>So we can reply to you.</td>
+            <td>So we can reply to you, and send anything you asked for.</td>
           </tr>
           <tr>
             <th scope="row">Who you are <span class="tag req">Required</span></th>
@@ -116,19 +124,19 @@ const contents = [
           </tr>
           <tr>
             <th scope="row">Grade <span class="tag">Optional</span></th>
-            <td>So we can suggest events and resources that fit.</td>
+            <td>So we can plan events and resources that suit students at each level.</td>
           </tr>
           <tr>
             <th scope="row">School <span class="tag">Optional</span></th>
-            <td>So we know which schools students come from.</td>
+            <td>So we can plan events and resources that suit students at each school.</td>
           </tr>
           <tr>
             <th scope="row">City <span class="tag">Optional</span></th>
-            <td>So we can plan events that are easy to reach.</td>
+            <td>So we can plan events that are easy for students to reach.</td>
           </tr>
           <tr>
             <th scope="row">Interests <span class="tag">Optional</span></th>
-            <td>Any of: {interests}. So we know what you want to hear about. Choosing “Email updates” asks us to send you announcements.</td>
+            <td>Any of: {interests}. So we know what you want to hear about. Checking “Email updates” asks us to send you announcements.</td>
           </tr>
           <tr>
             <th scope="row">Message <span class="tag">Optional</span></th>
@@ -136,7 +144,7 @@ const contents = [
           </tr>
           <tr>
             <th scope="row">Permission to email you <span class="tag req">Required</span></th>
-            <td>A tick confirming we may email you about your message, and about anything you ticked (such as updates).</td>
+            <td>A checked box confirming we may email you about your message, and about anything you checked (such as updates).</td>
           </tr>
         </tbody>
         <tbody>
@@ -153,7 +161,7 @@ const contents = [
             <th scope="row">Scrambled IP address <span class="tag">Automatic</span></th>
             <td>
               A salted SHA-256 hash of your IP address, never the address itself. It is used only to stop one connection from sending a flood of forms
-              in a few minutes.
+              in a few minutes. If the site’s secret salt is ever missing, nothing about your IP address is stored at all.
             </td>
           </tr>
         </tbody>
@@ -164,15 +172,22 @@ const contents = [
         <strong>Not kept.</strong> The form has two spam checks: a hidden field that only bots fill in, and how quickly the form was completed. Both
         are checked when you press send, then thrown away.
       </p>
-      <p><strong>Never asked.</strong> The form does not ask for a phone number, a home address, a date of birth or a photo.</p>
+      <p><strong>Never asked.</strong> The form does not ask for a phone number, a home address, a date of birth, or a photo.</p>
     </div>
   </Section>
 
-  <Section id="kept" num="3" title="Where it goes, who *sees* it" dek="Where a submission is stored, who can read it, and for how long.">
+  <Section id="kept" num="3" title="Where it goes, who *sees* it" dek="How a submission is used, where it is stored, who can read it, and for how long.">
     <p slot="note">
       A <b>hash</b> is a one-way scramble: the same input always gives the same output, so repeat senders can be spotted without keeping the address.
+      A <b>salt</b> is a secret key mixed in first, so no one without the key can work back from the hash to the address.
     </p>
-    <Plate id="fig-a1" plate="Plate A" corner="One submission" fig="Fig. A.1." caption="The whole journey of a form submission. Nothing is sent to advertisers, analytics companies or data brokers.">
+    <Plate
+      id="fig-1"
+      plate="Plate I"
+      corner="One submission"
+      fig="Fig. 1."
+      caption="How a form submission travels. Nothing is sent to advertisers, analytics companies, or data brokers. The only other place it can go is the optional sign-up alert (below)."
+    >
       <ol class="flow">
         <li>
           <span class="flow-n" aria-hidden="true">1</span>
@@ -192,12 +207,16 @@ const contents = [
         <li>
           <span class="flow-n" aria-hidden="true">4</span>
           <p class="flow-h">A person replies</p>
-          <p class="flow-b">Someone from the association reads it and writes back.</p>
+          <p class="flow-b">Someone from the association will read it and write back.</p>
         </li>
       </ol>
     </Plate>
 
     <dl class="ledger">
+      <div>
+        <dt>How we use it</dt>
+        <dd>{USE}</dd>
+      </div>
       <div>
         <dt>Where it is stored</dt>
         <dd>
@@ -208,14 +227,14 @@ const contents = [
       <div>
         <dt>Who can see it</dt>
         <dd>
-          Only <Ph id="privacy.access" /> can read submissions. We do not sell or rent your information, and we do not share it with advertisers.
+          Only <Ph id="privacy.access" /> can read submissions.
         </dd>
       </div>
       <div>
         <dt>Sign-up alerts</dt>
         <dd>
-          When a form arrives, the site can post a one-line alert with your name, role and email address to <Ph id="privacy.notifications" />, so
-          someone can reply quickly.
+          If alerts are switched on, the site posts a one-line alert with your name, role, and email address to <Ph id="privacy.notifications" />, so
+          someone can reply quickly. This alert is the only time the site sends your details to a service other than Cloudflare.
         </dd>
       </div>
       <div>
@@ -224,7 +243,7 @@ const contents = [
       </div>
       <div>
         <dt>If you email us</dt>
-        <dd>Your email address and message stay in the association’s inbox and are treated the same way.</dd>
+        <dd>Your email address and message will stay in the association’s inbox, and we will treat them the same way.</dd>
       </div>
     </dl>
   </Section>
@@ -238,7 +257,7 @@ const contents = [
       </p>
       <p>If we learn that a child under 13 has sent us their own details, we will delete them.</p>
       <p>
-        Parents and guardians can ask to see, correct or delete anything their child has sent us by writing to <PhLink id="org.email" label="Contact email" />.
+        Parents and guardians can ask to see, correct, or delete anything their child has sent us by writing to <PhLink id="org.email" label="Contact email" />.
       </p>
     </div>
   </Section>
@@ -264,12 +283,12 @@ const contents = [
       </div>
       <div>
         <dt>Analytics, ads, trackers</dt>
-        <dd>None. The site runs no code that tracks, profiles or advertises to you.</dd>
+        <dd>None. The site runs no code that tracks, profiles, or advertises to you.</dd>
       </div>
       <div>
-        <dt>Outside services</dt>
+        <dt>Outside scripts, fonts, and images</dt>
         <dd>
-          None. Every font, image and script comes from this website, and its security policy tells your browser to refuse anything from anywhere
+          None. Every font, image, and script comes from this website, and its security policy tells your browser to refuse anything from anywhere
           else.
         </dd>
       </div>
@@ -277,33 +296,33 @@ const contents = [
         <dt>Hosting</dt>
         <dd>
           The site is hosted on Cloudflare. As with any website, the servers that deliver a page see your IP address in order to send the page to you.
-          The site itself stores your IP address only as the hash in §2, and only when you send the form.
+          The site itself never stores your IP address: when you send the form, it keeps at most the scrambled version in Table&nbsp;1.
         </dd>
       </div>
       <div>
         <dt>Links to other sites</dt>
         <dd>
-          Our <a href="/events/">Events</a> and <a href="/resources/">Student Resources</a> pages link to competitions and programs run by other organizations.
+          Our <a href="/events/">Events &amp; Competitions</a> and <a href="/resources/">Student Resources</a> pages link to competitions and programs run by other organizations.
           Their sites have their own privacy practices, which this notice does not cover.
         </dd>
       </div>
     </dl>
   </Section>
 
-  <Section id="choices" num="6" title="Your *choices*" dek="You can see, correct or delete what you sent us, at any time.">
+  <Section id="choices" num="6" title="Your *choices*" dek="You can see, correct, or delete what you sent us, at any time.">
     <div class="cells">
       <article class="cell">
-        <p class="label">Case 1</p>
+        <p class="label">Case 6.1</p>
         <h3>See or correct it</h3>
         <p class="body">Ask for a copy of what we hold about you, or tell us what to fix.</p>
       </article>
       <article class="cell">
-        <p class="label">Case 2</p>
+        <p class="label">Case 6.2</p>
         <h3>Delete it</h3>
         <p class="body">Tell us the email address you used, and we will delete your submission.</p>
       </article>
       <article class="cell">
-        <p class="label">Case 3</p>
+        <p class="label">Case 6.3</p>
         <h3>Stop updates</h3>
         <p class="body">If you asked for email updates and no longer want them, tell us and we will stop.</p>
       </article>
@@ -323,8 +342,12 @@ const contents = [
     </div>
   </Section>
 
-  <Section id="changes" num="7" title="Changes to this *notice*" dek="If the site starts handling information differently, this page changes first.">
+  <Section id="changes" num="7" title="About this *notice*" dek="What it covers, and how it will change.">
     <div class="prose">
+      <p>
+        This notice covers this website and its join form. It does not cover what happens at events, such as whether photos are taken. The
+        association will set that out on the <a href="/events/">Events &amp; Competitions</a> page.
+      </p>
       <p>
         If we change what the site collects or how we use it, we will update this page and its effective date before the change takes effect. The
         date at the top of the page always shows the current version.
@@ -333,15 +356,16 @@ const contents = [
         This notice explains how the website works, in plain English on purpose. It is not legal advice. Last reviewed by <Ph id="privacy.review" />.
       </p>
       <p>
-        New here? Start with <a href="/about/">what the association is for</a>, or go back to the <a href="/">home page</a>.
+        New here? Start with <a href="/about/">what the association is for</a>, or go back to the <a href="/">Home</a> page.
       </p>
     </div>
   </Section>
 
   <Band
-    label="Corollary A.1"
+    label="Corollary 7.1"
     title="Questions are *welcome.*"
-    text="If anything here is unclear, or you want your information seen, changed or deleted, get in touch. A person will read it and reply."
+    text="If anything here is unclear, or you want your information seen, changed, or deleted, get in touch. A person will read it and reply."
+    m={9}
   >
     <a class="btn" href={contactHref}>Contact us <span class="arr" aria-hidden="true">→</span></a>
     <a class="btn btn-quiet" href={joinHref}>Join EBMA</a>

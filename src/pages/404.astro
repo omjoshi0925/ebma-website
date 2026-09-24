@@ -23,7 +23,7 @@ const blurbs: Record<string, string> = {
 };
 const pages = [
   ...nav.map((item) => ({ href: item.href, n: `§${item.n}`, title: item.title, blurb: blurbs[item.href] ?? '' })),
-  { href: '/privacy/', n: 'App. A', title: 'Privacy notice', blurb: 'What this site collects, and what it does not.' },
+  { href: '/privacy/', n: 'App. A', title: 'Privacy Notice', blurb: 'What this site collects, and what it does not.' },
 ];
 
 // ---- figure geometry (viewBox units; labels are sized to stay ≥ 12 px down to the narrowest
@@ -54,11 +54,11 @@ const hy = f(HOLE);
 const ticks = [100, 200, 300, 500].map(X);
 ---
 
-<Base title="Page not found" description="The page you asked for does not exist. Every page that does is listed here." noindex>
+<Base title="Page Not Found" description="The page you asked for does not exist. Every page that does is listed here." noindex>
   <PageHeader
     chapter={0}
     runLeft="Error 404"
-    runRight="Page not found"
+    runRight="Page Not Found"
     label="Counterexample"
     note="(to the claim that every link works)"
     title="This page does not *exist.*"
@@ -67,12 +67,12 @@ const ticks = [100, 200, 300, 500].map(X);
     <p slot="lede" class="lede-2 rise" style="--d:320">
       The address may be mistyped, or the page may have moved. Every page that does exist is listed below.
     </p>
-    <a slot="actions" class="btn" href="/">Go to the home page <span class="arr" aria-hidden="true">→</span></a>
+    <a slot="actions" class="btn" href="/">Go to the Home page <span class="arr" aria-hidden="true">→</span></a>
     <a slot="actions" class="xref" href="#pages">See every page <span class="arr" aria-hidden="true">↓</span></a>
     <div slot="aside" class="nf-wrap">
       <Plate
         id="fig-404"
-        plate="Plate 404"
+        plate="Plate I"
         corner={`<span class="m" style="text-transform:none">f</span>(404) = ??`}
         fig="Fig. 1."
         caption={`A curve defined at every point but one. At <span class="m">x</span> = 404 it has a hole, which mathematicians call a <i>removable</i> discontinuity. The links below remove it.`}

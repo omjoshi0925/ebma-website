@@ -2,16 +2,23 @@
 export const site = {
   name: 'East Bay Math Association',
   shortName: 'EBMA',
+  // No grade range here: who can join is a placeholder (org.eligibility) until the association says.
   description:
-    'The East Bay Math Association brings middle and high school students across the East Bay together for competitions, events, and serious fun with hard problems.',
+    'The East Bay Math Association brings students across the East Bay together for competitions, events, and serious fun with hard problems.',
   region: 'East Bay, California',
+  /**
+   * Launch switch. While false, every page carries <meta name="robots" content="noindex"> and
+   * robots.txt disallows all crawling, so search engines never show the "??" placeholder chips.
+   * Set it to true once PLACEHOLDERS.md is filled in and the site is ready to be found.
+   */
+  indexable: false as boolean,
 } as const;
 
 export interface NavItem {
   href: string;
   /** Short label for the desktop nav. */
   label: string;
-  /** Full title for the mobile table of contents and the footer. */
+  /** Full title for the mobile table of contents, the footer, and the running head. */
   title: string;
   /** Chapter number: Home is 0. */
   n: number;

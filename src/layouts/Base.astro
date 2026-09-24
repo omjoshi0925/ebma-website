@@ -1,8 +1,10 @@
 ---
+// Fonts. Upright Newsreader keeps its optical-size axis (the display headings need it). The italic
+// is used at text sizes, where opsz adds nothing, so it loads the much smaller weight-only file
+// (same family name). IBM Plex Mono is used at 500 and 600 only (700 renders with 600).
 import '@fontsource-variable/newsreader/opsz.css';
-import '@fontsource-variable/newsreader/opsz-italic.css';
+import '@fontsource-variable/newsreader/wght-italic.css';
 import '@fontsource-variable/instrument-sans/wght.css';
-import '@fontsource/ibm-plex-mono/latin-400.css';
 import '@fontsource/ibm-plex-mono/latin-500.css';
 import '@fontsource/ibm-plex-mono/latin-600.css';
 import '../styles/global.css';
@@ -14,27 +16,50 @@ import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
 
 interface Props {
-  /** Page title; the site name is appended. Omit on the home page. */
+  /** Page title in Title Case ("Events & Competitions"); the site name is appended. Omit on the home page. */
   title?: string;
   description?: string;
   /** Path of a 1200×630 social image under public/. */
   image?: string;
+  /** A page that should never be indexed or shared (404, thanks): noindex, and no canonical URL. */
   noindex?: boolean;
 }
 const { title, description = site.description, image = '/og/default.png', noindex = false } = Astro.props;
 const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · Math for East Bay students`;
+const shareTitle = title ? `${title} · ${site.name}` : site.name;
+// Until launch (site.indexable in src/data/site.ts) every page asks search engines to stay away.
+const robotsNoindex = noindex || !site.indexable;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const imageURL = new URL(image, Astro.site);
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: site.name,
-  alternateName: site.shortName,
-  url: new URL('/', Astro.site).href,
-  logo: new URL('/icon-512.png', Astro.site).href,
-  description: site.description,
-  areaServed: 'East Bay, California',
-};
+const home = new URL('/', Astro.site).href;
+const isHome = Astro.url.pathname === '/';
+// Structured data once, on the home page: the organization, and the website (which is what search
+// engines use for the site name shown in results).
+const jsonLd = isHome
+  ? {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Organization',
+          '@id': `${home}#org`,
+          name: site.name,
+          alternateName: site.shortName,
+          url: home,
+          logo: new URL('/icon-512.png', Astro.site).href,
+          description: site.description,
+          areaServed: site.region,
+        },
+        {
+          '@type': 'WebSite',
+          '@id': `${home}#website`,
+          name: site.name,
+          alternateName: site.shortName,
+          url: home,
+          publisher: { '@id': `${home}#org` },
+        },
+      ],
+    }
+  : null;
 ---
 
 <!doctype html>
@@ -44,17 +69,24 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {robotsNoindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#f4efe4" media="(prefers-color-scheme: light)" data-scheme="light" />
+    <meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)" data-scheme="dark" />
 
     <script is:inline>
-      // Apply a saved theme before first paint, and flag that JavaScript is available.
+      // Apply a saved theme before first paint (and tint the browser bar to match), and flag that
+      // JavaScript is available. scripts/site.ts keeps both in step when the reader changes theme.
       (function () {
         var d = document.documentElement;
         d.classList.add('js');
         try {
           var t = localStorage.getItem('ebma-theme');
-          if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+          if (t === 'light' || t === 'dark') {
+            d.setAttribute('data-theme', t);
+            var metas = document.querySelectorAll('meta[name="theme-color"][data-scheme]');
+            for (var i = 0; i < metas.length; i++) metas[i].setAttribute('media', metas[i].getAttribute('data-scheme') === t ? 'all' : 'not all');
+          }
         } catch (e) {}
       })();
     </script>
@@ -67,14 +99,12 @@ const jsonLd = {
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <meta name="theme-color" content="#f4efe4" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#16140f" media="(prefers-color-scheme: dark)" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.name} />
-    <meta property="og:title" content={title ?? site.name} />
+    <meta property="og:title" content={shareTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:image" content={imageURL} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -82,9 +112,11 @@ const jsonLd = {
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   </head>
   <body>
+    <!-- "Back to top" (footer) lands here: the very top of the document, not the sticky header. -->
+    <div id="top"></div>
     <a class="skip" href="#main">Skip to content</a>
     <Header />
     <main id="main" tabindex="-1">

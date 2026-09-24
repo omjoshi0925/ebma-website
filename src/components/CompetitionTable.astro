@@ -3,6 +3,8 @@
  * Table 2 on /events/: the competition calendar as a table, in three groups: dates posted by the
  * organizers (soonest first), the usual timing where a 2027 date is not posted yet, and contests
  * with no date listed. Carries the same data as Fig. 1 (CompetitionTimeline.astro).
+ * Rows carry data-end (the last day, or the end of the usual window) so that
+ * scripts/events-calendar.ts can mark them "Passed" between deploys.
  */
 import { competitions, upcomingDates, formatRange, SEASON } from '../data/competitions';
 
@@ -65,7 +67,7 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
       </tr>
       {
         typical.map((c) => (
-          <tr>
+          <tr data-end={c.typicalWindow?.end}>
             <td class="ct-date">
               <span class="ct-when ct-typ">{c.typicalWindow ? `Typically ${c.typicalWindow.label}` : 'Not posted'}</span>
             </td>
@@ -265,6 +267,13 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
     .ct th,
     .ct td {
       padding-right: 14px;
+    }
+  }
+  /* No reading text under 16px on a phone (the italic notes read smaller than their size). */
+  @media (max-width: 620px) {
+    .ct caption,
+    .ct-note {
+      font-size: 16.5px;
     }
   }
 </style>

@@ -40,6 +40,8 @@ export interface Competition {
   name: string;
   /** Short name for the calendar figure. */
   short: string;
+  /** Short name in lists (the phone summary of each group on /events/), when it differs from `short`. */
+  listName?: string;
   url: string;
   org: string;
   description: string;
@@ -82,7 +84,7 @@ export const competitions: Competition[] = [
     url: MAA_AMC,
     org: 'Mathematical Association of America (MAA)',
     description:
-      'The MAA’s multiple-choice contest for middle school. Students take it through a host school or site; students and parents do not register with the MAA directly.',
+      'The middle school contest of the American Mathematics Competitions (AMC), the MAA’s multiple-choice contests. Students take it through a host school or site; students and parents do not register with the MAA directly.',
     level: 'Grade 8 and below',
     levelShort: 'Grade 8 and below',
     format: '25 multiple-choice questions in 40 minutes',
@@ -100,12 +102,12 @@ export const competitions: Competition[] = [
     url: 'https://www.mathcounts.org/programs/mathcounts-competition-series',
     org: 'MATHCOUNTS Foundation',
     description:
-      'National middle school program of live contests that advance from school to chapter, state and national levels. Students whose school doesn’t take part can register on their own.',
+      'National middle school program of live contests that advance from school to chapter, state, and national levels. Students whose school doesn’t take part can register on their own.',
     level: 'Grades 6–8',
     levelShort: 'Grades 6–8',
-    format: 'Sprint, Target, Team and Countdown rounds; school, chapter, state and national levels',
+    format: 'Four rounds, about 3 hours in all: Sprint and Target (individual), Team (a school’s team of 4), and Countdown (a speed round)',
     cost: 'paid',
-    costNote: 'Title I schools get 50% off',
+    costNote: 'Title I schools (those serving many low-income families) get 50% off',
     when: 'Chapter contests in February, state in March, national in May.',
     tags: ['middle school', 'team', 'individual', 'in-person', 'national'],
     group: 'middle',
@@ -122,7 +124,7 @@ export const competitions: Competition[] = [
     url: 'https://cspeef.org/competitions/',
     org: 'MATHCOUNTS of California (California Society of Professional Engineers Education Foundation)',
     description:
-      'California’s MATHCOUNTS chapter contests. Your school’s ZIP code decides your chapter: East Bay schools fall in the East Bay, Diablo or Fremont chapter. Top finishers advance to the Northern California state contest.',
+      'California’s MATHCOUNTS chapter contests. Your school’s ZIP code decides your chapter: East Bay schools fall in the East Bay, Diablo, or Fremont chapter. Top finishers advance to the Northern California state contest.',
     level: 'Grades 6–8',
     levelShort: 'Grades 6–8',
     format: 'Chapter contest in person; your chapter is set by your school’s ZIP code',
@@ -152,7 +154,7 @@ export const competitions: Competition[] = [
       'The Berkeley Math Tournament’s contest for middle schoolers, held on the UC Berkeley campus, with a separate online edition.',
     level: 'Grade 8 and below',
     levelShort: 'Grade 8 and below',
-    format: 'Teams of up to 5: Puzzle, Individual, Team and Relay rounds',
+    format: 'Teams of up to 5: Puzzle, Individual, Team, and Relay rounds',
     venue: 'UC Berkeley, plus an online edition',
     cost: 'paid',
     costNote: 'Fee waivers for financial hardship',
@@ -171,7 +173,7 @@ export const competitions: Competition[] = [
     url: MAA_AMC,
     org: 'Mathematical Association of America (MAA)',
     description:
-      'The MAA’s multiple-choice contests for high school, taken through a host school or site. A qualifying score on either one earns an invitation to the AIME.',
+      'The high school contests of the American Mathematics Competitions (AMC), taken through a host school or site. The number is the highest grade that can enter. A qualifying score on either one earns an invitation to the AIME (American Invitational Mathematics Examination).',
     level: 'AMC 10: grade 10 and below. AMC 12: grade 12 and below',
     levelShort: 'Grade 10 / 12 and below',
     format: '25 multiple-choice questions in 75 minutes',
@@ -195,7 +197,7 @@ export const competitions: Competition[] = [
       'Student-run tournament with original problems for high school and advanced middle school students, held on the UC Berkeley campus. A separate online edition follows.',
     level: 'Grade 12 and below (high school and advanced middle school)',
     levelShort: 'Grade 12 and below',
-    format: 'Teams of up to 6: a proof-based Power round, an Individual round and a Guts round',
+    format: 'Teams of up to 6: a proof-based Power round, an Individual round, and a Guts round',
     cost: 'paid',
     costNote: 'Fee waivers for financial hardship',
     when: 'Once a year. 2026: November 14 at UC Berkeley; online edition December 5.',
@@ -211,7 +213,7 @@ export const competitions: Competition[] = [
     name: 'Stanford Math Tournament (SMT)',
     short: 'SMT',
     url: 'https://www.stanfordmathtournament.org/',
-    org: 'Stanford Math Tournament (Stanford students, supported by SUMO and the Stanford Department of Mathematics)',
+    org: 'Stanford Math Tournament (Stanford students, supported by the Stanford Undergraduate Mathematics Organization and the Stanford Department of Mathematics)',
     description:
       'Student-run tournament at Stanford for US high schoolers, with teams chosen by application and lottery. SMT Online is open to middle and high schoolers anywhere.',
     level: 'High school (in person); middle and high school (SMT Online)',
@@ -231,12 +233,12 @@ export const competitions: Competition[] = [
     name: 'HMMT (Harvard–MIT Mathematics Tournament)',
     short: 'HMMT',
     url: 'https://www.hmmt.org/',
-    org: 'HMMT (organized by students at Harvard, MIT and nearby schools)',
+    org: 'HMMT (organized by students at Harvard, MIT, and nearby schools)',
     description:
       'Student-run high school tournaments in Massachusetts: HMMT November at Harvard, and the harder HMMT February at MIT, with a proof-based team round. Spots are given by lottery.',
     level: 'High school',
     levelShort: 'High school',
-    format: 'Individual, team and guts rounds; November teams of 4–6, February teams of 6–8',
+    format: 'Individual, team, and guts rounds; November teams of 4–6, February teams of 6–8',
     cost: 'paid',
     when: 'HMMT November at Harvard and HMMT February at MIT. Next: November 7, 2026 and February 13, 2027.',
     tags: ['high school', 'team', 'individual', 'in-person', 'national', 'olympiad-level'],
@@ -253,7 +255,7 @@ export const competitions: Competition[] = [
     url: 'https://arml3.com/',
     org: 'American Regions Mathematics League',
     description:
-      'National contest for regional teams of 15 at several university sites. Bay Area students can join the SFBA/NorCal ARML team, which is open regardless of past contest scores.',
+      'National contest for regional teams of 15 at several university sites. Bay Area students can join the SFBA/NorCal (San Francisco Bay Area) ARML team, which is open regardless of past contest scores.',
     level: 'Grade 12 and below (students who have finished high school cannot enter)',
     levelShort: 'Grade 12 and below',
     format: 'Regional teams of 15, in person at university host sites',
@@ -298,10 +300,11 @@ export const competitions: Competition[] = [
     id: 'aime-usamo',
     name: 'AIME, USAJMO & USAMO',
     short: 'AIME',
+    listName: 'AIME, USAJMO & USAMO',
     url: MAA_INV,
     org: 'Mathematical Association of America (MAA)',
     description:
-      'The invitation-only next steps for top AMC 10 and 12 scorers: first the AIME, then the proof-based USAJMO and USAMO olympiads.',
+      'The invitation-only next steps for top AMC 10 and 12 scorers: first the AIME (American Invitational Mathematics Examination), then the proof-based olympiads USAJMO and USAMO (USA Junior Mathematical Olympiad and USA Mathematical Olympiad).',
     level: 'By invitation: the AIME needs a qualifying AMC 10/12 score; USAJMO and USAMO invitations are based mainly on AIME scores',
     levelShort: 'By invitation (qualifying AMC 10/12 score)',
     format: 'AIME: 15 questions with answers 0–999, in two 90-minute parts. USAJMO/USAMO: complete proofs, 3 problems in 4.5 hours per day',
@@ -318,7 +321,7 @@ export const competitions: Competition[] = [
     name: 'Bay Area Mathematical Olympiad (BAMO)',
     short: 'BAMO',
     url: 'https://www.bamo.org/',
-    org: 'Bay Area Mathematical Olympiad (local mathematicians, teachers and universities, with logistical support from SLMath, formerly MSRI)',
+    org: 'Bay Area Mathematical Olympiad (local mathematicians, teachers, and universities, with logistical support from SLMath, the Simons Laufer Mathematical Sciences Institute)',
     description:
       'Proof-based olympiad for Bay Area middle and high school students. Schools and math circles register and proctor it in person; students cannot register on their own or take it at home.',
     level: 'BAMO-8: grade 8 and below. BAMO-12: grade 12 and below',
@@ -343,7 +346,7 @@ export const competitions: Competition[] = [
     name: 'USA Mathematical Talent Search (USAMTS)',
     short: 'USAMTS',
     url: 'https://www.usamts.org/',
-    org: 'Art of Problem Solving Initiative (AoPSI)',
+    org: 'Art of Problem Solving Initiative',
     description:
       'A free, proof-based contest you do on your own time, with over a month per round. Graders return written feedback, and it is one route to qualifying for the AIME.',
     level: 'Middle and high school (US citizens or residents who have not finished high school)',
@@ -377,7 +380,7 @@ export const competitions: Competition[] = [
     name: 'Math Kangaroo USA',
     short: 'Math Kangaroo',
     url: 'https://mathkangaroo.org/mks/',
-    org: 'Math Kangaroo USA, NFP (questions chosen by the international Kangourou sans Frontières committee)',
+    org: 'Math Kangaroo USA (questions chosen by the international Kangourou sans Frontières committee)',
     description:
       'International multiple-choice contest, taken in person or online through registered centers. A team contest is also offered.',
     level: 'Grades K–12 (kindergartners take the grade 1 test)',
@@ -396,16 +399,16 @@ export const competitions: Competition[] = [
 ];
 
 export const groups: { id: CompetitionGroup; title: string; dek: string }[] = [
-  { id: 'middle', title: 'Middle school', dek: 'Contests written for grades 8 and below.' },
+  { id: 'middle', title: 'Middle school', dek: 'Contests written for grade 8 and below.' },
   { id: 'high', title: 'High school', dek: 'Individual contests and team tournaments, near home and farther away.' },
-  { id: 'olympiad', title: 'Olympiad & invitational', dek: 'Proof-based olympiads, and contests you qualify for.' },
+  { id: 'olympiad', title: 'Olympiad & invitational', dek: 'Olympiads, where you write out full proofs, and contests you qualify for by invitation.' },
   { id: 'online', title: 'Online options', dek: 'Contests you can take online. Two of the three are free.' },
 ];
 
 export const costLabel: Record<CostTag, string> = {
   free: 'Free',
   paid: 'Paid',
-  varies: 'Cost varies',
+  varies: 'Varies',
   'not-stated': 'Fee not stated',
 };
 
@@ -421,7 +424,7 @@ export const dayNum = (iso: string) => {
   return Date.UTC(y, m - 1, d) / 86_400_000;
 };
 
-/** "Thu, Nov 5" / "Jan 21–27" / "Feb 28 – Mar 3" (year optional). */
+/** "Thu, Nov 5" / "Jan 21–27" / "Feb 28–Mar 3" (year optional; a closed en dash, per house style). */
 export function formatRange(start: string, end?: string, opts: { year?: boolean; weekday?: boolean } = {}) {
   const [y1, m1, d1] = parse(start);
   const yr = opts.year ? `, ${y1}` : '';
@@ -430,7 +433,7 @@ export function formatRange(start: string, end?: string, opts: { year?: boolean;
     return `${wk}${MON[m1 - 1]} ${d1}${yr}`;
   }
   const [, m2, d2] = parse(end);
-  return m1 === m2 ? `${MON[m1 - 1]} ${d1}–${d2}${yr}` : `${MON[m1 - 1]} ${d1} – ${MON[m2 - 1]} ${d2}${yr}`;
+  return m1 === m2 ? `${MON[m1 - 1]} ${d1}–${d2}${yr}` : `${MON[m1 - 1]} ${d1}–${MON[m2 - 1]} ${d2}${yr}`;
 }
 
 export interface CalendarItem extends CompetitionDate {

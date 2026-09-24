@@ -1,8 +1,12 @@
 ---
 /**
  * One entry in the Student Resources library, set like a numbered reference: "[12]", the cost
- * tag, the name (a link to the official site), who runs it, what it is, level and timing, and
- * the domain the link goes to. Data: src/data/resources.ts (verified third-party facts only).
+ * tag, the name (a link to the official site), who runs it and the domain the link goes to
+ * ("Khan Academy · khanacademy.org", the same line as a competition on /events/), what it is,
+ * and level and timing. Data: src/data/resources.ts (verified third-party facts only).
+ *
+ * The cost tag matches CompetitionEntry on /events/: FREE is a solid ink tag; PAID, FREE TIER
+ * and VARIES are outlined.
  */
 import ResourceLink from './ResourceLink.astro';
 import { costLabel, domainOf, type Resource } from '../data/resources';
@@ -16,6 +20,7 @@ interface Props {
 const { resource: r, num, headingLevel = 'h4' } = Astro.props;
 const H = headingLevel;
 const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
+const domain = domainOf(r.url);
 ---
 
 <article class="res" id={`lib-${r.id}`}>
@@ -24,7 +29,9 @@ const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
     <span class:list={['res-cost', `is-${r.cost}`]}><span class="sr-only">Cost: </span>{costLabel[r.cost]}</span>
   </p>
   <H class="res-name"><ResourceLink href={r.url}>{r.name}</ResourceLink></H>
-  {showOrg && <p class="res-org">{r.org}</p>}
+  <p class="res-org">
+    {showOrg && r.org}<span class="res-dom">{showOrg && ' ·\u00a0'}{domain}</span>
+  </p>
   <p class="res-desc">{r.description}</p>
   <dl class="res-facts">
     <div>
@@ -40,7 +47,6 @@ const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
       )
     }
   </dl>
-  <p class="res-domain">{domainOf(r.url)}</p>
 </article>
 
 <style>
@@ -65,11 +71,12 @@ const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
     color: var(--accent-text);
     letter-spacing: 0.02em;
   }
+  /* Cost tag: the same tag as CompetitionEntry on /events/. */
   .res-cost {
     font: 600 12px/1 var(--sans);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 5px 7px 4px;
+    padding: 4px 7px;
     border: 1px solid var(--rule-2);
     color: var(--ink-2);
     white-space: nowrap;
@@ -78,10 +85,6 @@ const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
     background: var(--ink);
     border-color: var(--ink);
     color: var(--paper);
-  }
-  .res-cost.is-free-tier {
-    border-color: var(--ink);
-    color: var(--ink);
   }
   .res-name {
     font: 400 clamp(22px, 1.7vw, 24px) / 1.18 var(--serif);
@@ -97,9 +100,20 @@ const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
     text-decoration: underline;
     text-decoration-thickness: 1px;
   }
+  /* Who runs it, then the domain the link goes to (as on /events/). The dot is tied to the
+     domain, so a long name wraps as "… (AoPS)" / "· artofproblemsolving.com", never leaving the
+     dot at the end of a line. */
   .res-org {
-    font: 500 14.5px/1.4 var(--sans);
+    margin-top: -2px;
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.45;
     color: var(--ink-3);
+  }
+  .res-dom {
+    font: normal 500 13px/1 var(--mono);
+    letter-spacing: 0.01em;
+    overflow-wrap: anywhere;
   }
   .res-desc {
     font-size: 16.5px;
@@ -108,7 +122,9 @@ const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
     text-wrap: pretty;
   }
   .res-facts {
-    margin: 4px 0 0;
+    margin: 2px 0 0;
+    padding-top: 10px;
+    border-top: 1px dotted var(--rule-2);
     display: grid;
     gap: 6px;
   }
@@ -129,12 +145,29 @@ const showOrg = r.org.trim().toLowerCase() !== r.name.trim().toLowerCase();
     font: 500 14.5px/1.45 var(--sans);
     color: var(--ink-2);
   }
-  .res-domain {
-    margin-top: auto;
-    padding: 12px 0 2px;
-    border-top: 1px solid var(--rule);
-    font: 500 12.5px/1.3 var(--mono);
-    color: var(--ink-3);
-    overflow-wrap: anywhere;
+
+  /* Phones: one column of forty cards, so each one is set tighter. */
+  @media (max-width: 620px) {
+    .res {
+      gap: 7px;
+      padding-top: 12px;
+    }
+    .res-top {
+      margin-bottom: 0;
+    }
+    .res-name {
+      font-size: 21px;
+    }
+    .res-org {
+      margin-top: -1px;
+    }
+    .res-desc {
+      font-size: 16px;
+    }
+    .res-facts {
+      margin-top: 3px;
+      padding-top: 8px;
+      gap: 4px;
+    }
   }
 </style>

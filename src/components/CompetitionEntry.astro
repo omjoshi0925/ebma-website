@@ -1,8 +1,10 @@
 ---
 /**
- * One competition in "Competitions to know" on /events/, set like a numbered reference:
- * [n], the name (linking to the official site), the organizer and domain, a description, and
- * who / format / when / cost. Facts come from src/data/competitions.ts (verified research).
+ * One competition in "Competitions to know" on /events/, set like a numbered reference and laid
+ * out like a Student Resources entry (ResourceCard.astro): "[n]" and the cost tag, the name
+ * (linking to the official site), the organizer, a description, who / format / when (and a cost
+ * note when there is one), and the domain the link goes to. Facts come from
+ * src/data/competitions.ts (verified research).
  */
 import { costLabel, type Competition } from '../data/competitions';
 
@@ -13,58 +15,76 @@ interface Props {
 const { competition: c, n } = Astro.props;
 const u = new URL(c.url);
 const domain = u.hostname.replace(/^www\./, '');
+// As in ResourceCard: skip the organizer line when it only repeats the name.
+const showOrg = c.org.trim().toLowerCase() !== c.name.trim().toLowerCase();
 ---
 
 <article class="ce" id={`c-${c.id}`} aria-labelledby={`c-${c.id}-h`}>
   <p class="ce-n" aria-hidden="true">[{n}]</p>
-  <div class="ce-body">
-    <h4 class="ce-name" id={`c-${c.id}-h`}>
-      <a href={c.url} rel="noopener">
-        {c.name}<span class="ext" aria-hidden="true">↗</span><span class="sr-only"> (external site)</span>
-      </a>
-    </h4>
-    <p class="ce-org">{c.org}<span class="ce-dom"> · {domain}</span></p>
-    <p class="ce-desc">{c.description}</p>
-    <dl class="ce-facts">
-      <div>
-        <dt>Who</dt>
-        <dd>{c.level}</dd>
-      </div>
-      <div>
-        <dt>Format</dt>
-        <dd>{c.format}</dd>
-      </div>
-      <div>
-        <dt>When</dt>
-        <dd>{c.when}</dd>
-      </div>
-      <div>
-        <dt>Cost</dt>
-        <dd>
-          <span class:list={['tag', `tag-${c.cost}`]}>{costLabel[c.cost]}</span>
-          {c.costNote && <span class="ce-costnote">{c.costNote}</span>}
-        </dd>
-      </div>
-    </dl>
-  </div>
+  <h4 class="ce-name" id={`c-${c.id}-h`}>
+    <a href={c.url} rel="noopener">
+      {c.name}<span class="ext" aria-hidden="true">↗</span><span class="sr-only"> (external site)</span>
+    </a>
+  </h4>
+  <p class="ce-cost"><span class:list={['tag', `tag-${c.cost}`]}><span class="sr-only">Cost: </span>{costLabel[c.cost]}</span></p>
+  {showOrg && <p class="ce-org">{c.org}</p>}
+  <p class="ce-desc">{c.description}</p>
+  <dl class="ce-facts">
+    <div>
+      <dt>Who</dt>
+      <dd>{c.level}</dd>
+    </div>
+    <div>
+      <dt>Format</dt>
+      <dd>{c.format}</dd>
+    </div>
+    <div>
+      <dt>When</dt>
+      <dd>{c.when}</dd>
+    </div>
+    {
+      c.costNote && (
+        <div>
+          <dt>Cost</dt>
+          <dd>{c.costNote}</dd>
+        </div>
+      )
+    }
+  </dl>
+  <p class="ce-dom">{domain}</p>
 </article>
 
 <style>
+  /* Row 1: the reference number and the cost tag. Then the name, and the rest, full width. The
+     name comes before the tag in the source so a screen reader meets the heading first. */
   .ce {
     display: grid;
-    grid-template-columns: 3.2em minmax(0, 1fr);
-    column-gap: 8px;
-    padding: 24px 0 26px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: start;
+    column-gap: 16px;
+    padding: 18px 0 26px;
     border-top: 1px solid var(--rule);
     min-width: 0;
   }
+  .ce > :not(.ce-n, .ce-cost) {
+    grid-column: 1 / -1;
+  }
   .ce-n {
-    font: 500 14px/1.9 var(--mono);
+    grid-area: 1 / 1;
+    align-self: center;
+    font: 500 13px/1 var(--mono);
+    letter-spacing: 0.02em;
     color: var(--accent-text);
   }
+  .ce-cost {
+    grid-area: 1 / 2;
+    align-self: center;
+  }
   .ce-name {
+    margin-top: 10px;
     font: 400 clamp(22px, 1.9vw, 26px) / 1.2 var(--serif);
     letter-spacing: -0.01em;
+    text-wrap: pretty;
   }
   .ce-name a {
     padding-block: 3px;
@@ -84,21 +104,15 @@ const domain = u.hostname.replace(/^www\./, '');
   }
   .ce-org {
     margin-top: 6px;
-    font-style: italic;
-    font-size: 16px;
-    line-height: 1.45;
+    font: 500 14.5px/1.4 var(--sans);
     color: var(--ink-3);
-  }
-  .ce-dom {
-    font: normal 500 13px/1 var(--mono);
-    letter-spacing: 0.01em;
-    overflow-wrap: anywhere;
   }
   .ce-desc {
     margin-top: 12px;
     font-size: 17.5px;
     line-height: 1.55;
     color: var(--ink-2);
+    text-wrap: pretty;
   }
   .ce-facts {
     margin-top: 16px;
@@ -123,32 +137,36 @@ const domain = u.hostname.replace(/^www\./, '');
     font: 500 15px/1.45 var(--sans);
     color: var(--ink);
   }
+  .ce-dom {
+    margin-top: 14px;
+    font: 500 12.5px/1.3 var(--mono);
+    color: var(--ink-3);
+    overflow-wrap: anywhere;
+  }
+
+  /* The cost tag, shared with Student Resources: Free is solid ink; every other value is outlined. */
   .tag {
     display: inline-block;
     font: 600 12px/1 var(--sans);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 4px 7px 3px;
+    padding: 4px 7px;
     border: 1px solid var(--rule-2);
-    color: var(--ink);
-    margin-right: 8px;
-    vertical-align: 1px;
+    color: var(--ink-2);
+    white-space: nowrap;
   }
   .tag-free {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--on-accent);
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
   }
-  .ce-costnote {
-    color: var(--ink-2);
-  }
+
   @media (max-width: 620px) {
-    .ce {
-      grid-template-columns: minmax(0, 1fr);
+    .ce-desc {
+      font-size: 17px;
     }
-    .ce-n {
-      line-height: 1;
-      margin-bottom: 8px;
+    .ce-facts dd {
+      font-size: 16px;
     }
   }
 </style>

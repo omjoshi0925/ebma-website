@@ -33,7 +33,7 @@ async function open(path, opts = {}) {
 for (const path of PAGES) {
   await test(`${path}: every visible button and disclosure works without errors`, async () => {
     const { ctx, page, errors } = await open(path);
-    const summaries = page.locator('main summary');
+    const summaries = page.locator('main summary:visible');
     for (let i = 0; i < (await summaries.count()); i++) {
       const s = summaries.nth(i);
       await s.scrollIntoViewIfNeeded();

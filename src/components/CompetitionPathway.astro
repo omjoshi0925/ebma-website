@@ -7,6 +7,8 @@
  * the AIME. The AMC 8 → AMC 10/12 edge is dashed: it is the next contest up, not a qualifier.
  *
  * Two layouts (a row for wide containers, a column for narrow ones) keep SVG text at 12px+.
+ * Each SVG is named by its <title> child alone (no aria-labelledby), so screen readers don't
+ * also read the same text again as its description.
  */
 import Plate from './Plate.astro';
 
@@ -113,14 +115,14 @@ const label =
   plate="Plate II"
   corner="AMC → AIME → USA(J)MO"
   fig="Fig. 2."
-  caption="How the MAA contests connect. Solid arrows are qualifying routes stated by the organizers: a qualifying AMC 10 or 12 score earns an invitation to the AIME, and USAJMO and USAMO invitations are based mainly on AIME scores. USAMTS is another way to qualify for the AIME. The dashed arrow is simply the next contest up as students grow."
+  caption="How the MAA contests connect. Solid arrows are qualifying routes stated by the organizers; the dashed arrow is simply the next contest up as students grow."
   class="pw-plate"
 >
   <div class="pw-box">
     {
       layouts.map((l) => (
-        <svg class={`pw-svg pw-${l.id}`} viewBox={`-2 -2 ${l.W + 4} ${l.H + 4}`} role="img" aria-labelledby={`pw-${l.id}-t`} data-reveal>
-          <title id={`pw-${l.id}-t`}>{label}</title>
+        <svg class={`pw-svg pw-${l.id}`} viewBox={`-2 -2 ${l.W + 4} ${l.H + 4}`} role="img" data-reveal>
+          <title>{label}</title>
           {l.edges.map((e, i) => (
             <g class:list={['pw-edge', { dashed: e.dashed }]} style={`--i:${i}`}>
               <path d={e.d} class="pw-line" pathLength={e.dashed ? undefined : 1} />

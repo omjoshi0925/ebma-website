@@ -9,7 +9,7 @@ import ResourceLink from '../components/ResourceLink.astro';
 import ResourceLibrary from '../components/ResourceLibrary.astro';
 import { problems } from '../data/problems';
 import { resource, handouts, VERIFIED_ON, VERIFIED_ON_LONG } from '../data/resources';
-import { joinHref, contactHref } from '../data/site';
+import { contactHref } from '../data/site';
 
 // §1: warm-ups first, then intermediate, then the proof. Ids stay the same (#problem-frog …).
 const levelOrder = ['Warm-up', 'Intermediate', 'Proof'];
@@ -18,13 +18,26 @@ const rank = (level: string) => {
   return i === -1 ? levelOrder.length : i;
 };
 const set = problems.map((p, i) => ({ p, i })).sort((a, b) => rank(a.p.level) - rank(b.p.level) || a.i - b.i).map(({ p }) => p);
-const numbered = set.map((p, i) => ({ p, num: `1.${i + 1}` }));
+// Numbered like statements in a paper, one counter per kind within §1: Exercise 1.1, 1.2, …
+// and Proposition 1.1 (Problem.astro labels a proof "Proposition", the rest "Exercise").
+const kindOf = (p: (typeof problems)[number]) => (p.answer === 'Proof' ? 'Proposition' : 'Exercise');
+const seen: Record<string, number> = {};
+const numbered = set.map((p) => {
+  const kind = kindOf(p);
+  seen[kind] = (seen[kind] ?? 0) + 1;
+  return { p, kind, num: `1.${seen[kind]}` };
+});
+const kinds = ['Exercise', 'Proposition']
+  .map((kind) => ({ kind, items: numbered.filter((x) => x.kind === kind) }))
+  .filter((k) => k.items.length);
+const plural = (kind: string, n: number) => (n === 1 ? kind : `${kind}s`);
 const warmups = numbered.filter(({ p }) => p.level === 'Warm-up');
 const proof = numbered.find(({ p }) => p.answer === 'Proof');
 const words = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
 const countWord = words[numbered.length] ?? String(numbered.length);
 
-// §2 links: every third-party URL comes from the verified data file.
+// §2 links: every third-party URL comes from the verified data file. Dates stay in the listings
+// (§3), which carry the "verified on" note, never in this advice, so it can't go stale.
 const alcumus = resource('alcumus');
 const khan = resource('khan-academy');
 const wiki = resource('aops-wiki-amc');
@@ -40,14 +53,14 @@ const handoutDate = (iso: string) =>
 
 <Base
   title="Student Resources"
-  description="Original math problems with hints and full solutions, advice on where to start with contest math, and a checked library of free practice sites, Bay Area programs, summer programs and books."
+  description="Classic math problems with hints and full solutions, advice on where to start, and a checked library of practice sites, programs, and books."
 >
   <PageHeader
     chapter={3}
-    label="Chapter 3"
-    note="(exercises for the reader)"
+    label="Exercises"
+    note="(left to the reader)"
     title="Student *resources*"
-    lede={`${countWord} original problems to try right now, some honest advice on where to start, and a library of trusted places to keep going: free practice sites, Bay Area programs, summer programs and books.`}
+    lede={`${countWord} classic problems to try right now, written up for this site with hints and full solutions. Then some honest advice on where to start, and a library of trusted places to keep going: free practice sites, Bay Area programs, summer programs, and books.`}
     contents={[
       { href: '#problems', num: '1', title: 'Problems to try' },
       { href: '#start', num: '2', title: 'Where to start' },
@@ -58,22 +71,30 @@ const handoutDate = (iso: string) =>
   <!-- §1 Problems -->
   <Section id="problems" num="1" title="Problems to *try*" dek="From warm-ups to a first proof. Work each one on paper, check your answer, and open the hint only when you are properly stuck.">
     <div slot="note" class="pnote">
-      <p>Every problem on this site is original, and every answer has been checked.</p>
+      <p>These are classic problems, not new ones, written up for this site with a hint and a full solution for each. Every answer has been checked.</p>
       <nav class="pindex" aria-label="Problems in this section">
         <p class="pindex-h" aria-hidden="true">In this set</p>
-        <ol>
-          {
-            numbered.map(({ p, num }) => (
-              <li>
-                <a href={`#problem-${p.id}`}>
-                  <span class="pindex-n">{num}</span>
-                  <span class="pindex-t">{p.title}</span>
-                  <span class="pindex-l">{p.level}</span>
-                </a>
-              </li>
-            ))
-          }
-        </ol>
+        {
+          kinds.map(({ kind, items }) => (
+            <>
+              {kinds.length > 1 && <p class="pindex-k" aria-hidden="true">{plural(kind, items.length)}</p>}
+              <ol>
+                {items.map(({ p, num }) => (
+                  <li>
+                    <a href={`#problem-${p.id}`}>
+                      <span class="pindex-n">
+                        <span class="sr-only">{kind} </span>
+                        {num}
+                      </span>
+                      <span class="pindex-t">{p.title}</span>
+                      <span class="pindex-l">{p.level}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </>
+          ))
+        }
       </nav>
     </div>
 
@@ -86,7 +107,7 @@ const handoutDate = (iso: string) =>
       <div class="handouts-body">
         <div>
           <h3 id="handouts-h">Problem sets from EBMA events</h3>
-          <p class="handouts-text">Problems, solutions and handouts from our own events, collected here so that anyone who missed the day can still try them.</p>
+          <p class="handouts-text">Problems, solutions, and handouts from EBMA events will be collected here, so that anyone who missed the day can still try them.</p>
         </div>
         {
           handouts.length ? (
@@ -166,12 +187,13 @@ const handoutDate = (iso: string) =>
             )
           }
           <li>
-            Read <ResourceLink href={chen.url}>Evan Chen’s free handouts</ResourceLink> on olympiad algebra, combinatorics, geometry, number theory and proof writing.
+            Read <ResourceLink href={chen.url}>Evan Chen’s free handouts</ResourceLink> on olympiad algebra, combinatorics, geometry, number theory, and proof writing.
           </li>
           <li>Work through <ResourceLink href={engel.url}>Problem-Solving Strategies</ResourceLink> by Arthur Engel, which groups competition problems by strategy.</li>
           <li>
-            Plan ahead: summer programs admit by application, often with a problem set. <ResourceLink href={primes.url}>MIT PRIMES-USA</ResourceLink>, a free year-long
-            program for sophomores and juniors, takes 2027 applications until November 2, 2026.
+            Plan ahead: summer and year-round programs admit by application, often with a problem set, and deadlines come months early. For
+            <ResourceLink href={primes.url}>MIT PRIMES-USA</ResourceLink>, a free year-long program for sophomores and juniors, see
+            <a href={`#lib-${primes.id}`}>its listing in §3</a> for the current deadline.
           </li>
         </ol>
         <a class="xref" href="#lib-summer">Summer &amp; year-round programs <span class="arr" aria-hidden="true">↓</span></a>
@@ -181,7 +203,7 @@ const handoutDate = (iso: string) =>
   </Section>
 
   <!-- §3 The library -->
-  <Section id="library" num="3" title="The *library*" dek="Free practice, Bay Area programs, summer programs and books, each checked against its official site. Filter by type, or show only what is free.">
+  <Section id="library" num="3" title="The *library*" dek="Free practice, Bay Area programs, summer programs, and books, each checked against its official site. Filter by type, or show only what is free.">
     <a slot="actions" class="xref" href={contactHref}>Suggest a resource <span class="arr" aria-hidden="true">→</span></a>
     <div slot="note" class="lnote">
       <p><b>Not affiliated.</b> EBMA is not affiliated with any organization listed here.</p>
@@ -191,26 +213,27 @@ const handoutDate = (iso: string) =>
     <ResourceLibrary />
 
     <div class="remark">
-      <p class="label">Remark 3.5</p>
+      <p class="label">Remark 3.1</p>
       <p>
-        <strong>About these links.</strong> The East Bay Math Association is not affiliated with any organization, program, author or publisher on this page. A
+        <strong>About these links.</strong> The East Bay Math Association is not affiliated with any organization, program, author, or publisher on this page. A
         listing is our recommendation, not a partnership, and it does not mean they endorse EBMA. Each description was checked against the official site on <time datetime={VERIFIED_ON}>{VERIFIED_ON_LONG}</time>. Dates,
-        costs and eligibility change, so confirm the details on the official site before you apply or pay. Links marked <span class="ext-mark" aria-hidden="true">↗</span><span class="sr-only">with an arrow</span> leave this site, and each site has its own privacy
-        policy (ours is in the <a href="/privacy/">privacy notice</a>).
+        costs, and eligibility change, so confirm the details on the official site before you apply or pay. Links marked <span class="ext-mark" aria-hidden="true">↗</span><span class="sr-only">with an arrow</span> leave this site, and each site has its own privacy
+        policy (ours is in the <a href="/privacy/">Privacy Notice</a>).
       </p>
       <p>
         Spotted something out of date, or know a resource that belongs here? <a href={contactHref}>Tell us</a>. Teachers are welcome to share this page with students, and to
-        <a href="/get-involved/#schools">bring a team to EBMA</a>.
+        <a href="/get-involved/?role=educator#join">write to us as a teacher</a>.
       </p>
     </div>
   </Section>
 
   <Band
     label="Corollary 3.1"
+    m={5}
     title="Stuck? *Good.*"
     text="Being stuck is where the learning starts, and it goes better with company. Join EBMA to meet students across the East Bay who like hard problems as much as you do."
   >
-    <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+    <a class="btn" href="/get-involved/?role=student#join">Join EBMA <span class="arr" aria-hidden="true">→</span></a>
     <a class="btn btn-quiet" href="/events/">See upcoming events</a>
   </Band>
 </Base>
@@ -278,6 +301,15 @@ const handoutDate = (iso: string) =>
   .pindex ol {
     list-style: none;
   }
+  /* "Exercises" / "Proposition": each kind is numbered on its own, so the index says which. */
+  .pindex-k {
+    padding: 16px 0 6px;
+    border-bottom: 1px solid var(--rule);
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
   .pindex a {
     display: grid;
     grid-template-columns: 2.4em minmax(0, 1fr);
@@ -306,9 +338,10 @@ const handoutDate = (iso: string) =>
     text-decoration: underline;
     text-underline-offset: 0.18em;
   }
-  @media (min-width: 981px) and (min-height: 720px) {
+  @media (min-width: 981px) and (min-height: 800px) {
     /* The margin column keeps the index in view while you work down the set (only when the
-       whole index fits on screen, so nothing in it is ever out of reach). */
+       whole index fits on screen, so nothing in it is ever out of reach: the note and index are
+       about 690px tall, plus the header). */
     :global(#problems .margin-note) {
       position: sticky;
       top: calc(var(--head-h) + 24px);

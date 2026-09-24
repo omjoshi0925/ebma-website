@@ -1,7 +1,9 @@
 ---
 /**
  * The sponsor/partner logo wall: real logos from src/data/sponsors.ts, or crop-marked empty
- * slots while that list is empty, ending with a "Your organization here" call to action.
+ * slots while that list is empty, ending with a "Your organization here" call to action that
+ * opens the join form with "sponsor" preselected. The call-to-action tile is a small piece of the
+ * closing band, so it uses the band tokens and matches the band in both themes.
  */
 import Ph from './Ph.astro';
 import { sponsors, SAMPLE_SLOTS } from '../data/sponsors';
@@ -9,7 +11,7 @@ import { sponsors, SAMPLE_SLOTS } from '../data/sponsors';
 interface Props {
   ctaHref?: string;
 }
-const { ctaHref = '/sponsors/#become' } = Astro.props;
+const { ctaHref = '/get-involved/?role=sponsor#join' } = Astro.props;
 ---
 
 <ul class="slots" aria-label="Sponsors and partners">
@@ -76,22 +78,31 @@ const { ctaHref = '/sponsors/#become' } = Astro.props;
     height: 100%;
     aspect-ratio: auto;
     min-height: 120px;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--band-bg);
+    color: var(--band-fg);
+    border: 1px solid var(--band-rule);
     text-decoration: none;
     align-content: center;
     gap: 10px;
-    transition: background-color 0.25s;
+    transition:
+      background-color 0.25s,
+      color 0.25s;
+  }
+  .slot-cta span {
+    color: var(--band-accent);
   }
   .slot-cta:hover {
     background: var(--accent);
     color: var(--on-accent);
   }
+  .slot-cta:hover span {
+    color: inherit;
+  }
   .slot-cta strong {
     font: 400 23px/1.15 var(--serif);
     display: block;
   }
-  .slot-cta span {
+  .slot-cta > span {
     font: 600 13.5px/1 var(--sans);
     letter-spacing: 0.02em;
   }
@@ -106,7 +117,7 @@ const { ctaHref = '/sponsors/#become' } = Astro.props;
     .slot-cta strong {
       font-size: 19px;
     }
-    .slot-cta span {
+    .slot-cta > span {
       font-size: 12.5px;
     }
   }

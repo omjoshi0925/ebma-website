@@ -1,5 +1,5 @@
 /**
- * Plate II on the About page: the compass-and-straightedge construction of a regular pentagon,
+ * Plate I on the About page: the compass-and-straightedge construction of a regular pentagon,
  * as data. Pure (no DOM), so the page renders the finished figure at build time from it and the
  * browser (scripts/about-pentagon.ts) replays it step by step from the same numbers.
  *

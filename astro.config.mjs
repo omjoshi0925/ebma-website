@@ -14,7 +14,6 @@ export default defineConfig({
   compressHTML: true,
   // All CSS ships as files so the Content-Security-Policy can be style-src 'self' (scripts/csp.mjs).
   build: { format: 'directory', inlineStylesheets: 'never' },
-  prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
   // No Markdown code blocks here; turning Shiki off also keeps its inline styles out of the CSP.
   markdown: { syntaxHighlight: false },
   // Never inline assets as data: URIs (the CSP allows fonts only from this origin).

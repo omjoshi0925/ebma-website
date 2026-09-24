@@ -1,12 +1,13 @@
 /**
- * Plate II on the About page: step through the construction of a regular pentagon.
+ * Plate I on the About page: step through the construction of a regular pentagon.
  * Markup: components/AboutPentagon.astro. Geometry and timing: ./about-pentagon-geometry.ts.
  *
  * The page ships the finished figure. With JavaScript this module:
  *  - arms the figure (clears it) only if it starts below the fold, then plays the whole
  *    construction once when it scrolls into view; never under prefers-reduced-motion;
  *  - pauses while the figure is off screen, and offers Pause / Play / Replay;
- *  - lets the reader step with Previous / Next or the numbered list, announcing each step.
+ *  - lets the reader step with Previous / Next or the numbered list, announcing each step
+ *    (a step picked from the list first brings the figure into view if it is off screen).
  * Colors are CSS custom properties on the SVG, so a theme change needs no redraw.
  */
 import { construction, STEPS, pathAt, arcPoint, angleOf, lerp, type Item, type Pt } from './about-pentagon-geometry';
@@ -29,6 +30,7 @@ export function mountPentagon(root: HTMLElement) {
   if (!svg || !foot || !readout || !prevBtn || !nextBtn || !toggle || !list) return;
 
   const els = items.map((_, i) => svg.querySelector<SVGElement>(`[data-i="${i}"]`));
+  const plateFrame = svg.closest<HTMLElement>('.frame');
   const lastT = items.map(() => 1);
 
   // Drawing tools (decorative).
@@ -49,7 +51,10 @@ export function mountPentagon(root: HTMLElement) {
     b.className = 'step-btn';
     while (li.firstChild) b.appendChild(li.firstChild);
     li.appendChild(b);
-    b.addEventListener('click', () => go(i, true));
+    b.addEventListener('click', () => {
+      bringFigureIntoView();
+      go(i, true);
+    });
     return b;
   });
   root.classList.add('is-live');
@@ -194,6 +199,21 @@ export function mountPentagon(root: HTMLElement) {
     playing = false;
     suspended = false;
     forced = null;
+  }
+
+  /**
+   * In the one-column layout the list sits below the figure, so a step picked there would be
+   * drawn off screen. Bring the figure up first (under the sticky header). The drawing waits
+   * while the figure is out of view (see frame()), so it starts as the figure arrives.
+   */
+  function bringFigureIntoView() {
+    const r = svg!.getBoundingClientRect();
+    const covered = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const seen = Math.min(r.bottom, innerHeight) - Math.max(r.top, covered);
+    if (seen >= r.height * 0.8) return;
+    // The whole plate (header line, drawing, step readout, controls) when it fits; else the drawing.
+    const target = plateFrame && plateFrame.getBoundingClientRect().height <= innerHeight - covered ? plateFrame : svg!;
+    target.scrollIntoView({ block: r.top < covered ? 'start' : 'nearest', behavior: reduceMQ.matches ? 'auto' : 'smooth' });
   }
 
   /** Show step i: drawn in front of the reader, or at once (going back, or reduced motion). */

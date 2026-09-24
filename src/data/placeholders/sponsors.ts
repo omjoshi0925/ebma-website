@@ -20,14 +20,15 @@ export default define({
   },
   'sponsors.funding-uses': {
     label: 'How funds are used',
-    note: 'A short, honest breakdown of what sponsorship and gifts pay for (for example competition entry fees, printing, prizes, room rental, food at events), ideally with rough shares or a sample budget. Only list things EBMA actually spends money on. Shown in §2 of /sponsors/.',
+    note: 'A short, honest breakdown of what sponsorship and gifts pay for (for example competition entry fees, printing, prizes, room rental, and food at events), one row per use with a rough share of spending. Add the rows to `fundingUses` in src/data/sponsors.ts; until then, Table 1 in §2 of /sponsors/ shows sample rows. Only list things EBMA actually spends money on.',
     pages: ['/sponsors/'],
-    example: 'About half goes to competition entry fees and travel for students, a third to printing and prizes, and the rest to room rental and food at events.',
+    kind: 'list',
+    example: "{ use: 'Competition entry fees and travel for students', share: 'About half' }",
     value: null,
   },
   'sponsors.tiers': {
     label: 'Sponsorship levels',
-    note: 'The sponsorship levels (names, amounts, and what each includes: logo placement, thanks at events, impact report...), or a sentence saying sponsorship is arranged case by case. Shown in §3 and §4 of /sponsors/; the recognition list in §4 is draft copy and should match these details.',
+    note: 'The sponsorship levels (names, amounts, and what each includes: name or logo placement, thanks at events...), or a sentence saying sponsorship is arranged case by case. Shown in §3 and §4 of /sponsors/; the recognition list in §4 is draft copy and should match these details. The page says every sponsor, at every level, will receive a short report after each school year (§2 Lemma 2.1 and §4 item c); if the report depends on the level, change both.',
     pages: ['/sponsors/'],
     example: 'Friend $250 (name on this page) · Supporter $1,000 (logo on this site, thanks at events) · Partner $2,500+ (all of the above, plus an event named for you)',
     value: null,
@@ -42,7 +43,7 @@ export default define({
   },
   'sponsors.contact': {
     label: 'Sponsorship contact email',
-    note: 'Who a business, foundation or university should write to about sponsorship. If sponsorship goes to the general inbox, use the same address as org.email.',
+    note: 'Who a business, foundation, or university should write to about sponsorship. If sponsorship goes to the general inbox, use the same address as org.email.',
     pages: ['/sponsors/'],
     kind: 'email',
     example: 'sponsors@eastbaymath.org',

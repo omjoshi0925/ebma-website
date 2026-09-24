@@ -2,6 +2,13 @@
 /**
  * A practice problem: statement, an answer checker (for problems with a numeric answer),
  * and "Hint" / "Solution" disclosures. Math is typeset at build time.
+ *
+ * The checker needs JavaScript, so it is hidden without it (the solution still gives the answer).
+ * It accepts a whole number, a fraction a/b, or a decimal, and compares by value, so "3/4",
+ * "3 / 4", "6/8", and "0.75" all match 3/4: a decimal that is exactly the answer is right. A
+ * rounded decimal for a fraction with no exact decimal (0.9995 for 2025/2026) is called close,
+ * with a nudge to give the exact fraction. Spaces inside a number are not ignored, so "8 9" is
+ * not read as 89.
  */
 import 'katex/dist/katex.min.css';
 import { renderTeX } from '../lib/tex';
@@ -16,6 +23,14 @@ const { problem: p, num, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
 const isProof = p.answer === 'Proof';
 const uid = `problem-${p.id}`;
+
+if (!isProof && !/^\d+(\/\d+)?$/.test(p.answer)) {
+  throw new Error(`Problem "${p.id}": the answer must be a whole number, a fraction a/b, or 'Proof' (got "${p.answer}").`);
+}
+// Phone keypads have no "/", so only whole-number answers get the numeric keypad. The format
+// hint names the kind of answer with no digits in it, so it can never give the answer away.
+const isFraction = p.answer.includes('/');
+const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
 ---
 
 <article class="problem" id={uid} aria-labelledby={`${uid}-h`}>
@@ -29,12 +44,25 @@ const uid = `problem-${p.id}`;
   {
     !isProof && (
       <form class="check" data-answer={p.answer} novalidate>
-        <label for={`${uid}-answer`}>Your answer</label>
+        <label for={`${uid}-answer`}>
+          Your answer<span class="sr-only"> to “{p.title}”</span>
+        </label>
         <div class="check-row">
-          <input id={`${uid}-answer`} name="answer" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder={p.answer.includes('/') ? 'e.g. 3/4' : 'a number'} />
+          <input
+            id={`${uid}-answer`}
+            name="answer"
+            type="text"
+            inputmode={isFraction ? 'text' : 'numeric'}
+            enterkeyhint="done"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder={placeholder}
+            aria-describedby={`${uid}-out`}
+          />
           <button type="submit" class="btn btn-quiet">Check</button>
         </div>
-        <p class="check-out" role="status" aria-live="polite" />
+        <p class="check-out" id={`${uid}-out`} role="status" />
       </form>
     )
   }
@@ -96,6 +124,13 @@ const uid = `problem-${p.id}`;
     margin: 22px 0 18px;
     max-width: 30em;
   }
+  /* The checker runs on JavaScript; without it, the solution is the check. */
+  :global(html:not(.js)) .check {
+    display: none;
+  }
+  :global(html:not(.js)) .check + .disclose {
+    margin-top: 24px;
+  }
   .check label {
     display: block;
     font: 600 12px/1.2 var(--sans);
@@ -114,7 +149,8 @@ const uid = `problem-${p.id}`;
     min-height: 48px;
     padding: 0 14px;
     background: var(--paper);
-    border: 1.5px solid var(--rule-2);
+    /* --ink-3 keeps the field's edge at 3:1 or better against the page (WCAG 1.4.11). */
+    border: 1.5px solid var(--ink-3);
     border-radius: 0;
     font: 500 17px/1 var(--mono);
     color: var(--ink);
@@ -123,10 +159,16 @@ const uid = `problem-${p.id}`;
     color: var(--ink-3);
     opacity: 1;
   }
+  .check input:hover {
+    border-color: var(--ink-2);
+  }
   .check input:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 1px;
     border-color: var(--ink);
+  }
+  .check input[aria-invalid='true'] {
+    border-color: var(--accent-text);
   }
   .check .btn {
     flex: none;
@@ -151,34 +193,67 @@ const uid = `problem-${p.id}`;
 </style>
 
 <script>
-  // Answer checking: exact match after normalizing; fractions and integers compared by value.
-  const parse = (raw: string): number | null => {
-    const s = raw.trim().replace(/\s+/g, '').replace(/−/g, '-');
-    const frac = /^(-?\d+)\/(\d+)$/.exec(s);
-    if (frac) return Number(frac[2]) === 0 ? null : Number(frac[1]) / Number(frac[2]);
-    return /^-?\d+(\.\d+)?$/.test(s) ? Number(s) : null;
+  /**
+   * Answer checking, by value. Accepted forms: a whole number ("89", " 89 ", "+89", "089"), a
+   * decimal ("0.75", ".75", "89.0"), or a fraction ("3/4", "3 / 4", "6/8", "−3/4"). Spaces are
+   * allowed only at the ends and around "/", so "8 9" is not read as 89.
+   */
+  interface Parsed {
+    value: number;
+    /** Digits typed after the decimal point, or null when the input was not a decimal. */
+    places: number | null;
+  }
+  const parse = (raw: string): Parsed | null => {
+    const s = raw
+      .trim()
+      .replace(/[−–]/g, '-')
+      .replace(/[⁄∕]/g, '/')
+      .replace(/\s*\/\s*/, '/');
+    const frac = /^([+-]?\d+)\/(\d+)$/.exec(s);
+    if (frac) {
+      const den = Number(frac[2]);
+      return den === 0 ? null : { value: Number(frac[1]) / den, places: null };
+    }
+    const dec = /^[+-]?\d*(?:\.(\d*))?$/.exec(s);
+    if (!dec || !/\d/.test(s)) return null;
+    return { value: Number(s), places: dec[1] === undefined ? null : dec[1].length };
   };
+
   document.querySelectorAll<HTMLFormElement>('form.check').forEach((form) => {
     const input = form.querySelector('input')!;
-    const out = form.querySelector('.check-out')!;
-    const expected = parse(form.dataset.answer ?? '');
+    const out = form.querySelector<HTMLElement>('.check-out')!;
+    const expected = parse(form.dataset.answer ?? '')?.value ?? null;
+
+    const say = (text: string, right: boolean, invalid = false) => {
+      out.textContent = text;
+      out.classList.toggle('is-right', right);
+      out.classList.toggle('is-wrong', !right);
+      if (invalid) input.setAttribute('aria-invalid', 'true');
+      else input.removeAttribute('aria-invalid');
+    };
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!input.value.trim()) return say('Type an answer first.', false, true);
       const got = parse(input.value);
-      out.classList.remove('is-right', 'is-wrong');
-      if (!input.value.trim()) {
-        out.textContent = 'Type an answer first.';
-        out.classList.add('is-wrong');
-      } else if (got === null) {
-        out.textContent = 'Enter a whole number or a fraction like 3/4.';
-        out.classList.add('is-wrong');
-      } else if (expected !== null && Math.abs(got - expected) < 1e-12) {
-        out.textContent = 'Correct. Now open the solution and compare your method.';
-        out.classList.add('is-right');
-      } else {
-        out.textContent = 'Not quite. Try the hint, then have another go.';
-        out.classList.add('is-wrong');
+      if (!got) return say('That doesn’t look like a number. Enter a whole number, a fraction like a/b, or a decimal.', false, true);
+      if (expected === null) return;
+      const off = Math.abs(got.value - expected);
+      if (off < 1e-12) return say('Correct. Now open the solution and compare your method.', true);
+      // A decimal that is the answer correctly rounded (to 2+ places) is right in spirit, not exact.
+      if (got.places !== null && got.places >= 2 && off <= 0.5 * 10 ** -got.places + 1e-12) {
+        return say('Close, but that’s a rounded decimal. Give the exact answer as a fraction.', false);
       }
+      say('Not quite. Open the hint, then try again.', false);
+    });
+
+    // Feedback belongs to the answer it was given for: editing the box clears it.
+    input.addEventListener('input', () => {
+      if (out.textContent) {
+        out.textContent = '';
+        out.classList.remove('is-right', 'is-wrong');
+      }
+      input.removeAttribute('aria-invalid');
     });
   });
 </script>

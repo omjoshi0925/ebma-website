@@ -16,7 +16,7 @@ const chapters = nav.filter((item) => item.n > 0);
         <span class="brand-name">{site.name}</span>
       </a>
       <p>A math organization for students in the East Bay, California.</p>
-      <p class="legal">The East Bay Math Association is <Ph id="org.legal-status" />.</p>
+      <p class="legal">The East Bay Math Association is <span class="nowrap"><Ph id="org.legal-status" label="Legal status" />.</span></p>
     </div>
 
     <nav aria-labelledby="foot-contents">
@@ -30,7 +30,7 @@ const chapters = nav.filter((item) => item.n > 0);
           ))
         }
         <li>
-          <a href="/privacy/">Privacy notice</a>
+          <a href="/privacy/">Privacy Notice</a>
         </li>
       </ol>
     </nav>
@@ -40,23 +40,24 @@ const chapters = nav.filter((item) => item.n > 0);
       <dl aria-labelledby="foot-contact">
         <div>
           <dt>Email</dt>
-          <dd><PhLink id="org.email" /></dd>
+          <dd><PhLink id="org.email" label="Email address" /></dd>
         </div>
         <div>
           <dt>Instagram</dt>
-          <dd><PhLink id="org.instagram">Instagram</PhLink></dd>
+          <dd><PhLink id="org.instagram" label="Profile link">Instagram</PhLink></dd>
         </div>
         <div>
           <dt>Announcements</dt>
-          <dd><PhLink id="org.mailing-list">Join the mailing list</PhLink></dd>
+          <dd><PhLink id="org.mailing-list" label="Sign-up link">Join the mailing list</PhLink></dd>
         </div>
       </dl>
     </div>
 
     <div class="colophon">
       <h2>Colophon</h2>
-      <p>Set in Newsreader, Instrument Sans and IBM Plex Mono, with variables in TeX’s own math italic.</p>
+      <p>Set in Newsreader, Instrument Sans, and IBM Plex Mono, with variables in TeX’s own math italic.</p>
       <p>The figures are computed live in your browser from nothing but straight lines and circles.</p>
+      <!-- Needs JavaScript to do anything, so it is hidden without it (see the style below). -->
       <fieldset class="theme" data-theme-control>
         <legend>Theme</legend>
         <div class="seg">
@@ -74,7 +75,7 @@ const chapters = nav.filter((item) => item.n > 0);
       ><span class="ph" aria-hidden="true"><span class="ph-q">??</span>like this</span><span class="sr-only">A dashed box starting with two question marks</span>
       marks an undefined reference: a detail the association will supply.</span
     >
-    <a href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    <a class="to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
   </div>
 </footer>
 
@@ -116,7 +117,7 @@ const chapters = nav.filter((item) => item.n > 0);
     max-width: 24em;
   }
   .foot-brand .legal {
-    font-size: 15px;
+    font-size: 16px;
     color: var(--ink-3);
   }
   .foot ol {
@@ -204,6 +205,9 @@ const chapters = nav.filter((item) => item.n > 0);
     outline: 2px solid var(--focus);
     outline-offset: 2px;
   }
+  :global(html:not(.js)) .theme {
+    display: none;
+  }
   .foot-base {
     display: flex;
     justify-content: space-between;
@@ -220,6 +224,9 @@ const chapters = nav.filter((item) => item.n > 0);
     color: var(--ink);
     padding: 6px 0;
   }
+  .to-top {
+    white-space: nowrap;
+  }
   .legend {
     font-family: var(--sans);
     font-size: 13px;
@@ -234,10 +241,98 @@ const chapters = nav.filter((item) => item.n > 0);
       grid-template-columns: 1fr 1fr;
     }
   }
+  /* Phones: the footer stays short (it ends every page). Contents in two columns, each address
+     beside its label, and only the theme control from the colophon. */
   @media (max-width: 620px) {
+    .site-footer {
+      padding-top: 36px;
+    }
     .foot {
-      grid-template-columns: 1fr;
-      gap: 36px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 30px;
+      padding-top: 22px;
+    }
+    .foot h2,
+    .theme legend {
+      margin-bottom: 10px;
+    }
+    .foot-brand p {
+      margin-top: 10px;
+    }
+    .contents {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 20px;
+    }
+    .contents a {
+      font-size: 16.5px;
+      line-height: 1.3;
+    }
+    dl {
+      grid-template-columns: max-content minmax(0, 1fr);
+      gap: 8px 14px;
+    }
+    dl > div {
+      display: grid;
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      align-items: baseline;
+    }
+    dt {
+      margin-bottom: 0;
+    }
+    .colophon h2,
+    .colophon p,
+    :global(html:not(.js)) .colophon {
+      display: none;
+    }
+    .theme {
+      margin-top: 0;
+    }
+    /* "THEME [Auto | Light | Dark]" on one line. A floated legend is laid out as ordinary content. */
+    .theme legend {
+      float: left;
+      margin: 0 16px 0 0;
+      line-height: 38px;
+    }
+    .foot-base {
+      margin-top: 26px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 16px;
+      align-items: baseline;
+    }
+    .legend {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+  /* Touch: 44px targets for the footer's links and the theme control. */
+  @media (pointer: coarse) {
+    .contents a,
+    .foot-base a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      min-height: 44px;
+      padding-block: 0;
+    }
+    .seg span {
+      min-height: 44px;
+      padding-inline: 14px;
+    }
+  }
+  @media (max-width: 620px) and (pointer: coarse) {
+    .theme legend {
+      line-height: 46px;
+    }
+  }
+  /* Forced colors drop backgrounds, which is what marks the chosen theme. */
+  @media (forced-colors: active) {
+    .seg input:checked + span {
+      forced-color-adjust: none;
+      background: Highlight;
+      color: HighlightText;
     }
   }
 </style>

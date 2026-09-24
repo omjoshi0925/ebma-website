@@ -1,6 +1,6 @@
 ---
 /**
- * Plate II on the About page: the compass-and-straightedge construction of a regular pentagon,
+ * Plate I on the About page: the compass-and-straightedge construction of a regular pentagon,
  * which the reader steps through. The finished figure is rendered here at build time (so it is
  * complete without JavaScript); scripts/about-pentagon.ts replays it from the same data.
  * Geometry, timing and step text: scripts/about-pentagon-geometry.ts.
@@ -24,11 +24,11 @@ const f = (n: number) => n.toFixed(2);
 
 <div class="pent" data-pentagon>
   <Plate
-    id="fig-2"
+    id="fig-1"
     class="pent-plate"
-    plate="Plate II"
+    plate="Plate I"
     corner="Compass &amp; straightedge"
-    fig="Fig. 2."
+    fig="Fig. 1."
     caption="A regular pentagon, built with nothing but a compass and a straightedge. No single step is hard: draw a circle, halve a radius, swing an arc. Seven small steps add up to a shape that is exactly right. That is how we think about learning mathematics: <em>hard problems yield to small steps.</em>"
   >
     <svg
@@ -38,7 +38,8 @@ const f = (n: number) => n.toFixed(2);
       width={vbW}
       height={vbH}
       role="img"
-      aria-labelledby="pent-title pent-desc"
+      aria-labelledby="pent-title"
+      aria-describedby="pent-desc"
     >
       <title id="pent-title">Constructing a regular pentagon with a compass and a straightedge</title>
       <desc id="pent-desc"
@@ -47,6 +48,13 @@ const f = (n: number) => n.toFixed(2);
         regular pentagon: stepped around the circle with the compass it marks five points, which are joined to form the pentagon, drawn in red, with
         its star of diagonals.</desc
       >
+      <defs>
+        <!-- Notes sit on a paper-colored patch the size of their text, so no line shows between the words. -->
+        <filter id="pent-knock" x="-0.06" y="-0.08" width="1.12" height="1.16" color-interpolation-filters="sRGB">
+          <feFlood class="knock"></feFlood>
+          <feComposite in="SourceGraphic"></feComposite>
+        </filter>
+      </defs>
       {
         layers.map((layer) => (
           <g class={`l-${layer}`}>
@@ -115,7 +123,7 @@ const f = (n: number) => n.toFixed(2);
     <p class="label">Construction 3.1</p>
     <h3 class="proc-h">Seven steps to a regular pentagon</h3>
     <p class="proc-intro">
-      Each step uses one tool: the compass for circles, the straightedge for lines.<span class="js-only">
+      Only two tools are allowed: the compass for circles and arcs, the straightedge for lines.<span class="js-only">
         Select a step to see it drawn.</span
       >
     </p>
@@ -224,6 +232,11 @@ const f = (n: number) => n.toFixed(2);
     font-style: italic;
     font-size: 21px;
     fill: var(--accent-text);
+    /* A glyph halo leaves the word spaces open, and a diagonal crosses "OQ = r/φ" there. */
+    filter: url(#pent-knock);
+  }
+  .pent-svg .knock {
+    flood-color: var(--paper-2);
   }
   .pent-svg .mi {
     font-family: var(--math);

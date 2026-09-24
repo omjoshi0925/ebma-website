@@ -18,9 +18,12 @@ interface Props {
 const { id, plate, corner, fig, caption, class: className } = Astro.props;
 const capId = id ? `${id}-cap` : undefined;
 const hasCaption = Boolean(caption) || Astro.slots.has('caption') || Astro.slots.has('controls');
+// The figure is named by the caption text alone, never by the controls that share the figcaption
+// (a button, a slider and its live value would otherwise be read out as part of the name).
+const nameId = caption && id ? `${id}-cap-text` : Astro.slots.has('controls') ? undefined : capId;
 ---
 
-<figure class:list={['plate', className]} id={id} aria-labelledby={hasCaption ? capId : undefined}>
+<figure class:list={['plate', className]} id={id} aria-labelledby={hasCaption ? nameId : undefined}>
   <div class="frame">
     {
       (plate || corner) && (
@@ -36,7 +39,7 @@ const hasCaption = Boolean(caption) || Astro.slots.has('caption') || Astro.slots
     hasCaption && (
       <figcaption id={capId}>
         {caption && (
-          <p>
+          <p id={nameId}>
             {fig && <b>{fig}</b>}
             <Fragment set:html={caption} />
           </p>

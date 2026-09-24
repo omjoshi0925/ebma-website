@@ -2,6 +2,11 @@
 /**
  * Plate I on the home page: the live "times tables on a circle" figure with its controls.
  * Behavior: src/scripts/figures/times-table.ts (mountHeroFigure).
+ *
+ * The page ships a static SVG of the m = 2 figure (the cardioid), drawn here at build time with
+ * the same geometry as the canvas. The canvas sits on top of it and hides it once it has drawn,
+ * so readers without JavaScript (or before it runs) still see the finished figure. The controls
+ * need JavaScript and are hidden without it.
  */
 import Plate from './Plate.astro';
 
@@ -9,6 +14,46 @@ interface Props {
   n?: number;
 }
 const { n = 240 } = Astro.props;
+
+/* ---------- the static m = 2 figure (mirrors createTimesTable's draw()) ---------- */
+const M = 2;
+const W = 400; // viewBox size: about the figure's size on a laptop, so its labels read at ~10px
+const c = W / 2;
+const R = W * 0.405;
+const f = (x: number) => (Math.round(x * 10) / 10).toString();
+// Complex number (re, im) → screen, with k = 0 at the bottom so the cardioid stands upright.
+const X = (_re: number, im: number) => c + R * im;
+const Y = (re: number) => c + R * re;
+const at = (t: number) => [X(Math.cos(t), Math.sin(t)), Y(Math.cos(t))];
+
+const ticks: string[] = [];
+const labels: { x: string; y: string; k: number }[] = [];
+for (let k = 0; k < n; k += 2) {
+  const t = (2 * Math.PI * k) / n;
+  const co = Math.cos(t);
+  const si = Math.sin(t);
+  const len = k % 20 === 0 ? 7 : k % 10 === 0 ? 4.5 : 2.5;
+  const q = 1 + len / R;
+  ticks.push(`M${f(X(co, si))} ${f(Y(co))}L${f(X(co * q, si * q))} ${f(Y(co * q))}`);
+  if (k % 20 === 0) {
+    const p = 1 + 19 / R;
+    labels.push({ x: f(X(co * p, si * p)), y: f(Y(co * p)), k });
+  }
+}
+const chords: string[] = [];
+for (let k = 0; k < n; k++) {
+  const [x1, y1] = at((2 * Math.PI * k) / n);
+  const [x2, y2] = at((2 * Math.PI * ((M * k) % n)) / n);
+  chords.push(`M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}`);
+}
+const envelope: string[] = [];
+const STEPS = 360;
+for (let i = 0; i <= STEPS; i++) {
+  const t = (2 * Math.PI * i) / STEPS;
+  const re = (M * Math.cos(t) + Math.cos(M * t)) / (M + 1);
+  const im = (M * Math.sin(t) + Math.sin(M * t)) / (M + 1);
+  envelope.push(`${f(X(re, im))} ${f(Y(re))}`);
+}
 ---
 
 <Plate
@@ -17,33 +62,112 @@ const { n = 240 } = Astro.props;
   plate="Plate I"
   corner={`<span class="m" style="text-transform:none">n</span> = ${n}`}
   fig="Fig. 1."
-  caption={`Join each point <span class="m">k</span> on a circle of <span class="m">n</span> = ${n} points to the point <span class="m">mk</span> (mod <span class="m">n</span>). Only straight lines are drawn, yet a curve appears: for whole-number <span class="m">m</span> it is an epicycloid with <span class="m">m</span>&thinsp;−&thinsp;1 cusps, traced in red.`}
+  caption={`Join each point <span class="m">k</span> on a circle of <span class="m">n</span> = ${n} points to the point <span class="m">mk</span> (mod <span class="m">n</span>). Only straight lines are drawn, yet a curve appears: for whole-number <span class="m">m</span> it is an epicycloid with <span class="m">m</span>&thinsp;−&thinsp;1 cusps, traced in red.<span class="tt-nojs"> Shown here with <span class="m">m</span> = 2: the cardioid.</span>`}
 >
-  <canvas
-    class="tt-canvas"
-    data-hero-figure
-    data-n={n}
-    data-controls="fig-1-play,fig-1-m,fig-1-out"
-    role="img"
-    aria-label={`Figure 1: a circle of ${n} points, each joined by a straight line to the point m times further around. The lines crowd together along a curve, an epicycloid, drawn in red. Drag across the figure or use the slider to change m.`}
-  ></canvas>
+  <div class="tt-stage">
+    <canvas
+      class="tt-canvas"
+      data-hero-figure
+      data-n={n}
+      data-controls="fig-1-play,fig-1-m,fig-1-out"
+      role="img"
+      aria-label={`Figure 1: a circle of ${n} points, each joined by a straight line to the point m times further around. The lines crowd together along a curve, an epicycloid, drawn in red.`}
+    ></canvas>
+    <svg class="tt-static" viewBox={`0 0 ${W} ${W}`} aria-hidden="true" focusable="false">
+      <circle class="tt-circle" cx={c} cy={c} r={f(R)}></circle>
+      <path class="tt-ticks" d={ticks.join('')}></path>
+      <g class="tt-labels">{labels.map((l) => <text x={l.x} y={l.y}>{l.k}</text>)}</g>
+      <path class="tt-chords" d={chords.join('')}></path>
+      <path class="tt-env" d={`M${envelope.join('L')}`}></path>
+    </svg>
+  </div>
   <div slot="controls" class="fig-ctl">
     <button type="button" class="fig-btn" id="fig-1-play" data-state="playing">
       <span class="ic" aria-hidden="true"></span><span class="t">Pause</span><span class="sr-only"> animation</span>
     </button>
     <label for="fig-1-m"><span class="sr-only">Multiplier </span>m</label>
-    <input type="range" id="fig-1-m" min="2" max="9" step="0.05" value="2" aria-describedby="fig-1-out" />
-    <output id="fig-1-out" for="fig-1-m">2.00 <span>cardioid</span></output>
+    <input type="range" id="fig-1-m" min="2" max="9" step="0.05" value="2" aria-valuetext="m = 2.00, cardioid" />
+    {
+      /* A visual readout only: the slider's aria-valuetext carries the same value for screen
+         readers, so this must not be a live region (it changes on every animation frame). */
+    }
+    <span class="fig-out" id="fig-1-out" aria-hidden="true"><span class="fig-out-m">2.00</span> <span class="fig-out-name">cardioid</span></span>
   </div>
 </Plate>
 
 <style>
-  .tt-canvas {
+  /* Canvas over the static SVG, in one grid cell; the SVG hides once the canvas has drawn. */
+  .tt-stage {
+    display: grid;
+  }
+  .tt-stage > * {
+    grid-area: 1 / 1;
     width: 100%;
     aspect-ratio: 1 / 1;
     height: auto;
+  }
+  .tt-canvas {
+    z-index: 1;
     touch-action: pan-y;
+  }
+  :global(html.js) .tt-canvas {
     cursor: ew-resize;
+  }
+  .tt-canvas:global([data-drawn]) + .tt-static {
+    visibility: hidden;
+  }
+  .tt-static * {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+  }
+  .tt-circle {
+    stroke: var(--fig-ink);
+    stroke-width: 1.1;
+  }
+  .tt-ticks {
+    stroke: var(--fig-ink);
+    stroke-width: 0.8;
+  }
+  .tt-static .tt-labels text {
+    fill: var(--fig-ink-3);
+    font: 500 10px var(--mono);
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .tt-chords {
+    stroke: var(--fig-chord);
+    stroke-width: 0.7;
+  }
+  .tt-env {
+    stroke: var(--fig-accent);
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+  }
+
+  /* The caption's "Shown here with m = 2" line is for the static figure only. */
+  :global(html.js .tt-nojs) {
+    display: none;
+  }
+
+  /* Controls: play/pause, the m slider and its readout. They need JavaScript. */
+  :global(html:not(.js)) .fig-ctl {
+    display: none;
+  }
+  .fig-out {
+    font: 500 13px/1 var(--mono);
+    color: var(--ink);
+    min-width: 9.5ch;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .fig-out-name {
+    color: var(--accent-text);
+  }
+  @media (max-width: 620px) {
+    .fig-out {
+      grid-column: 1 / -1;
+      text-align: left;
+    }
   }
 </style>
 

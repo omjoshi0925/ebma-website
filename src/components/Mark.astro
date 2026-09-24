@@ -25,4 +25,13 @@ const { size = 30, class: className } = Astro.props;
   .mark-q {
     fill: var(--accent);
   }
+  /* High-contrast modes: the one-color mark (the square with the quarter-disc knocked out). */
+  @media (forced-colors: active) {
+    .mark-sq {
+      fill: CanvasText;
+    }
+    .mark-q {
+      fill: Canvas;
+    }
+  }
 </style>

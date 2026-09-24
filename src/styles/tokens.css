@@ -3,8 +3,57 @@
  * vermilion accent. Dark mode keeps the same roles (an ink page with paper-colored type).
  *
  * Theme resolution: <html data-theme="light|dark"> wins; with no attribute, the system
- * preference decides. The footer's theme control writes the attribute (see scripts/theme.ts).
+ * preference decides. The footer's theme control writes the attribute (see scripts/site.ts).
  */
+
+/*
+ * Stand-ins for Newsreader while it loads: Georgia, scaled to Newsreader's width and given its
+ * vertical metrics (ascent 0.74em, descent 0.26em), so text does not reflow or grow when the web
+ * font swaps in. Newsreader's width changes with its optical size, so there are two: one for
+ * reading sizes (--serif) and one for display headings set at opsz 72 (--serif-display).
+ * Overrides are scaled by size-adjust, hence ascent = 0.74 / size-adjust. unicode-range keeps the
+ * stand-in to the characters Newsreader itself will supply (its latin and latin-ext subsets).
+ * Devices without Georgia skip these faces and use the next font in the list.
+ */
+@font-face {
+  font-family: 'Newsreader Text Fallback';
+  src: local('Georgia');
+  size-adjust: 91%;
+  ascent-override: 81.3%;
+  descent-override: 28.6%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-02FF, U+1D00-1DBF, U+1E00-1EFF, U+2000-206F, U+20A0-20C0, U+2113, U+2122, U+2191, U+2193, U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Newsreader Text Fallback';
+  font-style: italic;
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  size-adjust: 87.5%;
+  ascent-override: 84.6%;
+  descent-override: 29.7%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-02FF, U+1D00-1DBF, U+1E00-1EFF, U+2000-206F, U+20A0-20C0, U+2113, U+2122, U+2191, U+2193, U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Newsreader Display Fallback';
+  src: local('Georgia');
+  size-adjust: 97.5%;
+  ascent-override: 75.9%;
+  descent-override: 26.7%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-02FF, U+1D00-1DBF, U+1E00-1EFF, U+2000-206F, U+20A0-20C0, U+2113, U+2122, U+2191, U+2193, U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Newsreader Display Fallback';
+  font-style: italic;
+  src: local('Georgia Italic'), local('Georgia-Italic');
+  size-adjust: 84.4%;
+  ascent-override: 87.7%;
+  descent-override: 30.8%;
+  line-gap-override: 0%;
+  unicode-range: U+0000-02FF, U+1D00-1DBF, U+1E00-1EFF, U+2000-206F, U+20A0-20C0, U+2113, U+2122, U+2191, U+2193, U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+
 :root {
   color-scheme: light;
 
@@ -41,7 +90,9 @@
 
   --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .1  0 0 0 0 .09  0 0 0 0 .07  0 0 0 .025 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 
-  --serif: 'Newsreader Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --serif: 'Newsreader Variable', 'Newsreader Text Fallback', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  /* The same face for display headings (h1, section h2, the band): only the stand-in differs. */
+  --serif-display: 'Newsreader Variable', 'Newsreader Display Fallback', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --math: 'TeX Math', 'Newsreader Variable', serif;
@@ -71,7 +122,7 @@
   --focus: #ff8d6e;
   --ph-bg: #2b1c14;
   --ph-text: #ff8d6e;
-  --band-bg: #0d0c09;
+  --band-bg: #29251d; /* lifted above the page (#16140f), like a raised panel */
   --band-fg: #f1ebdd;
   --band-fg-2: rgb(241 235 221 / 0.78);
   --band-accent: #ff6a45;
@@ -102,7 +153,7 @@
     --focus: #ff8d6e;
     --ph-bg: #2b1c14;
     --ph-text: #ff8d6e;
-    --band-bg: #0d0c09;
+    --band-bg: #29251d; /* lifted above the page (#16140f), like a raised panel */
     --band-fg: #f1ebdd;
     --band-fg-2: rgb(241 235 221 / 0.78);
     --band-accent: #ff6a45;

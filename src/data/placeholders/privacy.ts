@@ -32,8 +32,8 @@ export default define({
     value: null,
   },
   'privacy.notifications': {
-    label: 'Where sign-up alerts go (or “not used”)',
-    note: 'functions/api/join.ts can post a one-line alert (name, role and email address) to a Slack- or Discord-compatible webhook set in the NOTIFY_WEBHOOK_URL environment variable. Name the service and say that the channel is private, e.g. “a private channel in our Discord server”. If NOTIFY_WEBHOOK_URL is not set, write “not used” or delete that paragraph from src/pages/privacy.astro.',
+    label: 'Where sign-up alerts go',
+    note: 'functions/api/join.ts can post a one-line alert (name, role, and email address) to a Slack- or Discord-compatible webhook set in the NOTIFY_WEBHOOK_URL environment variable. This alert is the only personal data the site sends to a service other than Cloudflare, so the notice names it. Name the service and say that the channel is private, e.g. “a private channel in our Discord server”. If NOTIFY_WEBHOOK_URL is not set, leave this empty and instead delete, in src/pages/privacy.astro, the “Sign-up alerts” row in §3 and the last sentence of the Fig. 1 caption.',
     pages: ['/privacy/'],
     example: 'a private channel in the association’s Slack workspace, visible only to the people listed above',
     value: null,

@@ -4,11 +4,15 @@
  * a lede, optional actions, and on the right either a figure (slot "aside") or an
  * "In this chapter" table of contents built from `contents`.
  *
- *   <PageHeader chapter={1} label="Chapter 1" note="(in which we introduce ourselves)"
- *     title="About the *Association*" lede="…"
+ *   <PageHeader chapter={1} label="Preliminaries" note="(in which we introduce ourselves)"
+ *     title="About the *association*" lede="…"
  *     contents={[{ href: '#mission', num: '1', title: 'Mission' }, …]} />
+ *
+ * The running head's left side is the page's name from the nav (`chapter` n → "Events &
+ * Competitions"), so it never repeats the kicker; pass `runLeft` for pages outside the nav.
  */
 import { emph } from '../lib/text';
+import { nav, site } from '../data/site';
 
 interface ContentsItem {
   href: string;
@@ -25,13 +29,14 @@ interface Props {
   lede?: string;
   contents?: ContentsItem[];
 }
-const { chapter, runLeft, runRight = 'East Bay, California', label, note, title, lede, contents } = Astro.props;
+const { chapter, runLeft, runRight = site.region, label, note, title, lede, contents } = Astro.props;
+const pageName = runLeft ?? nav.find((item) => item.n === chapter && item.n > 0)?.title ?? site.name;
 const hasAside = Astro.slots.has('aside');
 ---
 
 <section class="wrap page-head" aria-labelledby="page-title">
   <div class="runhead">
-    <span>{runLeft ?? `Chapter ${chapter}`}</span>
+    <span>{pageName}</span>
     <span class="rh-r">{runRight}</span>
   </div>
   <div class:list={['ph-grid', { 'has-aside': hasAside || contents }]}>
@@ -86,14 +91,16 @@ const hasAside = Astro.slots.has('aside');
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: clamp(32px, 5vw, 80px);
-    align-items: end;
+    /* Top-aligned, so the kicker and the title sit at the same height on every page however tall
+       the table of contents or figure beside them is. */
+    align-items: start;
     padding-top: clamp(32px, 4.4vw, 64px);
   }
   .ph-grid.has-aside {
     grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
   }
   h1 {
-    font-family: var(--serif);
+    font-family: var(--serif-display);
     font-weight: 300;
     font-size: clamp(44px, 6.2vw, 96px);
     line-height: 0.98;
@@ -113,6 +120,7 @@ const hasAside = Astro.slots.has('aside');
     font-size: clamp(18px, 1.5vw, 21px);
     line-height: 1.55;
     color: var(--ink-2);
+    text-wrap: pretty;
   }
   .lede :global(em:first-child) {
     color: var(--ink);
@@ -157,6 +165,12 @@ const hasAside = Astro.slots.has('aside');
     color: var(--accent-text);
     text-decoration: underline;
     text-underline-offset: 0.18em;
+  }
+  /* Phones held sideways: the running head is hidden (global.css); start the title sooner. */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .ph-grid {
+      padding-top: 20px;
+    }
   }
   @media (max-width: 980px) {
     .ph-grid.has-aside {

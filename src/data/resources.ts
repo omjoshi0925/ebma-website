@@ -6,6 +6,10 @@
  * file's `evidence` notes record how). Rules for editing this file:
  *
  *   - Only add facts you have checked on the official site, and update VERIFIED_ON when you do.
+ *   - Dates (deadlines, terms) belong here, in `timing` or `description`, where the page shows
+ *     them with the "verified on" note. Don't copy them into running text on the page.
+ *   - House style: serial comma; "problem solving" as a noun; en dash in ranges (K–12, 5–8 pm);
+ *     level labels like "Middle and high school" and "Grade 8 and up".
  *   - Never imply affiliation, endorsement or partnership with EBMA.
  *   - Competitions are listed on the Events page (/events/#competitions), not here.
  *   - `cost` is the tag shown on the card: 'free', 'free-tier' (free with paid extras), 'paid'
@@ -68,7 +72,7 @@ export const resources: Resource[] = [
     org: 'Art of Problem Solving (AoPS)',
     url: 'https://artofproblemsolving.com/alcumus',
     description: 'Adaptive practice from Art of Problem Solving with over 13,000 problems and solutions, many from contests such as MATHCOUNTS and the AMC. Free; requires a free AoPS account.',
-    level: 'Middle school–high school',
+    level: 'Middle and high school',
     cost: 'free',
   },
   {
@@ -78,7 +82,7 @@ export const resources: Resource[] = [
     org: 'Art of Problem Solving (community-edited wiki)',
     url: 'https://artofproblemsolving.com/wiki/index.php/AMC_Problems_and_Solutions',
     description: 'Community-edited AoPS Wiki archive of past AMC 8, AMC 10, AMC 12, AIME, USAMO, and USAJMO problems and solutions.',
-    level: 'Middle school–high school',
+    level: 'Middle and high school',
     cost: 'free',
   },
   {
@@ -199,7 +203,7 @@ export const resources: Resource[] = [
     org: 'United Math Circles Foundation (umbrella nonprofit)',
     url: 'https://mathcircle.berkeley.edu/',
     description: 'Long-running math circle at UC Berkeley. Its Math Taught the Right Way program for middle and high schoolers meets Monday evenings (fall 2026 applications are closed); the BMC-Upper circle is paused through spring 2027.',
-    level: 'Middle & high school',
+    level: 'Middle and high school',
     cost: 'paid',
     timing: 'Math Taught the Right Way meets Monday evenings, 5–8 pm, at UC Berkeley during the academic year; the fall 2026 term runs Aug 24–Dec 14, 2026',
   },
@@ -209,7 +213,7 @@ export const resources: Resource[] = [
     name: 'Berkeley Math Circle Elementary',
     org: 'Berkeley Math Circle',
     url: 'https://sumizdat.startlogic.com/bmc_elementary/home.html',
-    description: 'The Berkeley Math Circle’s program for grades 1–6, running since 2009, with puzzles, games, and problem-solving at three levels. Weekly classes are offered online and in person; financial aid is available.',
+    description: 'The Berkeley Math Circle’s program for grades 1–6, running since 2009, with puzzles, games, and problem solving at three levels. Weekly classes are offered online and in person; financial aid is available.',
     level: 'Grades 1–6',
     cost: 'paid',
     timing: 'Fall 2026 and Spring 2027 classes meet weekly on Tuesdays or Wednesdays at 5, 6, or 7 pm Pacific',
@@ -457,7 +461,7 @@ export const resources: Resource[] = [
     org: 'Edwin A. Abbott (free edition via Project Gutenberg)',
     url: 'https://www.gutenberg.org/ebooks/201',
     description: 'An 1884 novella narrated by a square living in a two-dimensional world, and a playful way into thinking about dimensions. It is in the public domain and free to read online.',
-    level: 'Grades 8 and up',
+    level: 'Grade 8 and up',
     cost: 'free',
   },
   {
@@ -476,7 +480,7 @@ export const resources: Resource[] = [
     name: 'A Mathematician’s Lament',
     org: 'Paul Lockhart (Bellevue Literary Press)',
     url: 'https://www.blpress.org/books/a-mathematicians-lament/',
-    description: 'An essay by a research mathematician who has also taught K-12 students. It presents mathematics as a creative art and critiques how the subject is commonly taught in schools.',
+    description: 'An essay by a research mathematician who has also taught K–12 students. It presents mathematics as a creative art and critiques how the subject is commonly taught in schools.',
     level: 'High school, parents, and educators',
     cost: 'paid',
   },
@@ -489,7 +493,7 @@ export function resource(id: string): Resource {
   return r;
 }
 
-/** The domain shown under each card, e.g. "artofproblemsolving.com". */
+/** The domain shown after the organization on each card, e.g. "artofproblemsolving.com". */
 export const domainOf = (url: string): string => new URL(url).hostname.replace(/^www\./, '');
 
 /**

@@ -22,6 +22,20 @@ a dashed chip that starts with `??`, LaTeX's sign for an undefined reference.
   `src/data/sponsors.ts`. While a list is empty, sample entries with placeholders are shown.
 - Run `npm run placeholders` to refresh `PLACEHOLDERS.md` and check for mistakes.
 
+### Then flip the launch switch
+
+Until the placeholders are filled, the site asks search engines to stay away, so a search for
+the association never shows `??` chips. The switch is `indexable` in `src/data/site.ts`:
+
+- `indexable: false` (the default for now): every page carries
+  `<meta name="robots" content="noindex">` and `/robots.txt` disallows all crawling.
+- `indexable: true`: pages can be indexed and `/robots.txt` allows crawling and points to the
+  sitemap.
+
+Set it to `true` once `PLACEHOLDERS.md` is filled in, then build and deploy. The site URL used by
+canonical links, the sitemap and `robots.txt` comes from `astro.config.mjs` (set `SITE_URL` when a
+custom domain is added).
+
 ## Develop
 
 Requires Node 22.12 or newer.
@@ -63,7 +77,7 @@ Reading submissions:
 
 Optional settings (Cloudflare dashboard → Pages project → Settings → Variables and secrets):
 
-- `IP_SALT`: any long random string (salts the IP hash used for rate limiting).
+- `IP_SALT` (required for rate limiting): a long random secret that salts the hashed IP address. Without it the form stores no IP hash and does no rate limiting. `npm run deploy` sets a random one automatically on first deploy.
 - `NOTIFY_WEBHOOK_URL`: a Slack- or Discord-compatible webhook that is pinged for each new submission.
 
 ## Deploy

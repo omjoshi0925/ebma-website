@@ -2,6 +2,10 @@
 /**
  * One event, as a card in "Table 1". Pass a real `event`, or `sample` (1-based) to render a
  * sample card made of placeholder chips while src/data/events.ts is still empty.
+ *
+ * A card links only to its own event's page (`event.href`); the whole card is the hit area.
+ * Sample cards and events without a page are not links: the section's own "All upcoming
+ * events" link already leads to the list, so the cards don't repeat it.
  */
 import Ph from './Ph.astro';
 import { dateParts, type EbmaEvent } from '../data/events';
@@ -16,11 +20,11 @@ interface Props {
 const { event, num, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
 const d = event ? dateParts(event.date) : null;
-// Link to the event's own page; sample cards link to the Events page (except on it).
-const href = event?.href ?? (Astro.url.pathname.startsWith('/events') ? null : '/events/');
+const href = event?.href ?? null;
+const external = href ? /^https?:\/\//.test(href) : false;
 ---
 
-<article class="event">
+<article class:list={['event', { 'is-link': href }]}>
   <div class="event-top">
     <span class="label">Event {num}</span>
     {event?.kind && <span class="event-kind">{event.kind}</span>}
@@ -53,8 +57,11 @@ const href = event?.href ?? (Astro.url.pathname.startsWith('/events') ? null : '
   </div>
   <H class="event-title">
     {
-      href ? (
-        <a href={href}>{event ? event.title : <Ph id="events.upcoming" label="Event name" />}</a>
+      event && href ? (
+        <a href={href} {...(external ? { rel: 'noopener' } : {})}>
+          {event.title}
+          {external && <span class="sr-only"> (external site)</span>}
+        </a>
       ) : event ? (
         event.title
       ) : (
@@ -88,7 +95,7 @@ const href = event?.href ?? (Astro.url.pathname.startsWith('/events') ? null : '
   {
     href && (
       <span class="event-go" aria-hidden="true">
-        {event?.href ? 'Details & registration' : 'All events'} <span class="arr">→</span>
+        Details &amp; registration <span class="arr">{external ? '↗' : '→'}</span>
       </span>
     )
   }
@@ -105,7 +112,7 @@ const href = event?.href ?? (Astro.url.pathname.startsWith('/events') ? null : '
     transition: border-color 0.25s;
     min-width: 0;
   }
-  .event:hover {
+  .event.is-link:hover {
     border-top-color: var(--accent);
   }
   .event-top {
@@ -229,7 +236,7 @@ const href = event?.href ?? (Astro.url.pathname.startsWith('/events') ? null : '
   .event-go .arr {
     transition: transform 0.25s;
   }
-  .event:hover .event-go .arr {
+  .event.is-link:hover .event-go .arr {
     transform: translateX(4px);
   }
 </style>

@@ -5,7 +5,10 @@
  *
  * Without JavaScript it is simply the full grouped list. With JavaScript a filter bar appears
  * (src/scripts/resources-filter.ts): category buttons and a "Free only" toggle, all
- * aria-pressed, with a live status line ("12 resources shown").
+ * aria-pressed, then a live count ("Showing 13 of 40 resources: Practice online"). The bar is
+ * one row that scrolls sideways when it doesn't fit, and it stays under the site header while
+ * you scroll through the library, so the filters are always one tap away (forty cards is a long
+ * way on a phone).
  */
 import ResourceCard from './ResourceCard.astro';
 import { categories, resources, isFree } from '../data/resources';
@@ -23,30 +26,39 @@ const freeTotal = resources.filter(isFree).length;
 const summerFree = resources.filter((r) => r.category === 'summer' && isFree(r)).length;
 const words = ['None', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
 const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summerFree === 1 ? 'is' : 'are'} free; the rest offer need-based aid.` : 'Most offer need-based aid.';
+
+// Group headings: keep "&" with the next word and never break inside a hyphenated word, so
+// "Summer & year-round programs" can't wrap as "Summer & year-" / "round programs".
+const headingParts = (title: string) =>
+  title
+    .replace(/& /g, '&\u00a0')
+    .split(/(\S*-\S*)/)
+    .filter(Boolean);
 ---
 
 <div class="lib" data-lib>
+  <p class="lib-bar-h" id="lib-filter-h" data-lib-ui hidden>Filter the library</p>
   <div class="lib-bar" data-lib-bar hidden>
-    <p class="lib-bar-h" id="lib-filter-h">Filter the library</p>
-    <div class="lib-controls">
+    <div class="lib-scroll" data-lib-scroll>
       <div class="lib-cats" role="group" aria-labelledby="lib-filter-h">
         <button type="button" class="lib-btn" aria-pressed="true" data-filter-cat="all">
-          All <span class="lib-n" aria-hidden="true" data-count-for="all">{total}</span>
+          All <span class="lib-n" aria-hidden="true">{total}</span>
         </button>
         {
           groups.map((g) => (
-            <button type="button" class="lib-btn" aria-pressed="false" data-filter-cat={g.id} data-label={g.title}>
-              {g.short} <span class="lib-n" aria-hidden="true" data-count-for={g.id}>{g.items.length}</span>
+            <button type="button" class="lib-btn" aria-pressed="false" data-filter-cat={g.id} data-label={g.short}>
+              {g.short} <span class="lib-n" aria-hidden="true">{g.items.length}</span>
             </button>
           ))
         }
       </div>
+      <span class="lib-sep" aria-hidden="true"></span>
       <button type="button" class="lib-btn lib-free" aria-pressed="false" data-filter-free>
         <span class="lib-box" aria-hidden="true"></span>Free only <span class="lib-n" aria-hidden="true">{freeTotal}</span>
       </button>
     </div>
-    <p class="lib-status" role="status" data-lib-status>{total} resources shown</p>
   </div>
+  <p class="lib-status" role="status" data-lib-status data-lib-ui hidden>Showing all {total} resources</p>
 
   {
     groups.map((g) => (
@@ -54,20 +66,20 @@ const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summer
         <div class="lib-group-head">
           <h3 id={`lib-${g.id}-h`}>
             <span class="lib-gnum">{g.num}</span>
-            {g.title}
+            <span class="lib-gt">{headingParts(g.title).map((part) => (part.includes('-') ? <span class="nobr">{part}</span> : part))}</span>
           </h3>
           <p class="lib-intro">
-            {g.id === 'practice' && <>Problem sets, lessons, videos and tools. Everything in this group is free to use.</>}
+            {g.id === 'practice' && <>Problem sets, lessons, videos, and tools. Everything in this group is free to use.</>}
             {g.id === 'local' && (
               <>
-                Math circles, festivals and other programs based in the Bay Area. Looking for contests? BAMO and the Berkeley and Stanford math
-                tournaments are listed with the <a href="/events/#competitions">competitions</a>.
+                Math circles, festivals, and other programs based in the Bay Area. Looking for contests? BAMO and the Berkeley and Stanford math
+                tournaments are listed on the <a href="/events/#competitions">Events &amp; Competitions</a> page.
               </>
             )}
             {g.id === 'summer' && (
               <>
-                Programs for motivated students, mostly of high school age. Each one admits by application, and deadlines fall months before summer.
-                {summerFreeText}
+                Programs for motivated students, mostly of high school age. Each one admits by application, and deadlines fall months before the program
+                starts. {summerFreeText}
               </>
             )}
             {g.id === 'reading' && <>Classics on problem solving, contest textbooks, and books about why mathematics is beautiful. Try your public library first.</>}
@@ -90,31 +102,69 @@ const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summer
 </div>
 
 <style>
-  /* ---------- filter bar ---------- */
-  .lib-bar {
-    padding: 16px 0 18px;
-    border-top: 2px solid var(--ink);
-    border-bottom: 1px solid var(--rule-2);
-    margin-bottom: clamp(8px, 1.5vw, 16px);
+  /* Filtering hides cards above and below the reader; the script decides where the page lands
+     (the top of the results), so the browser's scroll anchoring must not move it first. */
+  .lib {
+    overflow-anchor: none;
   }
+
+  /* ---------- filter bar ---------- */
   .lib-bar-h {
+    padding-top: 16px;
+    border-top: 2px solid var(--ink);
     font: 600 12px/1 var(--sans);
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    margin-bottom: 14px;
   }
-  .lib-controls {
+  /* One row of buttons that stays under the site header while the library scrolls past (the
+     bar's containing block is the whole library, so it lets go after the last group). */
+  .lib-bar {
+    position: sticky;
+    top: var(--head-h);
+    z-index: 5;
+    padding: 10px 0;
+    background: var(--paper) var(--grain);
+    border-bottom: 1px solid var(--rule-2);
+  }
+  /* Scrolls sideways when the row is wider than the column. The 6px of padding keeps focus rings
+     inside the scroll box, where they would otherwise be clipped. */
+  .lib-scroll {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 10px 22px;
+    gap: 8px;
+    margin: -6px;
+    padding: 6px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 6px;
+    scrollbar-width: none;
+  }
+  .lib-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  /* A fade on the side that has more buttons to scroll to (set by the script). */
+  .lib-bar[data-more='right'] .lib-scroll {
+    mask-image: linear-gradient(to right, black calc(100% - 48px), transparent);
+  }
+  .lib-bar[data-more='left'] .lib-scroll {
+    mask-image: linear-gradient(to left, black calc(100% - 48px), transparent);
+  }
+  .lib-bar[data-more='both'] .lib-scroll {
+    mask-image: linear-gradient(to right, transparent, black 48px, black calc(100% - 48px), transparent);
   }
   .lib-cats {
     display: flex;
-    flex-wrap: wrap;
     gap: 8px;
+    flex: none;
+  }
+  .lib-sep {
+    flex: none;
+    height: 28px;
+    margin: 0 6px;
+    border-left: 1px solid var(--rule-2);
   }
   .lib-btn {
+    flex: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -126,6 +176,7 @@ const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summer
     border-radius: 0;
     color: var(--ink);
     font: 600 14.5px/1.1 var(--sans);
+    white-space: nowrap;
     cursor: pointer;
     transition:
       background-color 0.15s,
@@ -149,9 +200,6 @@ const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summer
     opacity: 0.8;
   }
   /* "Free only" reads as a checkbox-style toggle, set apart from the category group. */
-  .lib-free {
-    position: relative;
-  }
   .lib-box {
     width: 16px;
     height: 16px;
@@ -177,14 +225,50 @@ const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summer
     transform: translateY(-1px) rotate(45deg);
   }
   .lib-status {
-    margin-top: 14px;
+    margin-top: 12px;
     font: 500 13px/1.4 var(--mono);
     color: var(--ink-3);
+  }
+  /* Short landscape screens: the header already takes a fifth of the height, so the bar scrolls
+     away with the page instead of sticking. */
+  @media (max-height: 540px) {
+    .lib-bar {
+      position: static;
+    }
+  }
+
+  /* Windows High Contrast and other forced-color modes drop backgrounds, which is how a pressed
+     button shows. Use the system highlight colors instead, so the current filter stays visible. */
+  @media (forced-colors: active) {
+    .lib-cats .lib-btn[aria-pressed='true'],
+    .lib-free[aria-pressed='true'] {
+      forced-color-adjust: none;
+      background: Highlight;
+      border-color: Highlight;
+      color: HighlightText;
+    }
+    .lib-cats .lib-btn[aria-pressed='true'] .lib-n,
+    .lib-free[aria-pressed='true'] .lib-n {
+      color: HighlightText;
+      opacity: 1;
+    }
+    .lib-free[aria-pressed='true'] .lib-box {
+      background: HighlightText;
+      border-color: HighlightText;
+    }
+    .lib-free[aria-pressed='true'] .lib-box::after {
+      border-color: Highlight;
+    }
   }
 
   /* ---------- groups ---------- */
   .lib-group {
     padding-top: clamp(36px, 4vw, 56px);
+  }
+  /* In-page links to a group or a card land below the sticky bar, not under it. */
+  :global(html.js) .lib-group,
+  :global(html.js) .lib-grid :global(.res) {
+    scroll-margin-top: 72px;
   }
   .lib-group-head {
     display: grid;
@@ -199,6 +283,12 @@ const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summer
     display: flex;
     align-items: baseline;
     gap: 0.5em;
+  }
+  .lib-gt {
+    text-wrap: balance;
+  }
+  .nobr {
+    white-space: nowrap;
   }
   .lib-gnum {
     font: 500 14px/1 var(--mono);
@@ -251,29 +341,21 @@ const summerFreeText = summerFree ? `${words[summerFree] ?? summerFree} ${summer
   @media (max-width: 760px) {
     .lib-group-head {
       grid-template-columns: minmax(0, 1fr);
+      margin-bottom: 20px;
     }
   }
   @media (max-width: 620px) {
-    .lib-controls {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
+    .lib-bar {
+      padding: 8px 0;
     }
-    .lib-cats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .lib-group {
+      padding-top: 32px;
     }
-    .lib-cats .lib-btn:first-child {
-      grid-column: 1 / -1;
+    .lib-intro {
+      font-size: 16.5px;
     }
-    .lib-btn {
-      justify-content: space-between;
-      text-align: left;
-    }
-    .lib-free {
-      justify-content: flex-start;
-    }
-    .lib-free .lib-n {
-      margin-left: auto;
+    .lib-grid {
+      gap: 28px;
     }
   }
 </style>

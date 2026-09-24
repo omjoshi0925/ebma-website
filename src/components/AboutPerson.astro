@@ -23,7 +23,7 @@ const initials = member
 ---
 
 <article class="person">
-  <div class="portrait cropped">
+  <div class:list={['portrait cropped', { sample: !member }]}>
     {
       member?.photo ? (
         <img src={member.photo} alt="" loading="lazy" decoding="async" width="240" height="300" />
@@ -71,6 +71,10 @@ const initials = member
     --l: 12px;
     --w: 1px;
     margin-bottom: 8px;
+  }
+  /* A sample card is a stand-in, not a photo frame: keep it square so four of them don't fill a screen. */
+  .portrait.sample {
+    aspect-ratio: 1;
   }
   .portrait img {
     width: 100%;

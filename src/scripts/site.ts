@@ -13,17 +13,18 @@ if (header) {
   onScroll();
 }
 
-/* ---------- mobile menu (a disclosure) ---------- */
+/* ---------- mobile menu (a disclosure) ----------
+ * The button's name stays "Menu" (a stable name for speech control); aria-expanded says whether
+ * it is open, and the bars turn into a cross. Without JavaScript the header shows a plain link to
+ * the footer's contents instead (Header.astro). */
 const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
 const menu = document.getElementById('mobile-menu');
 if (toggle && menu) {
-  const label = toggle.querySelector('.menu-label');
   const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
   const behind = [document.querySelector('main'), document.querySelector('.site-footer'), document.querySelector('.skip')];
   const setOpen = (open: boolean) => {
     toggle.setAttribute('aria-expanded', String(open));
     menu.hidden = !open;
-    if (label) label.textContent = open ? 'Close' : 'Menu';
     // The panel covers the page: make what is behind it inert and stop it scrolling.
     for (const el of behind) if (el) (el as HTMLElement).inert = open;
     document.documentElement.classList.toggle('menu-open', open);
@@ -90,6 +91,18 @@ if (!reduceMotion.matches && 'IntersectionObserver' in window) {
 /* ---------- theme control (footer) ---------- */
 const THEME_KEY = 'ebma-theme';
 const root = document.documentElement;
+/**
+ * The browser's own toolbar color follows the chosen theme, not only the system one. Base.astro
+ * writes one <meta name="theme-color" data-scheme="light|dark"> per scheme with a media query; a
+ * forced theme makes its own meta match everything and the other match nothing. (The same logic
+ * runs before first paint in Base.astro's inline script.)
+ */
+const syncThemeColor = (theme: 'auto' | 'light' | 'dark') => {
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"][data-scheme]').forEach((meta) => {
+    const scheme = meta.dataset.scheme;
+    meta.setAttribute('media', theme === 'auto' ? `(prefers-color-scheme: ${scheme})` : theme === scheme ? 'all' : 'not all');
+  });
+};
 const readTheme = (): 'auto' | 'light' | 'dark' => {
   try {
     const t = localStorage.getItem(THEME_KEY);
@@ -101,6 +114,7 @@ const readTheme = (): 'auto' | 'light' | 'dark' => {
 const applyTheme = (theme: 'auto' | 'light' | 'dark') => {
   if (theme === 'auto') root.removeAttribute('data-theme');
   else root.setAttribute('data-theme', theme);
+  syncThemeColor(theme);
   try {
     if (theme === 'auto') localStorage.removeItem(THEME_KEY);
     else localStorage.setItem(THEME_KEY, theme);

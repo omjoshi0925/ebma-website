@@ -182,8 +182,9 @@ const problems = [];
 for (const [p, pr] of Object.entries(report.pages)) {
   for (const [w, r] of Object.entries(pr.widths)) {
     if (r.status !== 200 && !(p === '/404/' || p.includes('404'))) problems.push(`${p} @${w}: HTTP ${r.status}`);
-    if (r.consoleErrors.length) problems.push(`${p} @${w}: console: ${r.consoleErrors.join(' || ')}`);
-    if (r.failed.length) problems.push(`${p} @${w}: failed requests: ${r.failed.join(', ')}`);
+    const expect404 = p.includes('404');
+    if (r.consoleErrors.length && !(expect404 && r.consoleErrors.every((e) => /404/.test(e)))) problems.push(`${p} @${w}: console: ${r.consoleErrors.join(' || ')}`);
+    if (r.failed.length && !(expect404 && r.failed.every((f) => f.startsWith('404 ') && f.includes(p)))) problems.push(`${p} @${w}: failed requests: ${r.failed.join(', ')}`);
     if (r.overflow) problems.push(`${p} @${w}: horizontal overflow ${r.scrollWidth}>${r.innerWidth}: ${r.offenders.join('; ')}`);
     if (r.missingAnchors.length) problems.push(`${p} @${w}: missing anchor targets: ${r.missingAnchors.join(', ')}`);
     if (r.h1s !== 1) problems.push(`${p} @${w}: ${r.h1s} <h1> elements`);
@@ -193,7 +194,7 @@ for (const [p, pr] of Object.entries(report.pages)) {
   }
 }
 for (const [p, info] of Object.entries(report.internalLinks)) {
-  if (info.status !== 200) problems.push(`broken internal link ${p} (HTTP ${info.status}) from ${info.from.join(', ')}`);
+  if (info.status !== 200 && !p.includes('404')) problems.push(`broken internal link ${p} (HTTP ${info.status}) from ${info.from.join(', ')}`);
 }
 for (const a of report.brokenAnchors ?? []) problems.push(`cross-page link to a missing anchor: ${a}`);
 report.summary = {

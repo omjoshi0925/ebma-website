@@ -1,8 +1,8 @@
 ---
 /**
- * Plate IV on /get-involved/: a patch of the "hat", the aperiodic monotile of Smith, Myers,
- * Kaplan & Goodman-Strauss (2023), drawn as static SVG at build time. One tile is filled in
- * vermilion: "your piece". With motion allowed it starts as an empty dashed slot and drops into
+ * Plate I on /get-involved/: a patch of the "hat", the aperiodic monotile of Smith, Myers,
+ * Kaplan & Goodman-Strauss (2023), drawn as static SVG at build time. The mirror-image tiles are
+ * hatched, like an engraving, and one tile is filled in vermilion: "your piece". With motion allowed it starts as an empty dashed slot and drops into
  * place once, shortly after the page opens; without motion or JavaScript it is simply filled.
  *
  * The substitution construction below is a port of Craig S. Kaplan's hatviz
@@ -236,20 +236,24 @@ const mirrored = visible.filter((h) => h.label === 'H1' && h !== yours).map((h) 
 const yoursD = d(yours.pts);
 
 const caption =
-  'The “hat”: one shape that covers the whole plane, with no gaps and no pattern that ever repeats. The shaded tiles are its mirror image. ' +
+  'The “hat”: one shape that covers the whole plane, with no gaps and no pattern that ever repeats. The hatched tiles are its mirror image. ' +
   'The red one is yours. <span class="gi-cite">After Smith, Myers, Kaplan &amp; Goodman-Strauss (2023).</span>';
 ---
 
 <div class="gi-hat">
-<Plate id="fig-hat" plate="Plate IV" corner='<span class="gi-key"></span>Your piece' fig="Fig. 4." caption={caption}>
-  <svg
-    class="gi-hat-svg"
-    data-reveal
-    viewBox={`0 0 ${VW} ${VH}`}
-    role="img"
-    aria-labelledby="fig-hat-t"
-  >
-    <title id="fig-hat-t">A patch of identical hat-shaped tiles fitted together with no gaps. One tile near the middle is filled in red: your piece.</title>
+<Plate id="fig-hat" plate="Plate I" corner='<span class="gi-key"></span>Your piece' fig="Fig. 1." caption={caption}>
+  {/* Named by its <title> alone: pointing aria-labelledby at the title as well makes Chrome
+       repeat it as the description. */}
+  <svg class="gi-hat-svg" data-reveal viewBox={`0 0 ${VW} ${VH}`} role="img">
+    <title>A patch of identical hat-shaped tiles fitted together with no gaps; the mirror-image tiles are hatched. One tile near the middle is filled in red: your piece.</title>
+    <defs>
+      {/* Hatching in --ink-3 (about 5:1 against the paper in both themes), so the mirror-image
+           tiles stand apart from the plain ones without a second accent color. */}
+      <pattern id="gi-hatch" patternUnits="userSpaceOnUse" width="4.5" height="4.5" patternTransform="rotate(45)">
+        <rect class="t-hatch-bg" width="4.5" height="4.5" />
+        <line class="t-hatch" x1="0" y1="0" x2="0" y2="4.5" />
+      </pattern>
+    </defs>
     <path class="t-mir" d={mirrored} />
     <path class="t-ord" d={ordinary} />
     <path class="t-slot" d={yoursD} />
@@ -274,9 +278,16 @@ const caption =
     stroke-width: 0.9;
   }
   .t-mir {
-    fill: var(--paper-3);
+    fill: url(#gi-hatch);
     stroke: var(--ink-3);
     stroke-width: 0.9;
+  }
+  .t-hatch-bg {
+    fill: var(--paper);
+  }
+  .t-hatch {
+    stroke: var(--ink-3);
+    stroke-width: 1.4;
   }
   .t-slot {
     fill: var(--paper);

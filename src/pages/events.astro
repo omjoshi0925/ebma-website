@@ -17,18 +17,33 @@ import { joinHref, contactHref } from '../data/site';
 // Number the directory entries [1], [2], … in the order they appear.
 let n = 0;
 const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c.group === g.id).map((c) => ({ c, n: ++n })) }));
+
+const educatorHref = '/get-involved/?role=educator#join';
+
+// §3 "Notation": the short names in Fig. 1 and Table 2, spelled out where they first appear.
+// Each gloss restates facts from src/data/competitions.ts; keep the two in step.
+const notation: [string, string][] = [
+  ['AMC 8, 10, 12', 'American Mathematics Competitions, multiple choice. The number is the highest grade that can enter.'],
+  ['AIME', 'American Invitational Mathematics Examination, by invitation; top AMC 10 and 12 scorers qualify.'],
+  ['USAJMO, USAMO', 'USA Junior Mathematical Olympiad and USA Mathematical Olympiad, proof-based, by invitation.'],
+  ['MAA', 'Mathematical Association of America, which runs the AMC, AIME, USAJMO, and USAMO.'],
+  ['USAMTS', 'USA Mathematical Talent Search, a free proof-based contest done on your own time.'],
+  ['MATHCOUNTS', 'A national contest program for grades 6–8, from school up to national level.'],
+  ['BAMO', 'Bay Area Mathematical Olympiad, a proof-based contest taken at a school or math circle.'],
+  ['BMT, HMMT', 'Berkeley Math Tournament and Harvard–MIT Mathematics Tournament, both student-run.'],
+];
 ---
 
 <Base
   title="Events & Competitions"
-  description={`EBMA events for East Bay students, what to expect when you come to one, and a verified ${SEASON.label} calendar of math competitions students can enter, with official links.`}
+  description={`EBMA events for East Bay students, what to expect at one, and a verified ${SEASON.label} calendar of math competitions with official links.`}
 >
   <PageHeader
     chapter={2}
     runRight={`${SEASON.label} season · All times Pacific`}
-    label="Chapter 2"
+    label="Chronology"
     note="(in which we mark the calendar)"
-    title="Events & *competitions*"
+    title={'Events &\u00a0*competitions*'}
     lede={`EBMA’s own events, what to expect when you come to one, and a calendar of the math competitions East Bay students can enter in ${SEASON.label}, checked against each organizer’s official site.`}
     contents={[
       { href: '#upcoming', num: '1', title: 'Upcoming EBMA events' },
@@ -47,7 +62,7 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
     id="upcoming"
     num="1"
     title="Upcoming EBMA events"
-    dek="Events run by the East Bay Math Association, soonest first. New ones appear here as they are scheduled."
+    dek="Events run by the East Bay Math Association, soonest first. New ones will appear here as they are scheduled."
     note="All times Pacific. Each listing will say when and where, who it is for, what it costs, and how to register."
   >
     <a slot="actions" class="xref" href="#calendar">Other competitions this year <span class="arr" aria-hidden="true">↓</span></a>
@@ -56,9 +71,10 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
       <b>Table 1.</b> Upcoming EBMA events, in date order. Contests run by other organizations are in the <a href="#calendar">{SEASON.label} competition calendar</a> (§3).
     </p>
 
-    <div class="first">
+    <aside class="first aside-box cropped" aria-labelledby="first-h">
       <div class="first-text">
-        <h3>Hear about new events first</h3>
+        <p class="label">Remark 1.1</p>
+        <h3 id="first-h">Hear about new events first</h3>
         <p>
           Get new events by email as soon as they are announced:
           <span class="nowrap"><PhLink id="org.mailing-list" label="Mailing-list link">join the mailing list</PhLink>.</span> Or join EBMA and tell us which
@@ -66,10 +82,10 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
         </p>
       </div>
       <div class="cta-row">
-        <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
-        <a class="xref" href="/get-involved/#schools">Teachers: partner with us <span class="arr" aria-hidden="true">→</span></a>
+        <a class="btn btn-quiet" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+        <a class="xref" href={educatorHref}>Teachers: partner with us <span class="arr" aria-hidden="true">→</span></a>
       </div>
-    </div>
+    </aside>
   </Section>
 
   <Section
@@ -84,21 +100,21 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
       <article class="lemma">
         <p class="label">Lemma 2.1</p>
         <h3>Registration</h3>
-        <p class="body">Each event listing says how to sign up and by when. Registering ahead lets us plan the room, the problems and the adults on hand.</p>
+        <p class="body">Each event listing will say how to sign up and by when. Registering ahead lets us plan the room, the problems, and the adults on hand.</p>
         <p class="fact"><Ph id="events.registration" /></p>
         <a class="xref" href="#upcoming">Upcoming events <span class="arr" aria-hidden="true">↑</span></a>
       </article>
       <article class="lemma">
         <p class="label">Lemma 2.2</p>
-        <h3>Cost and fee waivers</h3>
-        <p class="body">The cost of every event is posted before you sign up. If cost is what stands in the way, tell us before you decide not to come.</p>
+        <h3>What it costs</h3>
+        <p class="body">Each event listing will say what it costs before you sign up. If cost is what stands in the way, tell us before you decide not to come.</p>
         <p class="fact"><Ph id="org.membership-cost" /></p>
-        <a class="xref" href="/sponsors/#become">Help cover a student’s costs <span class="arr" aria-hidden="true">→</span></a>
+        <a class="xref" href={contactHref}>Ask us about cost <span class="arr" aria-hidden="true">→</span></a>
       </article>
       <article class="lemma">
         <p class="label">Lemma 2.3</p>
         <h3>What to bring</h3>
-        <p class="body">Each listing says what students need on the day. When in doubt, ask us before the day rather than at the door.</p>
+        <p class="body">Each listing will say what students need on the day. When in doubt, ask us before the day rather than at the door.</p>
         <p class="fact"><Ph id="events.bring" /></p>
         <a class="xref" href="/resources/#problems">Warm up with a practice problem <span class="arr" aria-hidden="true">→</span></a>
       </article>
@@ -114,7 +130,7 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
         <h3>Photos and media</h3>
         <p class="body">Families should know whether photos are taken at an event, where they might appear, and how to say no.</p>
         <p class="fact"><Ph id="events.photo-policy" /></p>
-        <a class="xref" href="/privacy/">Privacy notice <span class="arr" aria-hidden="true">→</span></a>
+        <a class="xref" href={contactHref}>Ask us about photos <span class="arr" aria-hidden="true">→</span></a>
       </article>
       <article class="lemma">
         <p class="label">Lemma 2.6</p>
@@ -134,6 +150,20 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
     wide
   >
     <a slot="actions" class="xref" href="#competitions">About each competition <span class="arr" aria-hidden="true">↓</span></a>
+    <div class="notation" role="group" aria-labelledby="notation-h">
+      <p class="label" id="notation-h">Notation</p>
+      <p class="nt-lead">The short names used in the calendar, spelled out. §4 describes each contest.</p>
+      <dl class="nt">
+        {
+          notation.map(([term, def]) => (
+            <div>
+              <dt>{term}</dt>
+              <dd>{def}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
     <CompetitionTimeline />
     <CompetitionTable />
   </Section>
@@ -142,7 +172,7 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
     id="competitions"
     num="4"
     title="Competitions to *know*"
-    dek="Every contest in the calendar, grouped by who it is for, with its format, its cost and a link to the official site."
+    dek="Every contest in the calendar, grouped by who it is for, with its format, its cost, and a link to the official site."
     note="EBMA is not affiliated with any of these organizations. Each fact comes from the organizer’s own site, checked on September 23, 2026."
   >
     <a slot="actions" class="xref" href="/resources/">Practice problems &amp; resources <span class="arr" aria-hidden="true">→</span></a>
@@ -152,9 +182,11 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
         <p class="label">Proposition 4.1</p>
         <h3>How the MAA contests connect</h3>
         <p>
-          The Mathematical Association of America’s contests form a ladder. The AMC 8 and the AMC 10 and 12 are taken through a host school or site. A
-          qualifying AMC 10 or 12 score earns an invitation to the AIME, and USAJMO and USAMO invitations are based mainly on AIME scores. USAMTS, a
-          free proof-based contest, is another way to qualify for the AIME.
+          The Mathematical Association of America (MAA) runs a ladder of contests. The first rung is the American Mathematics Competitions (AMC):
+          the multiple-choice AMC 8, AMC 10, and AMC 12, taken through a host school or site. A qualifying AMC 10 or 12 score earns an invitation to
+          the AIME (American Invitational Mathematics Examination), and invitations to the USAJMO and USAMO (USA Junior Mathematical Olympiad and
+          USA Mathematical Olympiad) are based mainly on AIME scores. The USA Mathematical Talent Search (USAMTS), a free proof-based contest, is
+          another way to qualify for the AIME.
         </p>
       </div>
       <CompetitionPathway />
@@ -172,30 +204,58 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
               <p class="cg-dek">{g.dek}</p>
             </div>
           </div>
-          <div class="cg-list">
-            {g.items.map(({ c, n }) => (
-              <CompetitionEntry competition={c} n={n} />
-            ))}
-          </div>
+          <details class="cg-fold" open data-fold>
+            <summary class="cg-sum">
+              <span class="cg-sum-t">
+                {g.items.length} contests<span class="sr-only">: </span>
+              </span>
+              <span class="cg-sum-names">
+                {g.items.map(({ c }, i) => (
+                  <>
+                    {i > 0 && (
+                      <>
+                        <span class="sr-only">, </span>
+                        <span class="sep" aria-hidden="true">
+                          ·
+                        </span>
+                      </>
+                    )}
+                    <span class="nm">{c.listName ?? c.short}</span>
+                  </>
+                ))}
+              </span>
+              <span class="cg-sum-ic" aria-hidden="true" />
+            </summary>
+            <div class="cg-list">
+              {g.items.map(({ c, n }) => (
+                <CompetitionEntry competition={c} n={n} />
+              ))}
+            </div>
+          </details>
         </div>
       ))
     }
     <p class="conclude">
-      <span>EBMA is not affiliated with these organizations. Always confirm dates, fees and rules with the organizer.</span><span
+      <span>EBMA is not affiliated with these organizations. Always confirm dates, fees, and rules with the organizer.</span><span
         class="qed"
         aria-hidden="true"></span>
     </p>
   </Section>
 
   <Band
-    label="Corollary 2.1"
+    label="Corollary 4.1"
     title="Bring a friend and a *pencil.*"
     text="Join EBMA to hear about new events first, or tell us what you’d like to see on the calendar."
+    m={4}
   >
     <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
     <a class="btn btn-quiet" href={contactHref}>Contact us</a>
   </Band>
 </Base>
+
+<script>
+  import '../scripts/events-folds';
+</script>
 
 <style>
   .tcap {
@@ -214,29 +274,63 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
     color: var(--ink);
   }
 
-  /* §1: hear about new events first */
+  /* §1: hear about new events first. The box is the shared .aside-box; on wide screens the
+     buttons sit to the right of the text. */
   .first {
     margin-top: clamp(36px, 4vw, 52px);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 20px 40px;
-    align-items: center;
-    padding: 26px 28px;
-    border: 1px solid var(--rule-2);
-    border-left: 4px solid var(--accent);
   }
-  .first h3 {
-    font: 400 clamp(24px, 2.2vw, 30px) / 1.15 var(--serif);
-    letter-spacing: -0.01em;
+  .first-text > * + * {
+    margin-top: 10px;
   }
-  .first p {
-    margin-top: 8px;
-    font-size: 17.5px;
-    color: var(--ink-2);
-    max-width: 36em;
+  .first-text p:not(.label) {
+    max-width: 38em;
   }
   .first p a {
     color: var(--ink);
+  }
+  @media (min-width: 1181px) {
+    .first {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px 40px;
+      align-items: center;
+    }
+    .first > .cta-row {
+      margin-top: 0;
+    }
+  }
+
+  /* §3: notation, the short names spelled out before the calendar uses them */
+  .notation {
+    margin-bottom: clamp(36px, 4.5vw, 56px);
+    padding-top: 14px;
+    border-top: 1px solid var(--rule-2);
+  }
+  .nt-lead {
+    margin-top: 8px;
+    font-size: 17px;
+    color: var(--ink-2);
+  }
+  .nt {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px clamp(24px, 3vw, 48px);
+  }
+  .nt div {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+  }
+  .nt dt {
+    font: 600 14px/1.4 var(--mono);
+    color: var(--ink);
+  }
+  .nt dd {
+    font-size: 16.5px;
+    line-height: 1.45;
+    color: var(--ink-2);
   }
   .nowrap,
   .nowrap :global(.ph) {
@@ -306,6 +400,11 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
   .cgroup + .cgroup {
     margin-top: clamp(40px, 5vw, 64px);
   }
+  /* The summary is the phone's index of each group (scripts/events-folds.ts); wider screens show
+     every entry and no summary. */
+  .cg-sum {
+    display: none;
+  }
   .cg-head {
     display: grid;
     grid-template-columns: 3.2em minmax(0, 1fr);
@@ -365,15 +464,7 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
       grid-template-columns: minmax(0, 1fr);
     }
   }
-  @media (max-width: 1180px) {
-    .first {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
   @media (max-width: 760px) {
-    .first {
-      padding: 22px 20px;
-    }
     .lemmas {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -386,12 +477,91 @@ const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c
       border-top: 0;
     }
   }
+  @media (max-width: 900px) {
+    .nt {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
   @media (max-width: 620px) {
+    .tcap {
+      font-size: 16.5px;
+    }
+    /* Run the term into its gloss so each gloss gets the full measure. */
+    .nt {
+      gap: 10px;
+    }
+    .nt div {
+      display: block;
+    }
+    .nt dt,
+    .nt dd {
+      display: inline;
+    }
+    .nt dt {
+      margin-right: 0.6em;
+    }
     .cg-head {
       grid-template-columns: minmax(0, 1fr);
     }
     .cg-num {
       margin-bottom: 8px;
+    }
+    .cgroup + .cgroup {
+      margin-top: 28px;
+    }
+    .cg-sum {
+      list-style: none;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      column-gap: 16px;
+      align-items: baseline;
+      margin-top: 12px;
+      padding: 12px 0 14px;
+      min-height: 48px;
+      border-top: 1px solid var(--rule);
+    }
+    .cg-sum::-webkit-details-marker {
+      display: none;
+    }
+    /* The +/× sign is an aria-hidden element, not ::after, so it stays out of the summary's name. */
+    .cg-sum-ic {
+      grid-area: 1 / 2 / span 2;
+      align-self: center;
+      transition: transform 0.25s var(--ease-out);
+    }
+    .cg-sum-ic::before {
+      content: '+';
+      font: 400 24px/1 var(--mono);
+      color: var(--accent-text);
+    }
+    .cg-fold[open] > .cg-sum .cg-sum-ic {
+      transform: rotate(45deg);
+    }
+    .cg-sum-t {
+      font: 600 12px/1.4 var(--sans);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+    }
+    .cg-sum-names {
+      grid-column: 1;
+      margin-top: 4px;
+      font: 500 16px/1.45 var(--sans);
+      color: var(--ink);
+    }
+    .cg-sum:hover .cg-sum-names {
+      color: var(--accent-text);
+    }
+    .cg-sum-names .nm {
+      white-space: nowrap;
+    }
+    .cg-sum-names .sep {
+      margin-inline: 0.45em;
+      color: var(--ink-3);
+    }
+    .cg-list {
+      margin-top: 0;
     }
   }
 </style>

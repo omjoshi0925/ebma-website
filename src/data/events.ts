@@ -9,13 +9,13 @@ export interface EbmaEvent {
   kind?: string;
   /** ISO date, e.g. '2026-10-17'. */
   date: string;
-  /** Free text, e.g. '10:00 am – 1:00 pm'. Times are Pacific. */
+  /** Free text, e.g. '10 am–1 pm'. Times are Pacific. */
   time: string;
   venue: string;
   city: string;
   /** Who it is for, e.g. 'Grades 6–8' or 'Everyone'. */
   audience: string;
-  /** Cost, e.g. 'Free' or '$10, fee waivers available'. */
+  /** Cost, e.g. 'Free' or '$10'. */
   cost?: string;
   /** One or two sentences. */
   description?: string;

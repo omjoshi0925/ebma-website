@@ -1,7 +1,9 @@
 ---
 /**
  * /get-involved/thanks/ — where the join form lands after a plain (no-JavaScript) submission.
- * functions/api/join.ts redirects here with 303 on success. Not indexed, not in the sitemap.
+ * functions/api/join.ts redirects here with 303 on success, and also (quietly) when a post trips a
+ * spam trap, so the copy says the form was sent, never that it was stored or read.
+ * Not indexed, not in the sitemap.
  */
 import Base from '../../layouts/Base.astro';
 import PageHeader from '../../components/PageHeader.astro';
@@ -11,14 +13,13 @@ import Ph from '../../components/Ph.astro';
 import PhLink from '../../components/PhLink.astro';
 ---
 
-<Base title="Thanks" description="Your form reached the East Bay Math Association. Here is what happens next." noindex>
+<Base title="Thanks" description="Your form was sent to the East Bay Math Association. Here is what happens next." noindex>
   <PageHeader
     chapter={4}
-    runLeft="Chapter 4 · Get Involved"
     label="Q.E.D."
     note="(your form has arrived)"
     title="Thanks, we got *it.*"
-    lede="<em>Proof.</em> You’re reading this page, and we only send people here once their form has reached us. Nothing more to do for now: we’ll write back by email."
+    lede="<em>Proof.</em> You’re reading this page, so your form was sent. Nothing more to do for now: we’ll write back by email."
   >
     <Fragment slot="actions">
       <a class="btn" href="/resources/#problems">Try a problem while you wait <span class="arr" aria-hidden="true">→</span></a>
@@ -32,7 +33,7 @@ import PhLink from '../../components/PhLink.astro';
         <span class="ty-n" aria-hidden="true">1</span>
         <div>
           <h3>We read it</h3>
-          <p>A person on the EBMA team reads every form that comes in.</p>
+          <p>Someone on the EBMA team will read your form.</p>
         </div>
       </li>
       <li>
@@ -55,19 +56,19 @@ import PhLink from '../../components/PhLink.astro';
     <p class="conclude"><span>That’s all. We’ll be in touch.</span><span class="qed" aria-hidden="true"></span></p>
   </Section>
 
-  <Section id="meanwhile" num="2" title="While you *wait*" dek="A few places to go from here.">
+  <Section id="meanwhile" num="2" title="In the *meantime*" dek="A few places to go from here.">
     <div class="cells">
       <article class="cell">
         <p class="label">Remark 2.1</p>
         <h3>Upcoming events</h3>
-        <p class="body">Competitions, events and meetings open to East Bay students.</p>
-        <a class="xref" href="/events/">Events &amp; competitions <span class="arr" aria-hidden="true">→</span></a>
+        <p class="body">Competitions and events open to East Bay students.</p>
+        <a class="xref" href="/events/">Events &amp; Competitions <span class="arr" aria-hidden="true">→</span></a>
       </article>
       <article class="cell">
         <p class="label">Remark 2.2</p>
-        <h3>Something to think about</h3>
-        <p class="body">Original problems with hints and full solutions, and study resources worth your time.</p>
-        <a class="xref" href="/resources/">Student resources <span class="arr" aria-hidden="true">→</span></a>
+        <h3>Problems to try</h3>
+        <p class="body">Classic problems with hints and full solutions, and study resources worth your time.</p>
+        <a class="xref" href="/resources/">Student Resources <span class="arr" aria-hidden="true">→</span></a>
       </article>
       <article class="cell">
         <p class="label">Remark 2.3</p>
@@ -78,7 +79,7 @@ import PhLink from '../../components/PhLink.astro';
     </div>
   </Section>
 
-  <Band label="Corollary 4.2" title="While you wait, try a *problem.*" text="No sign-up needed. Work it out, check your answer, then compare methods.">
+  <Band m={2} label="Corollary 2.1" title="The next problem is *waiting.*" text="No sign-up needed. Work it out, check your answer, then compare methods.">
     <a class="btn" href="/resources/#problems">Try a problem <span class="arr" aria-hidden="true">→</span></a>
     <a class="btn btn-quiet" href="/">Home</a>
   </Band>

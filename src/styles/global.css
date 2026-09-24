@@ -4,13 +4,15 @@
  */
 @import './tokens.css';
 
-/* TeX's own math italic (Computer Modern, from KaTeX), used only for variables like n, k, m. */
+/* TeX's own math italic (Computer Modern, from KaTeX), used only for variables like n, k, m.
+ * It points at the same package file that katex.min.css uses, so the build emits one fingerprinted
+ * copy (/_astro/KaTeX_Math-Italic.<hash>.woff2) and a page with typeset math downloads it once. */
 @font-face {
   font-family: 'TeX Math';
   font-style: italic;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/KaTeX_Math-Italic.woff2') format('woff2'); /* KaTeX fonts, MIT licensed */
+  src: url('../../node_modules/katex/dist/fonts/KaTeX_Math-Italic.woff2') format('woff2'); /* KaTeX fonts, MIT licensed */
 }
 
 /* ---------- reset & base ---------- */
@@ -74,6 +76,9 @@ h4 {
   margin: 0;
   font-weight: 400;
   text-wrap: balance;
+  /* A single long word in a big heading may break rather than run off a narrow screen
+     (320px, or large text with WCAG text-spacing overrides). */
+  overflow-wrap: break-word;
 }
 ul,
 ol {
@@ -106,10 +111,14 @@ textarea {
   margin-inline: auto;
   padding-inline: var(--gut);
 }
-/* Keep a phrase (e.g. a placeholder chip and the punctuation after it) on one line. */
-.nowrap,
-.nowrap .ph {
+/* Keep a phrase on one line, e.g. a placeholder chip and the punctuation after it:
+ * <span class="nowrap"><Ph id="…" />.</span>. (A chip is an inline-block, and Chrome will break
+ * between it and a following period.) The chip itself can still wrap inside if the line is too narrow. */
+.nowrap {
   white-space: nowrap;
+}
+.nowrap .ph {
+  white-space: normal;
 }
 .sr-only {
   position: absolute !important;
@@ -209,8 +218,12 @@ textarea {
 /* ---------- placeholder chip ----------
  * LaTeX prints "??" for a reference it cannot resolve; so does this site for any fact the
  * association has not supplied yet. Rendered by <Ph> / <PhLink>; data-placeholder carries the id.
+ * A chip is one unit (inline-block): it moves to the next line whole, and wraps inside only when it
+ * is wider than its container, so a label never splits into two dashed fragments.
  */
 .ph {
+  display: inline-block;
+  max-width: 100%;
   font: 500 max(12px, 0.78em) / 1.25 var(--mono);
   letter-spacing: 0.01em;
   color: var(--ph-text);
@@ -220,10 +233,9 @@ textarea {
   padding: 0.12em 0.5em 0.14em;
   white-space: normal;
   overflow-wrap: anywhere;
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
   font-style: normal;
   text-transform: none;
+  text-indent: 0;
 }
 .ph-q {
   font-weight: 700;
@@ -585,7 +597,7 @@ input[type='range']::-moz-range-thumb {
   transition: transform 0.7s var(--ease-out) 0.55s;
 }
 .secno {
-  font: 200 clamp(52px, 5.4vw, 84px) / 0.8 var(--serif);
+  font: 200 clamp(52px, 5.4vw, 84px) / 0.8 var(--serif-display);
   letter-spacing: -0.03em;
   font-variation-settings: 'opsz' 72;
   white-space: nowrap;
@@ -604,7 +616,7 @@ input[type='range']::-moz-range-thumb {
   min-width: 0;
 }
 .sec-titles h2 {
-  font: 300 clamp(38px, 4.4vw, 64px) / 1 var(--serif);
+  font: 300 clamp(38px, 4.4vw, 64px) / 1 var(--serif-display);
   letter-spacing: -0.022em;
   font-variation-settings: 'opsz' 72;
 }
@@ -679,6 +691,35 @@ input[type='range']::-moz-range-thumb {
 .cell .xref {
   align-self: flex-start;
 }
+/* Side by side, cells share their rows (figure / label / heading / body / list / link) through
+ * subgrid, so a heading that wraps to two lines does not push its neighbors' text out of step.
+ * Every cell spans as many rows as the fullest cell in its group, so give the cells of one group
+ * the same parts in the same order. (A page may still lay a cell out its own way: these rules
+ * are kept at low specificity.) */
+@media (min-width: 761px) {
+  :where(.cells) > .cell {
+    display: grid;
+    grid-row: span var(--rows, 3);
+    grid-template-rows: subgrid;
+    row-gap: 14px;
+    align-content: start;
+  }
+  .cells:has(> .cell > :nth-child(4)) {
+    --rows: 4;
+  }
+  .cells:has(> .cell > :nth-child(5)) {
+    --rows: 5;
+  }
+  .cells:has(> .cell > :nth-child(6)) {
+    --rows: 6;
+  }
+  .cells:has(> .cell > :nth-child(7)) {
+    --rows: 7;
+  }
+  :where(.cells > .cell) > .xref {
+    justify-self: start;
+  }
+}
 .conclude {
   display: flex;
   align-items: baseline;
@@ -740,7 +781,8 @@ input[type='range']::-moz-range-thumb {
 }
 .disclose > summary::after {
   content: '+';
-  font: 400 22px/1 var(--mono);
+  content: '+' / ''; /* drawn, but not read as part of the summary's name */
+  font: 500 22px/1 var(--mono);
   color: var(--accent-text);
   flex: none;
   transition: transform 0.25s var(--ease-out);
@@ -773,7 +815,7 @@ input[type='range']::-moz-range-thumb {
   color: var(--band-accent);
 }
 .band h2 {
-  font: 300 clamp(44px, 6vw, 92px) / 0.98 var(--serif);
+  font: 300 clamp(44px, 6vw, 92px) / 0.98 var(--serif-display);
   letter-spacing: -0.028em;
   margin: 20px 0 26px;
   font-variation-settings: 'opsz' 72;
@@ -886,6 +928,70 @@ input[type='range']::-moz-range-thumb {
   .runhead .rh-r {
     display: none;
   }
+  /* No reading text under 16px on phones: margin notes, asides. */
+  .note {
+    font-size: 16.5px;
+  }
+}
+/* Phones held sideways: the sticky header already takes a fifth of the height, so drop the
+ * running head and let the title and the first action fit on the first screen. */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --head-h: 56px;
+  }
+  .runhead {
+    display: none;
+  }
+}
+/* Touch: bring the smaller controls up to the 44px the design system prefers. */
+@media (pointer: coarse) {
+  .xref {
+    padding: 13px 0 11px;
+  }
+  .fig-btn {
+    min-height: 44px;
+  }
+  input[type='range'] {
+    height: 44px;
+  }
+  input[type='range']::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -11.25px;
+  }
+  input[type='range']::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
+}
+/* Windows high contrast and other forced-color modes replace backgrounds, which is how the rules,
+ * the slider and the tombstone are drawn. Redraw them in system colors. */
+@media (forced-colors: active) {
+  .sec-head::before,
+  .sec-head::after,
+  .qed,
+  .qed.armed.in {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .qed {
+    border-color: CanvasText;
+  }
+  input[type='range'] {
+    forced-color-adjust: none;
+  }
+  input[type='range']::-webkit-slider-runnable-track {
+    background: CanvasText;
+  }
+  input[type='range']::-moz-range-track {
+    background: CanvasText;
+  }
+  input[type='range']::-webkit-slider-thumb {
+    background: Highlight;
+  }
+  input[type='range']::-moz-range-thumb {
+    background: Highlight;
+  }
 }
 
 html.menu-open {
@@ -895,4 +1001,25 @@ html.menu-open {
 /* The skip link focuses <main>; no outline for that programmatic focus. */
 main:focus {
   outline: none;
+}
+
+/* ---------- aside box: a short side panel with a call to action ----------
+ * <aside class="aside-box cropped"> <p class="label">Still wondering?</p> <h3>…</h3> <p>…</p> <a class="btn btn-quiet">…</a> </aside>
+ * One style for every "aside with a CTA" on the site. */
+.aside-box {
+  background-color: var(--paper-2);
+  padding: 22px 24px 24px;
+  --c: var(--ink-3);
+  --l: 12px;
+  --w: 1px;
+}
+.aside-box > * + * {
+  margin-top: 12px;
+}
+.aside-box h3 {
+  font: 400 24px/1.2 var(--serif);
+}
+.aside-box p:not(.label) {
+  font-size: 16.5px;
+  color: var(--ink-2);
 }

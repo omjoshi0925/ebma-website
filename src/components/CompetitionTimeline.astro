@@ -8,6 +8,8 @@
  * three widths (phone, tablet, desktop) and CSS shows the one that keeps text at 12px or more.
  * The same data is in Table 2 (CompetitionTable.astro) for screen readers and for reading.
  * scripts/events-calendar.ts adds a "today" line and fades contests that have passed.
+ * Each SVG is named by its <title> child alone (no aria-labelledby), so screen readers don't
+ * also read the same text again as its description.
  */
 import Plate from './Plate.astro';
 import { competitions, upcomingDates, SEASON, VERIFIED_ON, dayNum, formatRange, type Competition } from '../data/competitions';
@@ -149,7 +151,6 @@ const summary = `Timeline of the ${SEASON.label} competition season from Septemb
           class={`cal-svg cal-${g.id}`}
           viewBox={`0 0 ${g.W} ${g.H}`}
           role="img"
-          aria-labelledby={`cal-${g.id}-t`}
           data-reveal
           data-calendar
           data-d0={d0}
@@ -159,7 +160,7 @@ const summary = `Timeline of the ${SEASON.label} competition season from Septemb
           data-top={g.top - 2}
           data-bottom={g.axisY}
         >
-          <title id={`cal-${g.id}-t`}>{summary}</title>
+          <title>{summary}</title>
           <g class="cal-months" aria-hidden="true">
             {g.months.map((m, i) => i % 2 === 1 && <rect x={f(m.a)} y={g.top - 4} width={f(m.b - m.a)} height={f(g.axisY - g.top + 4)} class="cal-shade" />)}
             {g.months.map((m) => <line x1={f(m.a)} x2={f(m.a)} y1={g.top - 4} y2={g.axisY} class={m.year ? 'cal-grid cal-grid-yr' : 'cal-grid'} />)}

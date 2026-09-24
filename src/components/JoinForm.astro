@@ -10,6 +10,9 @@
  *
  * Markup contract (tests/form.mjs): field ids are join-<field>; radio and checkbox groups put
  * join-<field> on their first input; errors live in #join-<field>-error.
+ *
+ * Every control starts with aria-invalid="false": without it Chrome exposes an unmet native
+ * `required` (the role radios, the consent box) as "invalid" before anyone has touched the form.
  */
 import { ROLES, GRADES, INTERESTS, LIMITS } from '../../shared/join';
 import Ph from './Ph.astro';
@@ -20,22 +23,20 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
 
 <div class="jf" data-join>
   <form id="join-form" class="jf-form" action="/api/join" method="post" aria-describedby="join-intro">
-    <div
-      id="join-error-summary"
-      class="jf-summary"
-      tabindex="-1"
-      role="alert"
-      aria-labelledby="join-error-summary-h"
-      hidden
-    >
+    {/* No role="alert": the summary takes focus when shown, which is what announces it (an alert
+         as well would read it twice). role="group" lets it carry its heading as its name. */}
+    <div id="join-error-summary" class="jf-summary" role="group" tabindex="-1" aria-labelledby="join-error-summary-h" hidden>
       <h3 id="join-error-summary-h" data-summary-heading>Please check the form</h3>
       <p class="jf-summary-msg" data-summary-msg hidden></p>
       <ul class="jf-summary-list" data-summary-list></ul>
     </div>
 
-    <p id="join-intro" class="jf-intro">
-      Four things are <b>required</b>: your name, your email, who you are, and the consent box at the end. Everything else is optional.
-    </p>
+    <div id="join-intro" class="jf-intro">
+      <p>
+        Four things are <b>required</b>: your name, your email, who you are, and the consent box at the end. Everything else is optional.
+      </p>
+      <p class="jf-under13"><b>Under 13?</b> Please ask a parent or guardian to fill this in for you.</p>
+    </div>
 
     <div class="jf-row jf-row-2">
       <div class="jf-field" data-field="name">
@@ -47,8 +48,10 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
           name="name"
           type="text"
           autocomplete="name"
+          autocapitalize="words"
           maxlength={LIMITS.name}
           required
+          aria-invalid="false"
           aria-describedby="join-name-error"
         />
       </div>
@@ -65,6 +68,7 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
           spellcheck="false"
           maxlength={LIMITS.email}
           required
+          aria-invalid="false"
           aria-describedby="join-email-hint join-email-error"
         />
         <p class="jf-hint" id="join-email-hint">We’ll reply to this address.</p>
@@ -78,7 +82,7 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
         {
           ROLES.map((r, i) => (
             <label class="jf-choice">
-              <input class="jf-radio" type="radio" name="role" value={r.value} id={groupId('role', r.value, i)} required />
+              <input class="jf-radio" type="radio" name="role" value={r.value} id={groupId('role', r.value, i)} required aria-invalid="false" />
               <span>{r.label}</span>
             </label>
           ))
@@ -91,7 +95,7 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
         <label class="jf-label" for="join-grade">Grade <span class="jf-req">(optional)</span></label>
         <p class="jf-err" id="join-grade-error"></p>
         <span class="jf-select">
-          <select class="jf-input" id="join-grade" name="grade" aria-describedby="join-grade-hint join-grade-error">
+          <select class="jf-input" id="join-grade" name="grade" aria-invalid="false" aria-describedby="join-grade-hint join-grade-error">
             <option value="">Choose…</option>
             {GRADES.map((g) => <option value={g.value}>{g.label}</option>)}
           </select>
@@ -106,8 +110,10 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
           id="join-school"
           name="school"
           type="text"
-          autocomplete="organization"
+          autocomplete="off"
+          autocapitalize="words"
           maxlength={LIMITS.school}
+          aria-invalid="false"
           aria-describedby="join-school-hint join-school-error"
         />
         <p class="jf-hint" id="join-school-hint">Where you study or teach.</p>
@@ -121,7 +127,9 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
           name="city"
           type="text"
           autocomplete="address-level2"
+          autocapitalize="words"
           maxlength={LIMITS.city}
+          aria-invalid="false"
           aria-describedby="join-city-hint join-city-error"
         />
         <p class="jf-hint" id="join-city-hint">Just the city or town.</p>
@@ -130,13 +138,13 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
 
     <fieldset class="jf-field jf-group" data-field="interests" aria-describedby="join-interests-hint join-interests-error">
       <legend class="jf-label">What are you interested in? <span class="jf-req">(optional)</span></legend>
-      <p class="jf-hint jf-hint-top" id="join-interests-hint">Tick any that apply.</p>
+      <p class="jf-hint jf-hint-top" id="join-interests-hint">Check any that apply.</p>
       <p class="jf-err" id="join-interests-error"></p>
       <div class="jf-choices jf-choices-2">
         {
           INTERESTS.map((it, i) => (
             <label class="jf-choice">
-              <input class="jf-check" type="checkbox" name="interests" value={it.value} id={groupId('interests', it.value, i)} />
+              <input class="jf-check" type="checkbox" name="interests" value={it.value} id={groupId('interests', it.value, i)} aria-invalid="false" />
               <span>{it.label}</span>
             </label>
           ))
@@ -154,6 +162,7 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
         name="message"
         rows="5"
         maxlength={LIMITS.message}
+        aria-invalid="false"
         aria-describedby="join-message-hint join-message-count join-message-error"></textarea>
       <p class="jf-count" id="join-message-count" data-count-for="join-message">
         <span data-count>0</span> of {fmt(LIMITS.message)} characters
@@ -164,27 +173,30 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     <div class="jf-field jf-consent" data-field="consent">
       <p class="jf-err" id="join-consent-error"></p>
       <label class="jf-choice jf-choice-consent">
-        <input class="jf-check" type="checkbox" id="join-consent" name="consent" value="yes" required aria-describedby="join-consent-error" />
+        <input class="jf-check" type="checkbox" id="join-consent" name="consent" value="yes" required aria-invalid="false" aria-describedby="join-consent-error join-consent-hint" />
         <span>
-          It’s OK for the East Bay Math Association to contact me by email about this message, and about anything I ticked above.
+          It’s OK for the East Bay Math Association to contact me by email about this message, and about anything I checked above.
           <span class="jf-req">(required)</span>
         </span>
       </label>
-      <p class="jf-hint">
-        We use what you send only to reply to you and to send what you asked for. See the <a href="/privacy/">privacy notice</a>.
+      <p class="jf-hint" id="join-consent-hint">
+        We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit students. We never sell it or share it, including with sponsors. See the <a href="/privacy/">Privacy Notice</a>.
       </p>
     </div>
 
-    <!-- Spam trap: people never see or reach this field; bots tend to fill it in. -->
+    {/* Spam trap: people never see or reach this field; bots tend to fill it in. Its name matches
+         no autofill field (unlike "website"), so a browser won't fill it in for a person. */}
     <div class="jf-hp" aria-hidden="true">
-      <label for="join-website">Leave this empty</label>
-      <input id="join-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      <label for="join-extra-notes">Leave this empty</label>
+      <input id="join-extra-notes" name="extra_notes" type="text" tabindex="-1" autocomplete="off" />
     </div>
-    <input type="hidden" name="started_at" value="" />
+    {/* How long the form was open, in ms, from the browser's own clock; join-form.ts fills it in on
+         submit. Empty without JavaScript, and then the server skips the fill-time check. */}
+    <input type="hidden" name="elapsed_ms" value="" />
 
     <div class="jf-submit">
       <button class="btn jf-btn" type="submit">
-        <span data-btn-label>Join EBMA</span><span class="arr" aria-hidden="true">→</span>
+        <span data-btn-label>Send</span><span class="arr" aria-hidden="true">→</span>
       </button>
       <p class="sr-only" aria-live="polite" data-status></p>
     </div>
@@ -222,6 +234,8 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     gap: 34px;
   }
   .jf-intro {
+    display: grid;
+    gap: 8px;
     font: 500 15px/1.5 var(--sans);
     color: var(--ink-2);
     max-width: 40em;
@@ -520,7 +534,11 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     min-width: 13em;
     justify-content: space-between;
   }
-  .jf-btn[disabled] .arr {
+  /* While sending, the button stays focusable (aria-disabled, not disabled) so focus isn't lost. */
+  .jf-btn[aria-disabled='true'] {
+    cursor: progress;
+  }
+  .jf-btn[aria-disabled='true'] .arr {
     visibility: hidden;
   }
 
@@ -568,6 +586,11 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
   }
   .jf-summary-list :global(a:hover) {
     color: var(--ink);
+  }
+  @media (pointer: coarse) {
+    .jf-summary-list :global(a) {
+      min-height: 44px;
+    }
   }
 
   /* ---------- success ---------- */

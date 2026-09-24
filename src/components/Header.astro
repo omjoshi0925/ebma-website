@@ -6,7 +6,7 @@ const path = Astro.url.pathname.replace(/\/?$/, '/');
 const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 ---
 
-<header class="site-header" id="top">
+<header class="site-header">
   <div class="wrap head-row">
     <a class="brand" href="/" aria-label={`${site.name}, home`}>
       <Mark />
@@ -26,9 +26,12 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
       </ul>
     </nav>
     <a class="btn head-cta" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
+    <!-- The name stays "Menu"; aria-expanded carries open/closed (scripts/site.ts). -->
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu">
       <span class="menu-label">Menu</span><span class="bars" aria-hidden="true"></span>
     </button>
+    <!-- Without JavaScript the button cannot open anything: jump to the footer's contents instead. -->
+    <a class="menu-link" href="#foot-contents">Menu <span aria-hidden="true">↓</span></a>
   </div>
   <div class="mobile-menu" id="mobile-menu" hidden>
     <nav class="wrap" aria-label="Primary (mobile)">
@@ -70,20 +73,23 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     gap: 24px;
     height: var(--head-h);
   }
+  /* The brand gives way first when the row is tight (large text, WCAG text-spacing overrides):
+     its name wraps onto two lines rather than pushing the menu control off the screen. */
   .brand {
     display: flex;
     align-items: center;
     gap: 12px;
     min-height: 44px;
+    min-width: 0;
     text-decoration: none;
     color: var(--ink);
-    flex: none;
+    flex: 0 1 auto;
     margin-right: auto;
   }
   .brand-name {
-    font: 500 19px/1 var(--serif);
+    font: 500 19px/1.1 var(--serif);
     letter-spacing: -0.005em;
-    white-space: nowrap;
+    text-wrap: balance;
   }
   .nav ul {
     display: flex;
@@ -98,6 +104,7 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     font: 500 15px/1 var(--sans);
     color: var(--ink-2);
     text-decoration: none;
+    white-space: nowrap;
     position: relative;
   }
   .nav a:hover {
@@ -123,12 +130,16 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     color: var(--ink);
   }
   .head-cta {
+    flex: none;
     min-height: 44px;
     padding: 0 18px;
     font-size: 14.5px;
+    white-space: nowrap;
   }
-  .menu-toggle {
+  .menu-toggle,
+  .menu-link {
     display: none;
+    flex: none;
     align-items: center;
     gap: 10px;
     min-height: 44px;
@@ -137,7 +148,12 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     border: 0;
     color: var(--ink);
     font: 600 15px/1 var(--sans);
+    white-space: nowrap;
     cursor: pointer;
+  }
+  .menu-link {
+    gap: 6px;
+    text-decoration: none;
   }
   .menu-toggle .bars {
     width: 22px;
@@ -235,7 +251,8 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     .head-cta {
       display: none;
     }
-    .menu-toggle {
+    :global(html.js) .menu-toggle,
+    :global(html:not(.js)) .menu-link {
       display: inline-flex;
     }
   }
@@ -273,6 +290,18 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
       overflow: hidden;
       clip: rect(0 0 0 0);
       white-space: nowrap;
+    }
+  }
+  /* Forced colors drop backgrounds, which draw the current-page rule and the menu bars. */
+  @media (forced-colors: active) {
+    .nav a[aria-current='page'] {
+      text-decoration: underline 2px;
+      text-underline-offset: 6px;
+    }
+    .menu-toggle .bars::before,
+    .menu-toggle .bars::after {
+      forced-color-adjust: none;
+      background: ButtonText;
     }
   }
 </style>
