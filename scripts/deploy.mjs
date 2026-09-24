@@ -58,14 +58,15 @@ if (!exists) {
 }
 
 // 3b. A secret salt for the hashed IPs used by the form's rate limit (set once, never printed).
+// `pages secret list` has no --json flag; its text output names each secret.
 const secrets = (() => {
   try {
-    return json(['pages', 'secret', 'list', '--project-name', PROJECT]);
+    return wrangler(['pages', 'secret', 'list', '--project-name', PROJECT], true);
   } catch {
-    return [];
+    return '';
   }
 })();
-if (!JSON.stringify(secrets).includes('IP_SALT')) {
+if (!/\bIP_SALT\b/.test(secrets)) {
   console.log('Setting the IP_SALT secret…');
   execFileSync('npx', ['wrangler', 'pages', 'secret', 'put', 'IP_SALT', '--project-name', PROJECT], {
     cwd: root,
