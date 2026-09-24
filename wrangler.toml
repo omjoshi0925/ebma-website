@@ -7,5 +7,5 @@ compatibility_date = "2026-09-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "ebma-forms"
-database_id = "local-only-replace-on-first-deploy"
+database_id = "2a3df61a-0c8e-4121-afd6-0c10bc284c6b"
 migrations_dir = "migrations"
