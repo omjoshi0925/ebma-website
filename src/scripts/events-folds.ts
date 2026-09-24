@@ -25,9 +25,25 @@ function revealTarget() {
   target.scrollIntoView({ block: 'start' });
 }
 
+/** A click on an in-page link to an entry in a closed group (a name in Table 2): open the group
+ *  first, so the jump lands even when the address already ends in that hash (no hashchange). */
+function openForLink(e: MouseEvent) {
+  const a = (e.target as Element | null)?.closest?.('a[href*="#"]');
+  if (!(a instanceof HTMLAnchorElement) || a.pathname !== location.pathname || a.origin !== location.origin || a.hash.length < 2) return;
+  let target: HTMLElement | null = null;
+  try {
+    target = document.getElementById(decodeURIComponent(a.hash.slice(1)));
+  } catch {
+    return;
+  }
+  const fold = target?.closest<HTMLDetailsElement>('details[data-fold]');
+  if (fold && !fold.open) fold.open = true;
+}
+
 if (folds.length) {
   sync();
   revealTarget();
   phone.addEventListener('change', sync);
   addEventListener('hashchange', revealTarget);
+  document.addEventListener('click', openForLink);
 }

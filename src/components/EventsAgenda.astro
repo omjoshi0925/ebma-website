@@ -2,11 +2,20 @@
 /**
  * The upcoming-events list on /events/, set as an agenda along a vertical time rail: date,
  * a vermilion point on the rail, then the details. Takes the same events as EventCard
- * (src/data/events.ts). While that list is empty it shows `sampleCount` sample rows made of
- * placeholder chips (three chips per row), with no links.
+ * (src/data/events.ts), in any order, and lists only the ones that have not passed, soonest
+ * first. Three states:
+ *
+ *   - `events` is empty: `sampleCount` sample rows in the site's one sample style (`.sample` on
+ *     the list, a `.sample-tag` on each row, global.css): a dashed outline and dashed hairlines
+ *     for the list's rules and rail, muted text. The first row carries two placeholder chips and
+ *     its date tile shows "??"; the others are blank ruled stand-ins, hidden from screen readers.
+ *   - every event has passed: one plain sentence, "No EBMA events are scheduled right now." (The
+ *     page's own table caption and "hear about new events first" box follow it.)
+ *   - otherwise the events. Each row carries `data-end`, so the script drops a row whose day
+ *     passes after the build and shows the empty sentence when none are left (prunePastEvents).
  */
 import Ph from './Ph.astro';
-import { dateParts, type EbmaEvent } from '../data/events';
+import { dateParts, upcomingEvents, type EbmaEvent } from '../data/events';
 
 interface Props {
   events: EbmaEvent[];
@@ -15,16 +24,31 @@ interface Props {
   num: string;
 }
 const { events, sampleCount, num } = Astro.props;
+const upcoming = upcomingEvents(events);
 const external = (href: string) => /^https?:\/\//.test(href);
+const emptyId = `agenda-none-${num}`;
 ---
 
-<ol class="agenda" aria-label="Upcoming EBMA events, soonest first">
+{
+  events.length > 0 && (
+    <p class="ag-none" id={emptyId} hidden={upcoming.length > 0}>
+      No EBMA events are scheduled right now.
+    </p>
+  )
+}
+<ol
+  class:list={['agenda', { sample: events.length === 0 }]}
+  aria-label={events.length === 0 ? 'Upcoming EBMA events (samples)' : 'Upcoming EBMA events, soonest first'}
+  data-upcoming={events.length > 0 ? num : undefined}
+  data-empty={events.length > 0 ? emptyId : undefined}
+  hidden={events.length > 0 && upcoming.length === 0}
+>
   {
     events.length
-      ? events.map((e, i) => {
+      ? upcoming.map((e, i) => {
           const d = dateParts(e.date);
           return (
-            <li class="ag">
+            <li class="ag" data-end={e.date}>
               <div class="ag-date">
                 <span class="ag-day" aria-hidden="true">
                   {d.day}
@@ -43,7 +67,7 @@ const external = (href: string) => /^https?:\/\//.test(href);
               <div class="ag-main">
                 <p class="ag-top">
                   <span class="label">
-                    Event {num}.{i + 1}
+                    Event <span data-ev-num>{`${num}.${i + 1}`}</span>
                   </span>
                   {e.kind && <span class="ag-kind">{e.kind}</span>}
                 </p>
@@ -71,49 +95,91 @@ const external = (href: string) => /^https?:\/\//.test(href);
                 {e.description && <p class="ag-desc">{e.description}</p>}
               </div>
               <div class="ag-go">
-                {e.href && (
-                  <a class="xref" href={e.href} {...(external(e.href) ? { rel: 'noopener' } : {})}>
-                    Details &amp; registration<span class="sr-only">: {e.title}</span>
-                    <span class="arr" aria-hidden="true">
-                      {external(e.href) ? '↗' : '→'}
-                    </span>
-                    {external(e.href) && <span class="sr-only"> (external site)</span>}
-                  </a>
-                )}
+                {e.href &&
+                  (external(e.href) ? (
+                    <a class="xref ext" href={e.href} rel="external noopener">
+                      <span>
+                        Details &amp;{' '}
+                        <span class="ext-tail">
+                          registration<span class="ext-arr" aria-hidden="true">↗</span>
+                        </span>
+                      </span>
+                      <span class="sr-only">: {e.title} (external site)</span>
+                    </a>
+                  ) : (
+                    <a class="xref" href={e.href}>
+                      Details &amp; registration<span class="sr-only">: {e.title}</span>
+                      <span class="arr" aria-hidden="true">→</span>
+                    </a>
+                  ))}
               </div>
             </li>
           );
         })
-      : Array.from({ length: sampleCount }, (_, i) => (
-          <li class:list={['ag ag-sample', { 'ag-extra': i > 1 }]}>
-            <div class="ag-date">
-              <span class="ag-skel" aria-hidden="true">
-                <span>MON</span>
-                <span>DD</span>
-              </span>
-              <Ph id="events.upcoming" label="Date" />
-            </div>
-            <div class="ag-rail" aria-hidden="true">
-              <span class="ag-pt" />
-            </div>
-            <div class="ag-main">
-              <p class="ag-top">
-                <span class="label">
-                  Event {num}.{i + 1}
+      : Array.from({ length: sampleCount }, (_, i) =>
+          i === 0 ? (
+            <li class="ag ag-sample">
+              <div class="ag-date">
+                <span class="ag-tile" aria-hidden="true">
+                  <span>MON</span>
+                  <span class="ag-tile-q">??</span>
                 </span>
-              </p>
-              <h3 class="ag-title">
-                <Ph id="events.upcoming" label="Event name" />
-              </h3>
-              <p class="ag-sample-line">
-                <Ph id="events.upcoming" label="Time, place, who it’s for, cost" />
-              </p>
-            </div>
-            <div class="ag-go" />
-          </li>
-        ))
+                <span class="sr-only">Placeholder: Date</span>
+              </div>
+              <div class="ag-rail" aria-hidden="true">
+                <span class="ag-pt" />
+              </div>
+              <div class="ag-main">
+                <p class="ag-top">
+                  <span class="label">
+                    Event {num}.{i + 1}
+                  </span>
+                  <span class="sample-tag">Sample</span>
+                </p>
+                <h3 class="ag-title">
+                  <Ph id="events.upcoming" label="Event name" />
+                </h3>
+                <p class="ag-sample-line">
+                  <Ph id="events.upcoming" label="Time, place, who it’s for, cost" />
+                </p>
+              </div>
+              <div class="ag-go" />
+            </li>
+          ) : (
+            <li class="ag ag-sample ag-ghost ag-extra" aria-hidden="true">
+              <div class="ag-date">
+                <span class="ag-tile">
+                  <span>MON</span>
+                  <span class="ag-tile-q">??</span>
+                </span>
+              </div>
+              <div class="ag-rail">
+                <span class="ag-pt" />
+              </div>
+              <div class="ag-main">
+                <p class="ag-top">
+                  <span class="label">
+                    Event {num}.{i + 1}
+                  </span>
+                  <span class="sample-tag">Sample</span>
+                </p>
+                <div class="ag-blank">
+                  <span />
+                  <span />
+                </div>
+              </div>
+              <div class="ag-go" />
+            </li>
+          ),
+        )
   }
 </ol>
+
+<script>
+  // The page is built ahead of time: drop any listed event whose day has passed since.
+  import { prunePastEvents } from '../data/events';
+  prunePastEvents();
+</script>
 
 <style>
   .agenda {
@@ -169,10 +235,24 @@ const external = (href: string) => /^https?:\/\//.test(href);
     background: var(--accent);
     box-shadow: 0 0 0 4px var(--paper);
   }
+  /* Samples: .sample (global.css) outlines the list and mutes the ink; the rules inside turn to
+     dashed hairlines to match. */
+  .sample .ag + .ag .ag-main,
+  .sample .ag + .ag .ag-date,
+  .sample .ag + .ag .ag-go {
+    border-top: 1px dashed var(--rule-2);
+  }
+  .sample .ag-rail::before {
+    width: 0;
+    margin-left: 0;
+    background: none;
+    border-left: 1px dashed var(--rule-2);
+  }
   .ag-sample .ag-pt {
     background: var(--paper);
-    border: 1.5px dashed var(--accent-line);
+    border: 1px dashed var(--ink-3);
   }
+
 
   .ag-date {
     display: flex;
@@ -200,23 +280,21 @@ const external = (href: string) => /^https?:\/\//.test(href);
     text-transform: none;
     color: var(--ink-3);
   }
-  .ag-skel {
+  /* The date tile is the date's placeholder: the shape a real date will take, with "??" for the day. */
+  .ag-tile {
     display: flex;
     flex-direction: column;
     gap: 6px;
     padding: 8px 10px;
-    border: 1px solid var(--rule-2);
+    border: 1px dashed var(--rule-2);
     font: 500 13px/1 var(--mono);
     letter-spacing: 0.1em;
     color: var(--ink-3);
     text-align: center;
   }
-  .ag-skel span + span {
-    font: 300 28px/1 var(--serif);
-    letter-spacing: 0.02em;
-  }
-  .ag-date :global(.ph) {
-    font-size: 13px;
+  .ag-tile-q {
+    font: 600 24px/1 var(--mono);
+    letter-spacing: 0.04em;
   }
 
   .ag-top {
@@ -245,6 +323,29 @@ const external = (href: string) => /^https?:\/\//.test(href);
     margin-top: 12px;
     font-size: 17px;
   }
+  /* Later samples: blank ruled lines where the name and details will go, like a form to fill in. */
+  .ag-blank {
+    display: grid;
+    gap: 22px;
+    padding-top: 16px;
+  }
+  .ag-blank span {
+    display: block;
+    border-bottom: 1px solid var(--rule-2);
+    width: 60%;
+  }
+  .ag-blank span + span {
+    width: 40%;
+  }
+  /* Every listed event has passed. */
+  .ag-none {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 22px 0 24px;
+    font-size: 19px;
+    text-wrap: pretty;
+  }
+
   .ag-meta {
     margin-top: 14px;
     display: flex;
@@ -331,7 +432,7 @@ const external = (href: string) => /^https?:\/\//.test(href);
     }
   }
   @media (max-width: 620px) {
-    /* Identical sample rows add length without information on a phone. */
+    /* Blank sample rows add length without information on a phone. */
     .ag-extra {
       display: none;
     }

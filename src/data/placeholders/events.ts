@@ -4,7 +4,7 @@ import { define } from '../../lib/placeholders';
 export default define({
   'events.upcoming': {
     label: 'Upcoming events',
-    note: 'The list of real EBMA events: title, date, time, venue and city, who it is for, and a registration or details link. Add them to `events` in src/data/events.ts (soonest first). While that list is empty, sample entries with placeholder chips are shown on the Home and Events & Competitions pages.',
+    note: 'The list of real EBMA events: title, date, time, venue and city, who it is for, and a registration or details link. Add them to `events` in src/data/events.ts, in any order: the site sorts them by date, and each event drops off Home and Events & Competitions by itself once its day has passed (Pacific time), with no edit or redeploy needed. While that list is empty, sample entries with placeholder chips are shown on those two pages. Once it has events but all of them have passed, both pages say “No EBMA events are scheduled right now” and point to the competition calendar, so add the next event when it is set.',
     pages: ['/', '/events/'],
     kind: 'list',
     example: "{ title: 'Fall Problem-Solving Day', date: '2026-10-17', time: '10 am–1 pm', venue: 'Room 101, Example High School', city: 'Oakland', audience: 'Grades 6–12', href: 'https://…' }",

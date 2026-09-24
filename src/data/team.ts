@@ -1,7 +1,7 @@
 /**
  * The people who run EBMA, shown in §5 of the About page. Add real people here in the order they
- * should appear. While `team` is empty the page shows `SAMPLE_COUNT` sample cards made of
- * placeholder chips (see the 'about.team' placeholder).
+ * should appear. While `team` is empty the page shows `SAMPLE_COUNT` sample cards: the first
+ * carries the placeholder chips (see the 'about.team' placeholder), the rest are blank stand-ins.
  *
  * Only list people who have agreed to be named. For students under 18, get a parent's
  * permission first; first name and last initial is a good default.

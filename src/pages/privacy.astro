@@ -33,9 +33,11 @@ const roles = listOf(ROLES);
 const interests = listOf(INTERESTS);
 const messageLimit = LIMITS.message.toLocaleString('en-US');
 
-/** The one summary of how form data is used; the join form repeats it word for word. */
+/** The one summary of how form data is used; the join form repeats it word for word. §1 shows it
+ * with its second sentence in bold, since "never sold or shared" is what parents look for first. */
 const USE =
   'We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit students. We never sell it or share it, including with sponsors.';
+const [USE_HOW, USE_NEVER] = USE.split(/(?<=\.) (?=We never)/);
 
 const contents = [
   { href: '#short', num: '1', title: 'The short version' },
@@ -50,7 +52,7 @@ const contents = [
 
 <Base
   title="Privacy Notice"
-  description="What the East Bay Math Association website collects, why, where it is kept, and how to have it deleted. No cookies, no analytics, no ads."
+  description="What the East Bay Math Association website collects, who can see it, and how to have it deleted. We never sell it or share it. No cookies, no analytics, no ads."
 >
   <PageHeader
     chapter={0}
@@ -59,19 +61,35 @@ const contents = [
     label="Fine print"
     note="(in large print)"
     title="Privacy, in *plain* English."
-    lede="This site collects personal information in one place only: the join form. It keeps what you type there, plus the time you sent it, the page you sent it from, and a scrambled version of your IP address. It sets no cookies and runs no analytics, ads, or trackers."
+    lede="This site collects personal information in one place only: the join form. We never sell it or share it, including with sponsors. The site sets no cookies and runs no analytics, ads, or trackers."
     contents={contents}
   >
-    <p slot="lede" class="effective rise" style="--d:320"><span class="meta">Effective</span> <Ph id="privacy.effective-date" /></p>
+    <p slot="lede" class="effective rise" style="--d:320"><span class="meta">Effective</span> <Ph id="privacy.effective-date" label="Date" /></p>
   </PageHeader>
 
   <Section
     id="short"
     num="1"
     title="The short *version*"
-    dek="Four numbers that sum up this page."
-    note="Each number describes how the site’s code works today. If the code changes, this page changes with it."
+    dek="What happens to what you send us, and four numbers about what the site collects."
+    note="Each answer and number describes how the site works today. If that changes, this page changes first (§7)."
   >
+    <dl class="ledger answers">
+      <div>
+        <dt>What we do with it</dt>
+        <dd>{USE_HOW} <strong>{USE_NEVER}</strong></dd>
+      </div>
+      <div>
+        <dt>Who can see it</dt>
+        <dd>
+          Only <Ph id="privacy.access" label="the people who reply, by role" /> can read it. Nothing you send is ever published on the site.
+        </dd>
+      </div>
+      <div>
+        <dt>How to delete it</dt>
+        <dd>Ask us at any time, and we will delete it. You can also ask to see or correct it (§6).</dd>
+      </div>
+    </dl>
     <ul class="tally" role="list">
       <li>
         <span class="tally-n" aria-hidden="true">0</span>
@@ -94,7 +112,7 @@ const contents = [
         <p class="tally-b">The <a href={joinHref}>join form</a>. It keeps what you type, plus the three details recorded automatically in Table&nbsp;1.</p>
       </li>
     </ul>
-    <p class="conclude"><span>The rest of this page is the detail behind those four numbers.</span><span class="qed" aria-hidden="true"></span></p>
+    <p class="conclude"><span>The rest of this page is the detail behind these answers and numbers.</span><span class="qed" aria-hidden="true"></span></p>
   </Section>
 
   <Section id="form" num="2" title="What the form *collects*" dek="What you type into the join form, why we ask, and three things recorded automatically.">
@@ -176,7 +194,7 @@ const contents = [
     </div>
   </Section>
 
-  <Section id="kept" num="3" title="Where it goes, who *sees* it" dek="How a submission is used, where it is stored, who can read it, and for how long.">
+  <Section id="kept" num="3" title="Where it goes, who *sees* it" dek="How a submission travels, where it is stored, who can read it, and for how long.">
     <p slot="note">
       A <b>hash</b> is a one-way scramble: the same input always gives the same output, so repeat senders can be spotted without keeping the address.
       A <b>salt</b> is a secret key mixed in first, so no one without the key can work back from the hash to the address.
@@ -214,10 +232,6 @@ const contents = [
 
     <dl class="ledger">
       <div>
-        <dt>How we use it</dt>
-        <dd>{USE}</dd>
-      </div>
-      <div>
         <dt>Where it is stored</dt>
         <dd>
           In a database on Cloudflare D1, the database service of Cloudflare, the company that hosts this website. Submissions are never published
@@ -227,19 +241,20 @@ const contents = [
       <div>
         <dt>Who can see it</dt>
         <dd>
-          Only <Ph id="privacy.access" /> can read submissions.
+          Only <Ph id="privacy.access" label="the people who reply, by role" /> can read submissions.
         </dd>
       </div>
       <div>
         <dt>Sign-up alerts</dt>
         <dd>
-          If alerts are switched on, the site posts a one-line alert with your name, role, and email address to <Ph id="privacy.notifications" />, so
-          someone can reply quickly. This alert is the only time the site sends your details to a service other than Cloudflare.
+          If alerts are switched on, the site posts a one-line alert with your name, role, and email address to <span class="nowrap"
+            ><Ph id="privacy.notifications" label="which service and channel" />,</span
+          > so someone can reply quickly. This alert is the only time the site sends your details to a service other than Cloudflare.
         </dd>
       </div>
       <div>
         <dt>How long we keep it</dt>
-        <dd>We keep a submission <Ph id="privacy.retention" label="How long we keep it" />. You can ask us to delete it sooner (§6).</dd>
+        <dd>We keep a submission <span class="nowrap"><Ph id="privacy.retention" label="for how long" />.</span> You can ask us to delete it sooner (§6).</dd>
       </div>
       <div>
         <dt>If you email us</dt>
@@ -255,9 +270,11 @@ const contents = [
           >join form</a
         > instead: they can choose “Parent or guardian” and tell us about you in the message.
       </p>
-      <p>If we learn that a child under 13 has sent us their own details, we will delete them.</p>
+      <p>If we learn that a child under 13 has sent us their own details, we will delete those details.</p>
       <p>
-        Parents and guardians can ask to see, correct, or delete anything their child has sent us by writing to <PhLink id="org.email" label="Contact email" />.
+        Parents and guardians can ask to see, correct, or delete anything their child has sent us by writing to <span class="nowrap"
+          ><PhLink id="org.email" label="Contact email" />.</span
+        >
       </p>
     </div>
   </Section>
@@ -353,7 +370,9 @@ const contents = [
         date at the top of the page always shows the current version.
       </p>
       <p>
-        This notice explains how the website works, in plain English on purpose. It is not legal advice. Last reviewed by <Ph id="privacy.review" />.
+        This notice explains how the website works, in plain English on purpose. It is not legal advice. Last reviewed by <span class="nowrap"
+          ><Ph id="privacy.review" label="role and date" />.</span
+        >
       </p>
       <p>
         New here? Start with <a href="/about/">what the association is for</a>, or go back to the <a href="/">Home</a> page.
@@ -387,7 +406,17 @@ const contents = [
     color: var(--ink-3);
   }
 
-  /* §1: four large numerals */
+  /* §1: three answers first (what parents look for), then four large numerals */
+  #short .ledger {
+    margin-top: 0;
+  }
+  .answers strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .answers + .tally {
+    margin-top: clamp(32px, 4vw, 48px);
+  }
   .tally {
     list-style: none;
     display: grid;
@@ -544,6 +573,7 @@ const contents = [
   /* an arrow on the rule between steps */
   .flow li + li::before {
     content: '→';
+    content: '→' / '';
     position: absolute;
     left: -0.62em;
     top: 5px;

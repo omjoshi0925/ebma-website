@@ -119,6 +119,17 @@ const jsonLd = isHome
     <div id="top"></div>
     <a class="skip" href="#main">Skip to content</a>
     <Header />
+    {
+      /* Until launch (site.indexable), a slim note under the header says what the "??" chips are,
+         on the same screen as the first one a reader meets. */
+      !site.indexable && (
+        <aside class="prelaunch" aria-label="Site preview">
+          <p class="wrap">
+            <strong>Site preview.</strong> <span class="ph" aria-hidden="true"><span class="ph-q">??</span></span><span class="sr-only">“Placeholder”</span> marks a detail still to be filled in.
+          </p>
+        </aside>
+      )
+    }
     <main id="main" tabindex="-1">
       <slot />
     </main>
@@ -128,3 +139,27 @@ const jsonLd = isHome
     </script>
   </body>
 </html>
+
+<style>
+  .prelaunch {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--rule);
+  }
+  .prelaunch p {
+    padding-block: 8px;
+    font: 500 14.5px/1.4 var(--sans);
+    color: var(--ink-2);
+  }
+  .prelaunch strong {
+    font-weight: 600;
+    color: var(--ink);
+    margin-right: 0.2em;
+  }
+  .prelaunch .ph {
+    font-size: 12px;
+    vertical-align: 0.5px;
+  }
+  .prelaunch .ph-q {
+    margin-right: 0;
+  }
+</style>

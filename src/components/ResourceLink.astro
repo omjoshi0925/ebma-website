@@ -2,7 +2,9 @@
 /**
  * A link to a third-party site: the text, a small ↗ (hidden from screen readers) and
  * "(external site)" for screen readers. Opens in the same tab. The last word and the arrow are
- * kept together so the arrow never wraps onto a line of its own.
+ * kept together so the arrow never wraps onto a line of its own. The one external-link
+ * treatment on the site: its styles (.ext, .ext-tail, .ext-arr, in the --arrows face) live in
+ * global.css, so PhLink and any other component can share them.
  *
  *   <ResourceLink href="https://artofproblemsolving.com/alcumus">Alcumus</ResourceLink>
  */
@@ -23,20 +25,3 @@ const tail = split > 0 ? html.slice(split + 1) : html;
     ><Fragment set:html={tail} /><span class="ext-arr" aria-hidden="true">↗</span></span
   ><span class="sr-only"> (external site)</span></a
 >
-
-<style>
-  .ext-tail {
-    white-space: nowrap;
-  }
-  .ext-arr {
-    display: inline-block;
-    margin-left: 0.2em;
-    font: 500 0.78em/1 var(--sans);
-    color: var(--accent-text);
-    text-decoration: none;
-    transition: transform 0.2s var(--ease-out);
-  }
-  .ext:hover .ext-arr {
-    transform: translate(1px, -1px);
-  }
-</style>

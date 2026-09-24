@@ -1,11 +1,19 @@
 ---
 /**
  * One event, as a card in "Table 1". Pass a real `event`, or `sample` (1-based) to render a
- * sample card made of placeholder chips while src/data/events.ts is still empty.
+ * sample card while src/data/events.ts is still empty.
  *
  * A card links only to its own event's page (`event.href`); the whole card is the hit area.
  * Sample cards and events without a page are not links: the section's own "All upcoming
  * events" link already leads to the list, so the cards don't repeat it.
+ *
+ * Samples use the site's one sample style (`.sample` + `.sample-tag`, global.css): a dashed
+ * outline, a small mono "Sample" tag and muted text. The first sample carries two placeholder
+ * chips (its date tile shows "??" in place of the day); later samples are blank ruled stand-ins,
+ * hidden from screen readers, that only keep the row's rhythm.
+ *
+ * A real card carries `data-end` (its date) and `data-ev-num`, so the page's script can drop it
+ * once the day has passed and renumber the rest (see prunePastEvents in src/data/events.ts).
  */
 import Ph from './Ph.astro';
 import { dateParts, type EbmaEvent } from '../data/events';
@@ -17,60 +25,45 @@ interface Props {
   num: string;
   headingLevel?: 'h3' | 'h4';
 }
-const { event, num, headingLevel = 'h3' } = Astro.props;
+const { event, sample = 1, num, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
 const d = event ? dateParts(event.date) : null;
 const href = event?.href ?? null;
 const external = href ? /^https?:\/\//.test(href) : false;
+const ghost = !event && sample > 1;
 ---
 
-<article class:list={['event', { 'is-link': href }]}>
-  <div class="event-top">
-    <span class="label">Event {num}</span>
-    {event?.kind && <span class="event-kind">{event.kind}</span>}
-  </div>
-  <div class="event-date">
-    {
-      d ? (
-        <>
-          <span class="day" aria-hidden="true">
-            {d.day}
+{
+  event && d ? (
+    <article class:list={['event', { 'is-link': href }]} data-end={event.date}>
+      <div class="event-top">
+        <span class="label">
+          Event <span data-ev-num>{num}</span>
+        </span>
+        {event.kind && <span class="event-kind">{event.kind}</span>}
+      </div>
+      <div class="event-date">
+        <span class="day" aria-hidden="true">
+          {d.day}
+        </span>
+        <span class="mon">
+          <span aria-hidden="true">{d.month}</span>
+          <span class="sr-only">{d.long}</span>
+          <span class="wk" aria-hidden="true">
+            {d.weekday}
           </span>
-          <span class="mon">
-            <span aria-hidden="true">{d.month}</span>
-            <span class="sr-only">{d.long}</span>
-            <span class="wk" aria-hidden="true">
-              {d.weekday}
-            </span>
-          </span>
-        </>
-      ) : (
-        <>
-          <span class="skel" aria-hidden="true">
-            <span>MON</span>
-            <span>DD</span>
-          </span>
-          <Ph id="events.upcoming" label="Date" />
-        </>
-      )
-    }
-  </div>
-  <H class="event-title">
-    {
-      event && href ? (
-        <a href={href} {...(external ? { rel: 'noopener' } : {})}>
-          {event.title}
-          {external && <span class="sr-only"> (external site)</span>}
-        </a>
-      ) : event ? (
-        event.title
-      ) : (
-        <Ph id="events.upcoming" label="Event name" />
-      )
-    }
-  </H>
-  {
-    event ? (
+        </span>
+      </div>
+      <H class="event-title">
+        {href ? (
+          <a href={href} {...(external ? { rel: 'external noopener' } : {})}>
+            {event.title}
+            {external && <span class="sr-only"> (external site)</span>}
+          </a>
+        ) : (
+          event.title
+        )}
+      </H>
       <dl>
         <dt>When</dt>
         <dd>{event.time}</dd>
@@ -85,21 +78,44 @@ const external = href ? /^https?:\/\//.test(href) : false;
           </>
         )}
       </dl>
-    ) : (
-      <p class="event-sample">
-        <Ph id="events.upcoming" label="Time, place, who it’s for, cost" />
-      </p>
-    )
-  }
-  {event?.description && <p class="event-desc">{event.description}</p>}
-  {
-    href && (
-      <span class="event-go" aria-hidden="true">
-        Details &amp; registration <span class="arr">{external ? '↗' : '→'}</span>
-      </span>
-    )
-  }
-</article>
+      {event.description && <p class="event-desc">{event.description}</p>}
+      {href && (
+        <span class="event-go" aria-hidden="true">
+          Details &amp; registration {external ? <span class="ext-arr">↗</span> : <span class="arr">→</span>}
+        </span>
+      )}
+    </article>
+  ) : (
+    <article class:list={['event', 'sample', { 'is-ghost': ghost }]} aria-hidden={ghost ? 'true' : undefined}>
+      <div class="event-top">
+        <span class="label">Event {num}</span>
+        <p class="sample-tag">Sample</p>
+      </div>
+      <div class="event-date">
+        <span class="tile" aria-hidden="true">
+          <span>MON</span>
+          <span class="tile-q">??</span>
+        </span>
+        {!ghost && <span class="sr-only">Placeholder: Date</span>}
+      </div>
+      {ghost ? (
+        <div class="blank" aria-hidden="true">
+          <span />
+          <span />
+        </div>
+      ) : (
+        <>
+          <H class="event-title">
+            <Ph id="events.upcoming" label="Event name" />
+          </H>
+          <p class="event-sample">
+            <Ph id="events.upcoming" label="Time, place, who it’s for, cost" />
+          </p>
+        </>
+      )}
+    </article>
+  )
+}
 
 <style>
   .event {
@@ -108,9 +124,12 @@ const external = href ? /^https?:\/\//.test(href) : false;
     flex-direction: column;
     border-top: 3px solid var(--ink);
     border-bottom: 1px solid var(--ink);
-    padding: 16px 0 18px;
     transition: border-color 0.25s;
     min-width: 0;
+  }
+  /* A sample takes its outline and inset from .sample (global.css). */
+  .event:not(.sample) {
+    padding: 16px 0 18px;
   }
   .event.is-link:hover {
     border-top-color: var(--accent);
@@ -159,30 +178,6 @@ const external = href ? /^https?:\/\//.test(href) : false;
     text-transform: none;
     color: var(--ink-3);
   }
-  .event-date :global(.ph) {
-    font-size: 13px;
-    margin-bottom: 4px;
-  }
-  /* Date skeleton for sample cards: the shape a real date will take. */
-  .skel {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 8px 10px;
-    border: 1px solid var(--rule-2);
-    font: 500 13px/1 var(--mono);
-    letter-spacing: 0.1em;
-    color: var(--ink-3);
-    text-align: center;
-  }
-  .skel span + span {
-    font: 300 28px/1 var(--serif);
-    letter-spacing: 0.02em;
-  }
-  .event-sample {
-    margin-bottom: 18px;
-    font-size: 17px;
-  }
   .event-title {
     font: 400 24px/1.2 var(--serif);
     margin-bottom: 16px;
@@ -211,7 +206,7 @@ const external = href ? /^https?:\/\//.test(href) : false;
     align-items: baseline;
   }
   dt {
-    font: 600 11.5px/1.4 var(--sans);
+    font: 600 12px/1.4 var(--sans);
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-3);
@@ -238,5 +233,55 @@ const external = href ? /^https?:\/\//.test(href) : false;
   }
   .event.is-link:hover .event-go .arr {
     transform: translateX(4px);
+  }
+  .event.is-link:hover .event-go .ext-arr {
+    transform: translate(1px, -1px);
+  }
+
+  /* ---------- samples: .sample (global.css) draws the outline and mutes the ink ---------- */
+  .sample .event-top {
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--rule-2);
+  }
+  .sample .event-date {
+    padding: 18px 0 14px;
+  }
+  /* The date tile is the date's placeholder: the shape a real date will take, with "??" for the day. */
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 1px dashed var(--rule-2);
+    font: 500 13px/1 var(--mono);
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    text-align: center;
+  }
+  .tile-q {
+    font: 600 24px/1 var(--mono);
+    letter-spacing: 0.04em;
+  }
+  /* The chips take their size from these lines: keep them no louder than the card around them. */
+  .sample .event-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .event-sample {
+    font-size: 15.5px;
+  }
+  /* Later samples: blank ruled lines where the name and details will go, like a form to fill in. */
+  .blank {
+    display: grid;
+    gap: 22px;
+    padding: 14px 0 6px;
+  }
+  .blank span {
+    display: block;
+    border-bottom: 1px solid var(--rule-2);
+    width: 70%;
+  }
+  .blank span + span {
+    width: 45%;
   }
 </style>

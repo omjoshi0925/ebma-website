@@ -11,7 +11,7 @@ import CompetitionTable from '../components/CompetitionTable.astro';
 import CompetitionPathway from '../components/CompetitionPathway.astro';
 import CompetitionEntry from '../components/CompetitionEntry.astro';
 import { events, SAMPLE_COUNT } from '../data/events';
-import { competitions, groups, SEASON } from '../data/competitions';
+import { competitions, groups, upcomingDates, gradeFit, gradeFitNote, calendarFile, FINDER_GRADES, SEASON } from '../data/competitions';
 import { joinHref, contactHref } from '../data/site';
 
 // Number the directory entries [1], [2], … in the order they appear.
@@ -19,6 +19,23 @@ let n = 0;
 const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c.group === g.id).map((c) => ({ c, n: ++n })) }));
 
 const educatorHref = '/get-involved/?role=educator#join';
+
+// §3 grade finder (scripts/events-grades.ts): for each contest and each grade offered, whether the
+// organizer's stated grades include it (1), exclude it (0), or give no numbers (2), and the note
+// to show; plus the calendar download (and its number of dates) for each grade. '' = all grades.
+const posted = upcomingDates();
+const icsHref = (g?: number) => `/events/${calendarFile(g)}.ics`;
+const icsCount = (g?: number) => posted.filter((d) => g === undefined || gradeFit(d.competition, g).fit !== 'no').length;
+const finder = {
+  grades: FINDER_GRADES,
+  fit: Object.fromEntries(
+    competitions.map((c) => [c.id, FINDER_GRADES.map((g) => [{ no: 0, yes: 1, check: 2 }[gradeFit(c, g).fit], gradeFitNote(c, g)])]),
+  ),
+  ics: Object.fromEntries([['', [icsHref(), icsCount()]], ...FINDER_GRADES.map((g) => [String(g), [icsHref(g), icsCount(g)]])]),
+};
+// Safe inside <script>: no "</script>" can survive the \u003c escape.
+const finderJson = JSON.stringify(finder).replace(/</g, '\\u003c');
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 // §3 "Notation": the short names in Fig. 1 and Table 2, spelled out where they first appear.
 // Each gloss restates facts from src/data/competitions.ts; keep the two in step.
@@ -29,7 +46,7 @@ const notation: [string, string][] = [
   ['MAA', 'Mathematical Association of America, which runs the AMC, AIME, USAJMO, and USAMO.'],
   ['USAMTS', 'USA Mathematical Talent Search, a free proof-based contest done on your own time.'],
   ['MATHCOUNTS', 'A national contest program for grades 6–8, from school up to national level.'],
-  ['BAMO', 'Bay Area Mathematical Olympiad, a proof-based contest taken at a school or math circle.'],
+  ['BAMO', 'Bay Area Mathematical Olympiad, a proof-based contest taken at a school or a math circle (a math club built around solving problems together).'],
   ['BMT, HMMT', 'Berkeley Math Tournament and Harvard–MIT Mathematics Tournament, both student-run.'],
 ];
 ---
@@ -123,7 +140,7 @@ const notation: [string, string][] = [
         <h3>Supervision and safety</h3>
         <p class="body">You should always know who is looking after your child during an event, and how to reach them on the day.</p>
         <p class="fact"><Ph id="org.safety-policy" /></p>
-        <a class="xref" href="/about/">About EBMA <span class="arr" aria-hidden="true">→</span></a>
+        <a class="xref" href={contactHref}>Ask us about supervision <span class="arr" aria-hidden="true">→</span></a>
       </article>
       <article class="lemma">
         <p class="label">Lemma 2.5</p>
@@ -150,6 +167,34 @@ const notation: [string, string][] = [
     wide
   >
     <a slot="actions" class="xref" href="#competitions">About each competition <span class="arr" aria-hidden="true">↓</span></a>
+    <div class="gf" id="grade-finder" data-gf>
+      <div class="gf-text">
+        <p class="label">Restriction</p>
+        <h3>Which contests can I enter?</h3>
+        <p class="gf-lead">
+          Choose your grade for {SEASON.label}. Table 2 and §4 then list only the contests open to it, going by each organizer’s own rules, and Fig. 1
+          fades the rest.
+        </p>
+      </div>
+      <div class="gf-pick">
+        <p class="gf-k" id="gf-k">Your grade</p>
+        <div class="gf-btns" role="group" aria-labelledby="gf-k">
+          <button type="button" class="gf-btn gf-all" aria-pressed="true" data-gf-grade="">All grades</button>
+          <span class="gf-nums">
+            {
+              FINDER_GRADES.map((g) => (
+                <button type="button" class="gf-btn" aria-pressed="false" data-gf-grade={g}>
+                  <span class="sr-only">Grade </span>
+                  {g}
+                </button>
+              ))
+            }
+          </span>
+        </div>
+      </div>
+      <p class="gf-status" role="status" data-gf-status>Showing all {competitions.length} contests.</p>
+      <script type="application/json" data-gf-data set:html={finderJson} />
+    </div>
     <div class="notation" role="group" aria-labelledby="notation-h">
       <p class="label" id="notation-h">Notation</p>
       <p class="nt-lead">The short names used in the calendar, spelled out. §4 describes each contest.</p>
@@ -166,6 +211,16 @@ const notation: [string, string][] = [
     </div>
     <CompetitionTimeline />
     <CompetitionTable />
+    <p class="ics">
+      <a class="xref" href={icsHref()} data-gf-ics>
+        <span data-gf-ics-label>Add these dates to your calendar</span>
+        <span class="ics-tag">.ics</span>
+      </a>
+      <span class="ics-note">
+        A file of the <span data-gf-ics-count>{plural(icsCount(), 'date', 'dates')} posted so far</span>, for most calendar apps. Each event
+        links to its official site and says when we checked it.
+      </span>
+    </p>
   </Section>
 
   <Section
@@ -192,6 +247,14 @@ const notation: [string, string][] = [
       <CompetitionPathway />
     </div>
 
+    <p class="gf-echo" data-gf-echo hidden>
+      <span data-gf-echo-text></span>
+      <span class="gf-echo-acts">
+        <button type="button" class="gf-reset" data-gf-reset>Show all grades</button>
+        <a class="xref" href="#grade-finder">Change grade <span class="arr" aria-hidden="true">↑</span></a>
+      </span>
+    </p>
+
     {
       directory.map((g, gi) => (
         <div class="cgroup" id={`competitions-${g.id}`}>
@@ -201,27 +264,36 @@ const notation: [string, string][] = [
             </p>
             <div>
               <h3>{g.title}</h3>
-              <p class="cg-dek">{g.dek}</p>
+              <p class="cg-dek">
+                {g.dek}
+                {g.id === 'middle' && (
+                  <span class="gf-only">
+                    {' '}
+                    Or <a href="#grade-finder">choose your grade</a> in §3 to list them.
+                  </span>
+                )}
+              </p>
             </div>
           </div>
           <details class="cg-fold" open data-fold>
             <summary class="cg-sum">
               <span class="cg-sum-t">
-                {g.items.length} contests<span class="sr-only">: </span>
+                <span data-gf-count>{plural(g.items.length, 'contest', 'contests')}</span>
+                <span class="sr-only">: </span>
               </span>
               <span class="cg-sum-names">
                 {g.items.map(({ c }, i) => (
-                  <>
+                  <span class="cg-nm" data-cid={c.id}>
                     {i > 0 && (
-                      <>
+                      <span class="cg-sep" data-gf-sep>
                         <span class="sr-only">, </span>
                         <span class="sep" aria-hidden="true">
                           ·
                         </span>
-                      </>
+                      </span>
                     )}
                     <span class="nm">{c.listName ?? c.short}</span>
-                  </>
+                  </span>
                 ))}
               </span>
               <span class="cg-sum-ic" aria-hidden="true" />
@@ -236,7 +308,7 @@ const notation: [string, string][] = [
       ))
     }
     <p class="conclude">
-      <span>EBMA is not affiliated with these organizations. Always confirm dates, fees, and rules with the organizer.</span><span
+      <span>Always confirm dates, fees, and rules with the organizer.</span><span
         class="qed"
         aria-hidden="true"></span>
     </p>
@@ -255,6 +327,7 @@ const notation: [string, string][] = [
 
 <script>
   import '../scripts/events-folds';
+  import '../scripts/events-grades';
 </script>
 
 <style>
@@ -298,6 +371,158 @@ const notation: [string, string][] = [
     .first > .cta-row {
       margin-top: 0;
     }
+  }
+
+  /* §3: the grade finder (scripts/events-grades.ts). It needs JavaScript, so without it the
+     finder is not shown and the page lists every contest. Text on the left, the buttons on the
+     right on wide screens; on phones the grades sit in two rows, 5–8 over 9–12. */
+  :global(html:not(.js)) .gf,
+  :global(html:not(.js)) .gf-only {
+    display: none;
+  }
+  .gf {
+    margin-bottom: clamp(40px, 5vw, 64px);
+    padding-top: 16px;
+    border-top: 2px solid var(--ink);
+    display: grid;
+    gap: 22px 56px;
+  }
+  .gf-text h3 {
+    margin-top: 10px;
+    font: 400 clamp(27px, 2.4vw, 36px) / 1.08 var(--serif);
+    letter-spacing: -0.015em;
+  }
+  .gf-lead {
+    margin-top: 10px;
+    max-width: 34em;
+    font-size: 17px;
+    color: var(--ink-2);
+  }
+  .gf-k {
+    margin-bottom: 10px;
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .gf-btns {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .gf-nums {
+    display: grid;
+    grid-template-columns: repeat(8, 44px);
+    gap: 6px;
+  }
+  .gf-btn,
+  .gf-reset {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    background: transparent;
+    border: 1px solid var(--rule-2);
+    border-radius: 0;
+    color: var(--ink);
+    font: 600 15px/1 var(--sans);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      border-color 0.15s,
+      color 0.15s;
+  }
+  .gf-nums .gf-btn {
+    padding: 0;
+  }
+  .gf-btn:hover,
+  .gf-reset:hover {
+    border-color: var(--ink);
+  }
+  .gf-btn[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .gf-status {
+    font: 500 15px/1.45 var(--sans);
+    color: var(--ink-2);
+    max-width: 46em;
+  }
+  @media (min-width: 1100px) {
+    .gf {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+    .gf-status {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 620px) {
+    .gf-nums {
+      grid-template-columns: repeat(4, 44px);
+    }
+    .gf-status {
+      font-size: 16px;
+    }
+  }
+  /* Forced colors drop backgrounds, which is how a pressed button shows: use the system highlight. */
+  @media (forced-colors: active) {
+    .gf-btn[aria-pressed='true'] {
+      forced-color-adjust: none;
+      background: Highlight;
+      border-color: Highlight;
+      color: HighlightText;
+    }
+  }
+
+  /* §3: the calendar download, under Table 2. */
+  .ics {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 20px;
+  }
+  .ics .xref {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .ics-tag {
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.04em;
+    padding: 3px 5px;
+    border: 1px solid var(--rule-2);
+    color: var(--ink-2);
+  }
+  .ics-note {
+    flex: 1 1 24em;
+    font-size: 15.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  /* §4: what the grade finder is showing, with a way back to every contest. */
+  .gf-echo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 24px;
+    margin-bottom: clamp(28px, 3.5vw, 44px);
+    padding: 10px 0 10px 16px;
+    border-left: 2px solid var(--accent);
+    font: 600 15.5px/1.4 var(--sans);
+  }
+  .gf-echo-acts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 22px;
+  }
+  .gf-only a {
+    color: var(--ink);
   }
 
   /* §3: notation, the short names spelled out before the calendar uses them */
@@ -482,8 +707,24 @@ const notation: [string, string][] = [
       grid-template-columns: minmax(0, 1fr);
     }
   }
+  @media print {
+    .gf-pick,
+    .gf-echo-acts,
+    .ics,
+    .gf-only {
+      display: none;
+    }
+    .lemma,
+    .pathway,
+    .notation {
+      break-inside: avoid;
+    }
+  }
   @media (max-width: 620px) {
     .tcap {
+      font-size: 16.5px;
+    }
+    .ics-note {
       font-size: 16.5px;
     }
     /* Run the term into its gloss so each gloss gets the full measure. */

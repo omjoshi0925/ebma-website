@@ -5,6 +5,9 @@
  * hatched, like an engraving, and one tile is filled in vermilion: "your piece". With motion allowed it starts as an empty dashed slot and drops into
  * place once, shortly after the page opens; without motion or JavaScript it is simply filled.
  *
+ * `placed` (the thank-you page): the same patch with the piece already in place and no motion,
+ * and a caption that closes the story. Each page is its own paper, so both are Plate I, Fig. 1.
+ *
  * The substitution construction below is a port of Craig S. Kaplan's hatviz
  * (https://github.com/isohedral/hatviz), used under the BSD 3-Clause License:
  *
@@ -33,6 +36,12 @@
  *   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import Plate from './Plate.astro';
+
+interface Props {
+  /** The piece is already in place: no drop, and the thank-you page's caption. */
+  placed?: boolean;
+}
+const { placed = false } = Astro.props;
 
 interface Pt {
   x: number;
@@ -235,17 +244,23 @@ const ordinary = visible.filter((h) => h.label !== 'H1' && h !== yours).map((h) 
 const mirrored = visible.filter((h) => h.label === 'H1' && h !== yours).map((h) => d(h.pts)).join('');
 const yoursD = d(yours.pts);
 
-const caption =
-  'The “hat”: one shape that covers the whole plane, with no gaps and no pattern that ever repeats. The hatched tiles are its mirror image. ' +
-  'The red one is yours. <span class="gi-cite">After Smith, Myers, Kaplan &amp; Goodman-Strauss (2023).</span>';
+const cite = '<span class="gi-cite">After Smith, Myers, Kaplan &amp; Goodman-Strauss (2023).</span>';
+// Aperiodic, not patternless: small patches recur all over the tiling, but no shift of the whole
+// tiling lines it up with itself.
+const caption = placed
+  ? `Your piece, in place. Every tile is the same “hat” shape (the hatched ones are flipped over), and the red one is yours. ${cite}`
+  : `The “hat”: one shape that covers the whole plane with no gaps or overlaps, in a tiling that never repeats as a whole (no shift lines it up with itself). The hatched tiles are its mirror image. The red one is yours. ${cite}`;
+const title = placed
+  ? 'A patch of identical hat-shaped tiles fitted together with no gaps; the mirror-image tiles are hatched. One tile near the middle is filled in red: your piece, now in place.'
+  : 'A patch of identical hat-shaped tiles fitted together with no gaps; the mirror-image tiles are hatched. One tile near the middle is filled in red: your piece.';
 ---
 
-<div class="gi-hat">
-<Plate id="fig-hat" plate="Plate I" corner='<span class="gi-key"></span>Your piece' fig="Fig. 1." caption={caption}>
+<div class:list={['gi-hat', { 'is-placed': placed }]}>
+<Plate id="fig-hat" plate="Plate I" corner={`<span class="gi-key"></span>${placed ? 'In place' : 'Your piece'}`} fig="Fig. 1." caption={caption}>
   {/* Named by its <title> alone: pointing aria-labelledby at the title as well makes Chrome
        repeat it as the description. */}
-  <svg class="gi-hat-svg" data-reveal viewBox={`0 0 ${VW} ${VH}`} role="img">
-    <title>A patch of identical hat-shaped tiles fitted together with no gaps; the mirror-image tiles are hatched. One tile near the middle is filled in red: your piece.</title>
+  <svg class="gi-hat-svg" data-reveal={placed ? undefined : ''} viewBox={`0 0 ${VW} ${VH}`} role="img">
+    <title>{title}</title>
     <defs>
       {/* Hatching in --ink-3 (about 5:1 against the paper in both themes), so the mirror-image
            tiles stand apart from the plain ones without a second accent color. */}
@@ -317,7 +332,7 @@ const caption =
   /* Motion: the piece drops into its slot once, after the header has risen in. Below the fold
      (phones), scripts/site.ts arms the figure and the drop waits until it scrolls into view. */
   @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .t-you {
+    :global(.js) .gi-hat:not(.is-placed) .t-you {
       animation: gi-place 0.7s var(--ease-out) 1.3s both;
     }
     .gi-hat-svg:global(.armed) .t-you {

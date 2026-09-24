@@ -7,7 +7,8 @@ form.
 
 The site is designed like a mathematics paper: warm paper, ink, one vermilion accent, numbered
 sections, theorem-style labels, figures in crop-marked plates, and ∎ tombstones. Every figure is
-real mathematics computed in the browser. See [`docs/design-system.md`](docs/design-system.md).
+computed from its equation or its data (most when the site is built; the moving ones live in the
+browser), and the pages print cleanly for class. See [`docs/design-system.md`](docs/design-system.md).
 
 ## Before launch: fill in the placeholders
 
@@ -28,9 +29,13 @@ Until the placeholders are filled, the site asks search engines to stay away, so
 the association never shows `??` chips. The switch is `indexable` in `src/data/site.ts`:
 
 - `indexable: false` (the default for now): every page carries
-  `<meta name="robots" content="noindex">` and `/robots.txt` disallows all crawling.
-- `indexable: true`: pages can be indexed and `/robots.txt` allows crawling and points to the
-  sitemap.
+  `<meta name="robots" content="noindex">`, `/robots.txt` disallows all crawling, and a slim
+  "Site preview" bar under the header explains the `??` chips.
+- `indexable: true`: pages can be indexed, `/robots.txt` allows crawling and points to the
+  sitemap, and the preview bar is gone.
+
+The footer's `??` legend needs no switch: it disappears by itself once every placeholder has a
+value.
 
 Set it to `true` once `PLACEHOLDERS.md` is filled in, then build and deploy. The site URL used by
 canonical links, the sitemap and `robots.txt` comes from `astro.config.mjs` (set `SITE_URL` when a
@@ -66,7 +71,8 @@ Screenshots and the crawl report land in `test-results/`.
 
 `/get-involved/#join` posts to `functions/api/join.ts`, a Cloudflare Pages Function. It validates
 with the same rules as the browser (`shared/join.ts`), filters spam (a honeypot field, a minimum
-fill time, a same-origin check and a per-IP rate limit on a salted hash), and stores each
+fill time, a same-origin check, and rate limits of 30 submissions per network and 3 per email
+address every 10 minutes; the per-network limit uses a salted IP hash), and stores each
 submission in a Cloudflare D1 database named `ebma-forms` (schema in `migrations/`). It works with
 and without JavaScript.
 
@@ -77,7 +83,7 @@ Reading submissions:
 
 Optional settings (Cloudflare dashboard → Pages project → Settings → Variables and secrets):
 
-- `IP_SALT` (required for rate limiting): a long random secret that salts the hashed IP address. Without it the form stores no IP hash and does no rate limiting. `npm run deploy` sets a random one automatically on first deploy.
+- `IP_SALT` (required for the per-network rate limit): a long random secret that salts the hashed IP address. Without it the form stores no IP hash and skips that limit (the per-email limit still applies). `npm run deploy` sets a random one automatically on first deploy.
 - `NOTIFY_WEBHOOK_URL`: a Slack- or Discord-compatible webhook that is pinged for each new submission.
 
 ## Deploy

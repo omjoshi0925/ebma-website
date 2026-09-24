@@ -18,11 +18,6 @@ const contents = [
 
 const joinAs = (role: string) => `/get-involved/?role=${role}#join`;
 
-// The one summary of what the form's data is used for (the same sentence as in JoinForm.astro and
-// on /privacy/). Change all three together.
-const privacySentence =
-  'We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit students. We never sell it or share it, including with sponsors.';
-
 interface Way {
   audience: string;
   body: string;
@@ -38,8 +33,8 @@ const ways: Way[] = [
   },
   {
     audience: 'Parents &\u00a0guardians',
-    body: 'See what EBMA offers, what it costs, and how students are looked after, then sign your child up or ask us anything first. Students under 13 need you to fill in the form for them.',
-    next: { href: joinAs('parent'), text: 'Sign up your child' },
+    body: 'See what EBMA offers, what it costs, and how students are looked after, then tell us about your child or ask us anything. Joining puts you in touch with us; signing up for a particular event comes later, event by event. Students under 13 need you to fill in the form for them.',
+    next: { href: joinAs('parent'), text: 'Tell us about your child' },
     alt: { href: '/about/#faq', text: 'Questions parents ask' },
   },
   {
@@ -52,13 +47,13 @@ const ways: Way[] = [
     audience: 'Volunteers &\u00a0mentors',
     body: 'Coach, write problems, check answers, or help run an event on the day. If you can explain an idea patiently, we’d like to hear from you.',
     next: { href: joinAs('volunteer'), text: 'Offer to help' },
-    alt: { href: '/about/', text: 'About EBMA' },
+    alt: { href: '/about/#people', text: 'Meet the people' },
   },
   {
     audience: 'Sponsors &\u00a0partners',
-    body: 'Fund a competition, host an event, or donate prizes or printing, and be recognized in front of the families you serve.',
-    next: { href: joinAs('sponsor'), text: 'Start the conversation' },
-    alt: { href: '/sponsors/', text: 'Sponsors & Partners' },
+    body: 'Fund a competition, host an event, or donate prizes or printing, and be thanked in front of the students and families your support reaches.',
+    next: { href: '/sponsors/', text: 'How sponsoring works' },
+    alt: { href: joinAs('sponsor'), text: 'Start the conversation' },
   },
 ];
 
@@ -165,13 +160,18 @@ const setBuilder =
             <dt>Who can join</dt>
             <dd><Ph id="org.eligibility" label="Grades, ages, and area" /></dd>
           </div>
+          <div>
+            <dt>Sponsors and partners</dt>
+            <dd>Levels, how we thank sponsors, and tax details are on <a href="/sponsors/">Sponsors &amp; Partners</a>.</dd>
+          </div>
+          {/* The data-use sentence itself sits once, under the consent box, where consent is given. */}
           <div class="gi-fact-privacy">
             <dt>Your privacy</dt>
-            <dd>{privacySentence} <a href="/privacy/">Read the Privacy Notice</a>.</dd>
+            <dd>How we use what you send is right above the Send button, and in full in the <a href="/privacy/">Privacy Notice</a>.</dd>
           </div>
           <div>
             <dt>What happens next</dt>
-            <dd>We reply by email, usually within <span class="gi-tie"><Ph id="get-involved.response-time" />.</span></dd>
+            <dd>We reply by email, usually within <span class="nowrap"><Ph id="get-involved.response-time" />.</span></dd>
           </div>
         </dl>
       </aside>
@@ -199,6 +199,10 @@ const setBuilder =
           <li>Host an event or a problem-solving session at your school.</li>
           <li>Tell us what your students need, and help shape what we plan next.</li>
         </ul>
+        <p class="gi-others">
+          Universities, libraries, and other organizations: choose “Sponsor or partner” in the form, or read
+          <a href="/sponsors/">Sponsors &amp; Partners</a> first.
+        </p>
         <div class="gi-schools-links">
           <a class="xref" href="/events/">Events &amp; Competitions <span class="arr" aria-hidden="true">→</span></a>
           <a class="xref" href="/resources/">Student Resources <span class="arr" aria-hidden="true">→</span></a>
@@ -233,7 +237,7 @@ const setBuilder =
         <dl class="gi-who">
           <div>
             <dt>Who to talk to</dt>
-            <dd><Ph id="get-involved.schools-contact" /></dd>
+            <dd><Ph id="get-involved.schools-contact" label="Schools contact" /></dd>
           </div>
           <div>
             <dt>Email</dt>
@@ -256,6 +260,11 @@ const setBuilder =
   >
     <dl class="gi-corr">
       <div class="gi-corr-row">
+        <dt>Form</dt>
+        <dd class="gi-corr-v"><a href="/get-involved/?role=other#join">Write to us with the form</a></dd>
+        <dd class="gi-corr-n">Any question at all, from anyone. A person will write back.</dd>
+      </div>
+      <div class="gi-corr-row">
         <dt>Email</dt>
         <dd class="gi-corr-v"><PhLink id="org.email" /></dd>
         <dd class="gi-corr-n">Questions from students, parents, schools, and sponsors.</dd>
@@ -268,7 +277,7 @@ const setBuilder =
       <div class="gi-corr-row">
         <dt>Mailing list</dt>
         <dd class="gi-corr-v"><PhLink id="org.mailing-list">Join the mailing list</PhLink></dd>
-        <dd class="gi-corr-n">Announcements about events and competitions. You can also check “Email updates” in the form.</dd>
+        <dd class="gi-corr-n">Announcements about events and competitions. You can also check “Email updates” in <a href="#join">the form</a>.</dd>
       </div>
       <div class="gi-corr-row">
         <dt>Post</dt>
@@ -485,11 +494,6 @@ const setBuilder =
   .gi-facts a {
     color: var(--ink);
   }
-  /* Keep a placeholder chip and the punctuation after it on one line. */
-  .gi-tie,
-  .gi-tie :global(.ph) {
-    white-space: nowrap;
-  }
   @media (min-width: 1201px) and (min-height: 860px) {
     .gi-before {
       position: sticky;
@@ -498,6 +502,14 @@ const setBuilder =
   }
 
   /* ---------- §3 schools ---------- */
+  .gi-others {
+    margin-top: 16px;
+    font-size: 16.5px;
+    color: var(--ink-2);
+  }
+  .gi-others a {
+    color: var(--ink);
+  }
   .gi-schools {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -610,6 +622,9 @@ const setBuilder =
     line-height: 1.45;
     font-style: italic;
     color: var(--ink-2);
+  }
+  .gi-corr-n a {
+    color: var(--ink);
   }
   .tcap {
     margin-top: 18px;

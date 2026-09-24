@@ -3,9 +3,12 @@ import Mark from './Mark.astro';
 import Ph from './Ph.astro';
 import PhLink from './PhLink.astro';
 import { nav, site } from '../data/site';
+import { registry } from '../data/placeholders';
 
 const year = new Date().getFullYear();
 const chapters = nav.filter((item) => item.n > 0);
+// The legend explains the "??" chips, so it goes away once every placeholder is filled in.
+const pending = Object.values(registry).some((def) => def.value === null);
 ---
 
 <footer class="site-footer wrap">
@@ -55,8 +58,8 @@ const chapters = nav.filter((item) => item.n > 0);
 
     <div class="colophon">
       <h2>Colophon</h2>
-      <p>Set in Newsreader, Instrument Sans, and IBM Plex Mono, with variables in TeX’s own math italic.</p>
-      <p>The figures are computed live in your browser from nothing but straight lines and circles.</p>
+      <p>Set in Newsreader, Instrument Sans, and IBM Plex Mono; the mathematics in TeX’s own Computer Modern, typeset with KaTeX.</p>
+      <p>Every figure is computed from its equation or its data, not drawn by hand, and the moving ones are drawn live in your browser.</p>
       <!-- Needs JavaScript to do anything, so it is hidden without it (see the style below). -->
       <fieldset class="theme" data-theme-control>
         <legend>Theme</legend>
@@ -71,11 +74,14 @@ const chapters = nav.filter((item) => item.n > 0);
 
   <div class="foot-base">
     <span>© {year} {site.name}</span>
-    <span class="legend"
-      ><span class="ph" aria-hidden="true"><span class="ph-q">??</span>like this</span><span class="sr-only">A dashed box starting with two question marks</span>
-      marks an undefined reference: a detail the association will supply.</span
-    >
-    <a class="to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    {
+      pending && (
+        <span class="legend">
+          <span class="ph" aria-hidden="true"><span class="ph-q">??</span>like this</span><span class="sr-only">Anything read out as “Placeholder”</span> marks a detail the association hasn’t filled in yet.
+        </span>
+      )
+    }
+    <a class="to-top" href="#top">Back to top <span class="arr" aria-hidden="true">↑</span></a>
   </div>
 </footer>
 

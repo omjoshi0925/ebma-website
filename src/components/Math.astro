@@ -29,8 +29,5 @@ const html = katex.renderToString(tex, { displayMode: display, throwOnError: tru
   .math-display :global(.katex-display) {
     margin: 0.6em 0;
   }
-  .math-inline :global(.katex),
-  .math-display :global(.katex) {
-    font-size: 1.08em;
-  }
+  /* The size of typeset math (1.08em) is set once, in global.css. */
 </style>

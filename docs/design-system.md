@@ -42,10 +42,11 @@ as a short paper; the home page is the model to follow (`src/pages/index.astro`)
 
 ## Content rule: never invent facts
 
-We know only the name and that EBMA serves students in the East Bay. **Do not state** officer
-names, founding year, counts, grade ranges, meeting times, dates, venues, prices, emails, awards,
-sponsors, partner schools, program names, or what EBMA "has done". Where a real detail is needed,
-use a registered placeholder (below). You may write draft copy about intentions and values
+We know only the name and what the brief establishes: EBMA serves students in the East Bay, holds
+events and competitions, and offers resources. Those may be said in the present tense. **Do not
+state** specifics: officer names, founding year, counts, grade ranges, meeting times, dates,
+venues, prices, emails, awards, sponsors, partner schools, program names, history, or what EBMA
+"has done". Where a real detail is needed, use a registered placeholder (below). You may write draft copy about intentions and values
 ("will", "we aim to", "can"), never operations nobody has confirmed, and you may describe
 *third-party* programs only with facts verified from their official site
 (see `src/data/resources.ts`, `src/data/competitions.ts`), never implying affiliation. This
@@ -72,13 +73,25 @@ students. We never sell it or share it, including with sponsors."
   on its own if a plain heading can carry the sentence.
 - A chip is one unbreakable unit (an inline-block): it moves to the next line whole and wraps
   inside only when it is wider than its container. Keep labels short where space is tight (the
-  footer uses "Legal status", "Mailing list link"). Chrome may break between a chip and a
-  following period, so keep punctuation with its chip: `<span class="nowrap"><Ph id="…" />.</span>`.
+  footer uses "Legal status", "Sign-up link"). Every engine (Chrome, Safari and Firefox) may break
+  between a chip and the period or comma after it, so keep punctuation with its chip:
+  `<span class="nowrap"><Ph id="…" />.</span>`. Write the label so the sentence still reads with
+  the chip in it ("Only ?? the people who reply, by role can read submissions"), not a heading
+  that repeats the sentence's own words.
+- **Samples.** While a list is empty, its sample entries use the one sample style: add `sample`
+  to the entry (a 1px dashed `--rule-2` outline replaces its rules and crop marks, and its text
+  turns `--ink-3`), put `<p class="sample-tag">Sample</p>` on its first line, and give it at most
+  two chips. Further samples in a row can be empty frames (`aria-hidden="true"`), as the logo wall
+  does. Real entries keep the full style; a component that draws its rules with `::before` or a
+  shadow leaves them off for samples (`.card:not(.sample)::before`).
 - `npm run placeholders -- --check` must pass (no unknown ids).
 - **Launch switch.** `site.indexable` in `src/data/site.ts` is `false` until the placeholders are
-  filled: every page then carries `<meta name="robots" content="noindex">` and `/robots.txt`
-  (built by `src/pages/robots.txt.ts`) disallows all crawling. The association sets it to `true`
-  to launch.
+  filled: every page then carries `<meta name="robots" content="noindex">`, `/robots.txt`
+  (built by `src/pages/robots.txt.ts`) disallows all crawling, and a slim "Site preview" bar under
+  the header (`Base.astro`) says that ?? marks a detail still to be filled in, on the same screen
+  as the first chip. The association sets it to `true` to launch. The footer's ?? legend is tied
+  to the registry instead: it shows while any placeholder is still `null` and goes away by itself
+  once every one is filled.
 
 ## Tokens (src/styles/tokens.css)
 
@@ -93,7 +106,16 @@ headings: h1, section h2, the band), `--sans` (Instrument Sans: UI, labels, butt
 (IBM Plex Mono, 500 and 600 only), `--math` (TeX math italic for variables). The two serif
 tokens differ only in their metric-matched Georgia stand-in shown while Newsreader loads, so text
 does not reflow when the web font arrives; use `--serif-display` for any heading set at
-`font-variation-settings: 'opsz' 72`.
+`font-variation-settings: 'opsz' 72`. `--arrows` is the platform's UI face, for every arrow glyph
+(→ ← ↑ ↓ ↗): none of the self-hosted fonts has the set (Instrument Sans has ↑ ↓ only), and
+mixing them drew a → and a ↓ side by side in two styles. The system faces have them all, at every
+weight, for no download; `.arr` and `.ext-arr` use it, so write arrows as
+`<span class="arr" aria-hidden="true">→</span>`. Operators in running text (≥ ≠ ⇒) are typeset
+with `<Math>` instead, in KaTeX's own fonts.
+
+**More contrast.** Under `prefers-contrast: more` (both themes) the tokens darken `--ink-2` and
+`--ink-3`, draw `--rule` and `--rule-2` as solid lines of at least 3:1, and drop the grain. Use the
+tokens and a component gets this for free.
 
 Type scale in use: h1 `clamp(44px, 6.2vw, 96px)` light 300 (PageHeader does it); section h2 via
 `<Section>`; h3 in cells `clamp(27px, 2.4vw, 36px)` 400; body 19px (18px mobile) Newsreader;
@@ -114,12 +136,12 @@ no reading text under 16px on mobile; weight 300 only at 40px+.**
 | `PageHeader` | Opening of every inner page: `chapter`, `label` (kicker), `note`, `title` (one `*italic*` word allowed), `lede` (HTML ok), `contents` (builds an "In this chapter" TOC) or `slot="aside"` (a figure); `slot="actions"` for buttons. The running head shows the page's name from the nav (pass `runLeft` for pages outside it), so the kicker should not be "Chapter n". The title sits at the same height on every page (the grid is top-aligned). |
 | `Section` | Numbered section: `id`, `num`, `title` (one `*italic*`), `dek`, `note` (margin note), `wide`; `slot="actions"` for a cross-reference link. |
 | `Plate` | Crop-marked figure frame: `plate`, `corner`, `fig`, `caption` (HTML), default slot = the figure, `slot="controls"`. With an `id`, the figure's accessible name is the caption text only, never the controls. |
-| `Ph`, `PhLink` | Placeholders (above). |
+| `Ph`, `PhLink` | Placeholders (above). A filled `PhLink` to another site gets the external-link treatment below. |
 | `EventCard` | An event (`event`) or a sample (`sample`) card. |
-| `LogoSlots` | Sponsor/partner logo wall with the "Your organization here" CTA (to the join form with "sponsor" preselected). |
+| `LogoSlots` | Sponsor/partner logo wall with the "Your organization here" CTA: to `/sponsors/` by default; the Sponsors page passes its form link. Sample tiles while the list is empty. |
 | `Problem` | A practice problem with answer check, hint and solution. |
-| `Math` | `<Math tex={String.raw`…`} />` / `<Math display tex={String.raw`…`} />`, KaTeX at build time. |
-| `Band` | Closing call-to-action band ("Corollary *n*.1"). Every page ends with one, with its own figure multiplier `m`: home 3, about 6, events 4, resources 5, get-involved 7, thanks 2, sponsors 8, privacy 9. |
+| `Math` | `<Math tex={String.raw`…`} />` / `<Math display tex={String.raw`…`} />`, KaTeX at build time. Math is 1.08em everywhere (`global.css`; do not size it again locally, except to enlarge display math), and `\text{…}` is set in the page serif, as LaTeX does. |
+| `Band` | Closing call-to-action band ("Corollary *n*.1"). Every page ends with one, with its own figure multiplier `m`: home 3, about 6, events 4, resources 5, get-involved 7, thanks 2, sponsors 8, privacy 9. Under 980px the whole curve sits small under the buttons. |
 | `DefFigure`, `TimesTableFigure`, `Mark` | Home-page figures and the logo. |
 
 ## Global classes (src/styles/global.css)
@@ -134,13 +156,25 @@ tables), `details.disclose > summary + .disclose-body` (FAQ, hints), `.runhead`,
 `.rise` + `style="--d:120"` (entrance stagger, above the fold only), `.sr-only`, `.nowrap`
 (keep a phrase, or a chip and its punctuation, on one line), `.aside-box.cropped` (every side
 panel with a call to action: `.label`, `h3`, `p`, a `.btn.btn-quiet`; do not restyle it per
-page).
+page), `.sample` + `.sample-tag` (sample entries, above), `.arr` (an arrow glyph), and `.ext`
+with `.ext-tail` and `.ext-arr` (external links, below).
+
+- **External links.** One implementation everywhere: `<ResourceLink href="…">Name</ResourceLink>`
+  (and `PhLink` once filled). The last word and a small ↗ stay on one line, the arrow is not
+  underlined, and screen readers hear "(external site)". Don't hand-roll another ↗.
+- **No one-word last lines.** Headings use `text-wrap: balance` and ledes `text-wrap: pretty`, but
+  Firefox has no `pretty`, so `PageHeader`, `Section` and `Band` also pass their titles, ledes,
+  deks and text through `noWidow()` (`src/lib/text.ts`), which joins the last two words with a
+  no-break space when they are short enough to fit a phone. Use it for any other lede-like line
+  (`<p set:html={noWidow(html)} />`), or write `&nbsp;` by hand.
 
 Other shared patterns:
 
 - **Calls to action by audience.** Volunteer CTAs go to `/get-involved/?role=volunteer#join`,
-  sponsor CTAs to `/get-involved/?role=sponsor#join`, teacher CTAs to
-  `/get-involved/?role=educator#join`; the join form preselects the role from `?role=`.
+  teacher CTAs to `/get-involved/?role=educator#join`; the join form preselects the role from
+  `?role=` (student, parent, educator, volunteer, sponsor, other). Sponsor CTAs in page bodies go to
+  `/sponsors/`, which explains sponsoring; the Sponsors page's own CTAs go to
+  `/get-involved/?role=sponsor#join`.
 - **Cost tags on listing cards** (Events and Resources match): `FREE` is a solid ink tag
   (background `var(--ink)`, text `var(--paper)`); `PAID`, `FREE TIER` and `VARIES` are outlined
   (1px `var(--rule-2)` border, `var(--ink-2)` text). All share `600 12px/1 var(--sans)`,
@@ -160,6 +194,18 @@ simplified cut (disc radius 22 of 30, plus a paper keyline in the ICO) so it doe
 chart at 16 px; the header, touch icons and brand files use the true radius-26 mark. Regenerate
 icons with `npm run icons` and the social image with `npm run og` (re-run it if the home headline
 changes). In forced-colors (high contrast) mode the header mark switches to the one-color cut.
+
+## Print
+
+Teachers print the calendar and the problem sets, so `global.css` has a print stylesheet: black
+on white in either theme, no header, preview bar, footer, closing band or controls (buttons,
+figure controls, filters, answer boxes), the web address after every link to another site, and
+figures, table rows and articles kept whole. Before printing, `scripts/site.ts` opens every closed
+disclosure (FAQ answers, folded lists), finishes figures still waiting to draw in, and switches a
+dark page to light so the canvas figures redraw in ink; it puts everything back afterwards. A
+problem's Hint and Solution print only if the reader opened them, so a printed problem set is a
+worksheet by default. Give a page-specific heading block `data-keep-with-next` if it must stay
+with what follows it. Check a page with Chrome's print preview (Letter) after large changes.
 
 ## Motion
 
@@ -192,6 +238,7 @@ with `aria-describedby`, `aria-invalid`, an error summary, and a focused success
 - **Text spacing.** Layouts survive the WCAG 1.4.12 overrides at 320 px: the header's brand name
   wraps before the menu control moves, and a long word in a heading may break.
 - No reading text under 16px on phones (`.note` is 16.5px there).
+- **More contrast** is handled in the tokens (above); **print** in `global.css` (above).
 
 ## Performance
 

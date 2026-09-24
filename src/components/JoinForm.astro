@@ -13,29 +13,56 @@
  *
  * Every control starts with aria-invalid="false": without it Chrome exposes an unmet native
  * `required` (the role radios, the consent box) as "invalid" before anyone has touched the form.
+ *
+ * Role-aware copy: the page is built with NEUTRAL_COPY (hints that work for every role at once,
+ * which is all a reader without JavaScript sees). Once a role is chosen or preselected by
+ * ?role=, join-form.ts swaps each [data-copy] slot for that role's wording (a parent reads about
+ * "your child", a sponsor gets "Organization" and no Grade). One form, one API: the field names
+ * never change.
  */
 import { ROLES, GRADES, INTERESTS, LIMITS } from '../../shared/join';
+import { NEUTRAL_COPY, type Rich } from '../scripts/join-form';
 import Ph from './Ph.astro';
 
 const fmt = (n: number) => n.toLocaleString('en-US');
 const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${field}` : `join-${field}-${value}`);
+const copy = NEUTRAL_COPY;
+const richHTML = (parts: Rich) =>
+  parts
+    .map((p) => (typeof p === 'string' ? p : `<a href="${p.href}">${p.text}</a>`))
+    .join('');
 ---
 
 <div class="jf" data-join>
   <form id="join-form" class="jf-form" action="/api/join" method="post" aria-describedby="join-intro">
     {/* No role="alert": the summary takes focus when shown, which is what announces it (an alert
-         as well would read it twice). role="group" lets it carry its heading as its name. */}
-    <div id="join-error-summary" class="jf-summary" role="group" tabindex="-1" aria-labelledby="join-error-summary-h" hidden>
+         as well would read it twice). role="group" lets it carry its heading as its name, and
+         aria-describedby reads out what went wrong (the message, or the list of problems) with
+         it; join-form.ts empties whichever one is not in use. */}
+    <div
+      id="join-error-summary"
+      class="jf-summary"
+      role="group"
+      tabindex="-1"
+      aria-labelledby="join-error-summary-h"
+      aria-describedby="join-error-summary-msg join-error-summary-list"
+      hidden
+    >
       <h3 id="join-error-summary-h" data-summary-heading>Please check the form</h3>
-      <p class="jf-summary-msg" data-summary-msg hidden></p>
-      <ul class="jf-summary-list" data-summary-list></ul>
+      <p class="jf-summary-msg" id="join-error-summary-msg" data-summary-msg hidden></p>
+      <ul class="jf-summary-list" id="join-error-summary-list" data-summary-list></ul>
     </div>
 
     <div id="join-intro" class="jf-intro">
+      {/* A line for readers who arrived with a role (a sponsor, a teacher); filled by join-form.ts. */}
+      <p class="jf-note" data-copy="note" hidden set:html={richHTML(copy.note)} />
       <p>
         Four things are <b>required</b>: your name, your email, who you are, and the consent box at the end. Everything else is optional.
       </p>
-      <p class="jf-under13"><b>Under 13?</b> Please ask a parent or guardian to fill this in for you.</p>
+      <p><b>This isn’t an event sign-up.</b> It puts you in touch with us. Registering for a particular event is separate: each event listing will say how.</p>
+      <p class="jf-under13" data-copy="family">
+        <b>Filling this in for a child?</b> Use your own name and email, choose “Parent or guardian,” and tell us about your child below. Students under 13 need a parent or guardian to do this for them.
+      </p>
     </div>
 
     <div class="jf-row jf-row-2">
@@ -52,8 +79,9 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
           maxlength={LIMITS.name}
           required
           aria-invalid="false"
-          aria-describedby="join-name-error"
+          aria-describedby="join-name-hint join-name-error"
         />
+        <p class="jf-hint" id="join-name-hint" data-copy="nameHint" hidden={!copy.nameHint}>{copy.nameHint}</p>
       </div>
       <div class="jf-field" data-field="email">
         <label class="jf-label" for="join-email">Email <span class="jf-req">(required)</span></label>
@@ -90,9 +118,9 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
       </div>
     </fieldset>
 
-    <div class="jf-row jf-row-3">
-      <div class="jf-field" data-field="grade">
-        <label class="jf-label" for="join-grade">Grade <span class="jf-req">(optional)</span></label>
+    {/* Grade has a row of its own, wide enough to show its longest choice once it is picked. */}
+    <div class="jf-field jf-field-grade" data-field="grade">
+        <label class="jf-label" for="join-grade"><span data-copy="gradeLabel">{copy.gradeLabel}</span> <span class="jf-req">(optional)</span></label>
         <p class="jf-err" id="join-grade-error"></p>
         <span class="jf-select">
           <select class="jf-input" id="join-grade" name="grade" aria-invalid="false" aria-describedby="join-grade-hint join-grade-error">
@@ -100,10 +128,12 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
             {GRADES.map((g) => <option value={g.value}>{g.label}</option>)}
           </select>
         </span>
-        <p class="jf-hint" id="join-grade-hint">For students.</p>
-      </div>
+        <p class="jf-hint" id="join-grade-hint" data-copy="gradeHint">{copy.gradeHint}</p>
+    </div>
+
+    <div class="jf-row jf-row-2">
       <div class="jf-field" data-field="school">
-        <label class="jf-label" for="join-school">School <span class="jf-req">(optional)</span></label>
+        <label class="jf-label" for="join-school"><span data-copy="schoolLabel">{copy.schoolLabel}</span> <span class="jf-req">(optional)</span></label>
         <p class="jf-err" id="join-school-error"></p>
         <input
           class="jf-input"
@@ -116,7 +146,7 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
           aria-invalid="false"
           aria-describedby="join-school-hint join-school-error"
         />
-        <p class="jf-hint" id="join-school-hint">Where you study or teach.</p>
+        <p class="jf-hint" id="join-school-hint" data-copy="schoolHint">{copy.schoolHint}</p>
       </div>
       <div class="jf-field" data-field="city">
         <label class="jf-label" for="join-city">City <span class="jf-req">(optional)</span></label>
@@ -153,8 +183,8 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     </fieldset>
 
     <div class="jf-field" data-field="message">
-      <label class="jf-label" for="join-message">Message <span class="jf-req">(optional)</span></label>
-      <p class="jf-hint jf-hint-top" id="join-message-hint">A question, what you’re hoping for, or what your students need.</p>
+      <label class="jf-label" for="join-message"><span data-copy="messageLabel">{copy.messageLabel}</span> <span class="jf-req">(optional)</span></label>
+      <p class="jf-hint jf-hint-top" id="join-message-hint" data-copy="messageHint">{copy.messageHint}</p>
       <p class="jf-err" id="join-message-error"></p>
       <textarea
         class="jf-input jf-textarea"
@@ -164,9 +194,8 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
         maxlength={LIMITS.message}
         aria-invalid="false"
         aria-describedby="join-message-hint join-message-count join-message-error"></textarea>
-      <p class="jf-count" id="join-message-count" data-count-for="join-message">
-        <span data-count>0</span> of {fmt(LIMITS.message)} characters
-      </p>
+      {/* Without JavaScript this stays a true statement; join-form.ts turns it into a live count. */}
+      <p class="jf-count" id="join-message-count" data-count-for="join-message">Up to {fmt(LIMITS.message)} characters</p>
       <p class="sr-only" aria-live="polite" data-count-live></p>
     </div>
 
@@ -175,7 +204,7 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
       <label class="jf-choice jf-choice-consent">
         <input class="jf-check" type="checkbox" id="join-consent" name="consent" value="yes" required aria-invalid="false" aria-describedby="join-consent-error join-consent-hint" />
         <span>
-          It’s OK for the East Bay Math Association to contact me by email about this message, and about anything I checked above.
+          It’s OK for the East Bay Math Association to contact me by email about this form, and about anything I checked above.
           <span class="jf-req">(required)</span>
         </span>
       </label>
@@ -202,15 +231,23 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     </div>
   </form>
 
-  <section id="join-success" class="jf-success" tabindex="-1" aria-labelledby="join-success-h" hidden>
+  {/* Focused when shown: its heading names it, and aria-describedby reads the reply details and the
+       event-registration note with it, not the heading alone. */}
+  <section
+    id="join-success"
+    class="jf-success"
+    tabindex="-1"
+    aria-labelledby="join-success-h"
+    aria-describedby="join-success-reply join-success-event"
+    hidden
+  >
     <p class="label">Q.E.D.</p>
     <h3 id="join-success-h">Thanks, we got it.</h3>
-    <p>
-      We’ll reply to <strong data-success-email>your email address</strong>, usually within <span class="jf-tie"><Ph id="get-involved.response-time" />.</span>
+    <p id="join-success-reply">
+      We’ll reply to <strong data-success-email>your email address</strong>, usually within <span class="nowrap"><Ph id="get-involved.response-time" />.</span>
     </p>
-    <p>
-      While you wait, <a href="/resources/#problems">try a problem</a> or <a href="/events/">see what’s coming up</a>.
-    </p>
+    <p id="join-success-event">This puts you in touch with us; it doesn’t register anyone for an event. Each event listing will say how to sign up.</p>
+    <p data-success-next set:html={richHTML(copy.next)} />
     <div class="jf-success-foot">
       <button class="btn btn-quiet" type="button" data-join-again>Send another response</button>
       <span class="qed" aria-hidden="true"></span>
@@ -244,6 +281,19 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     font-weight: 600;
     color: var(--ink);
   }
+  /* The line for a reader who came in with a role: a margin rule, like the error state's, in ink. */
+  .jf-note {
+    padding: 2px 0 2px 14px;
+    border-left: 3px solid var(--accent);
+    color: var(--ink);
+  }
+  .jf-note :global(a) {
+    color: var(--ink);
+    text-underline-offset: 0.2em;
+  }
+  .jf-note :global(a:hover) {
+    color: var(--accent-text);
+  }
 
   /* ---------- layout ---------- */
   .jf-row {
@@ -251,11 +301,45 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     gap: 34px 24px;
     align-items: start;
   }
+  /* Side by side, the fields in a row share its rows (label, error, control, hint), so the inputs
+     line up even when one label wraps to two lines ("Your child’s grade") and its neighbor's
+     doesn't. Spacing comes from margins, so an empty error row adds no gap. Only while the
+     fields sit side by side (the width matches the container query at the end): stacked, they
+     keep the row gap between them. */
+  @supports (grid-template-rows: subgrid) {
+    @container jf (width > 480px) {
+      .jf-row {
+        row-gap: 0;
+      }
+      .jf-row > .jf-field {
+        display: grid;
+        grid-row: span 4;
+        grid-template-rows: subgrid;
+        row-gap: 0;
+      }
+      .jf-row > .jf-field > .jf-label {
+        grid-row: 1;
+        align-self: end;
+        margin-bottom: 8px;
+      }
+      .jf-row > .jf-field > .jf-err {
+        grid-row: 2;
+        margin-bottom: 8px;
+      }
+      .jf-row > .jf-field > :is(.jf-input, .jf-select) {
+        grid-row: 3;
+      }
+      .jf-row > .jf-field > .jf-hint {
+        grid-row: 4;
+        margin-top: 8px;
+      }
+    }
+  }
   .jf-row-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .jf-row-3 {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  .jf-field-grade {
+    max-width: 21rem;
   }
   .jf-field {
     min-width: 0;
@@ -622,10 +706,6 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
   .jf-success a {
     color: var(--ink);
   }
-  .jf-tie,
-  .jf-tie :global(.ph) {
-    white-space: nowrap;
-  }
   .jf-success-foot {
     display: flex;
     align-items: center;
@@ -644,26 +724,15 @@ const groupId = (field: string, value: string, i: number) => (i === 0 ? `join-${
     .jf-choices-3 {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .jf-row-3 {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .jf-row-3 > :first-child {
-      grid-column: 1 / -1;
-      max-width: calc(50% - 12px);
-    }
   }
   @container jf (max-width: 480px) {
     .jf-form {
       gap: 30px;
     }
     .jf-row-2,
-    .jf-row-3,
     .jf-choices-3,
     .jf-choices-2 {
       grid-template-columns: minmax(0, 1fr);
-    }
-    .jf-row-3 > :first-child {
-      max-width: none;
     }
     .jf-btn {
       width: 100%;

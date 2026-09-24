@@ -1,9 +1,11 @@
 ---
 /**
  * Chapter 5: Sponsors & Partners. For businesses, foundations, universities, and individual
- * donors deciding whether EBMA is worth supporting: why, where the money goes, the ways to help,
- * what sponsors receive, who is named, and how to start. Every EBMA-specific fact here is a
- * placeholder (src/data/placeholders/sponsors.ts and global.ts).
+ * donors deciding whether EBMA is worth supporting. The page header answers "is this real?"
+ * first ("For your records": legal status, tax-deductibility, contact, people); then why, where
+ * the money goes, the ways to help, what sponsors receive, who is named, and the ask itself
+ * (Table 2) beside the call to action. Every EBMA-specific fact here is a placeholder
+ * (src/data/placeholders/sponsors.ts and global.ts).
  */
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
@@ -12,46 +14,88 @@ import LogoSlots from '../components/LogoSlots.astro';
 import Band from '../components/Band.astro';
 import Ph from '../components/Ph.astro';
 import PhLink from '../components/PhLink.astro';
+import ResourceLink from '../components/ResourceLink.astro';
 import SponsorSupportFigure from '../components/SponsorSupportFigure.astro';
 import { valueOf } from '../data/placeholders';
 import { contactHref } from '../data/site';
-import { fundingUses, SAMPLE_FUNDING_ROWS } from '../data/sponsors';
+import { sponsors, fundingUses, SAMPLE_FUNDING_ROWS } from '../data/sponsors';
 
-// The join form preselects the role from ?role= (src/scripts/join-form.ts).
+// The page's own calls to action open the join form with the role preselected from ?role=
+// (src/scripts/join-form.ts); "Sponsor or partner" covers organizations of every kind.
 const sponsorFormHref = '/get-involved/?role=sponsor#join';
 const volunteerFormHref = '/get-involved/?role=volunteer#join';
-// Once filled, the packet and donation links render as real cross-reference links.
-const packetClass = valueOf('sponsors.packet') ? 'xref' : undefined;
-const donateClass = valueOf('sponsors.donate') ? 'xref' : undefined;
+
+// Links that exist only once their placeholder is filled. Until then the chip stands in, and
+// never inside a row of buttons.
+const packetUrl = valueOf('sponsors.packet');
+const donateUrl = valueOf('sponsors.donate');
+const donateExternal = donateUrl !== null && /^https?:\/\//.test(donateUrl);
+const hasSponsorContact = valueOf('sponsors.contact') !== null;
+
+// §5 names organizations only once there are some; until then the wall is a set of open slots
+// and nothing on the page implies current sponsors.
+const hasSponsors = sponsors.length > 0;
+const namedTitle = hasSponsors ? 'Current sponsors & partners' : 'Named with *thanks*';
 
 const contents = [
   { href: '#why', num: '1', title: 'Why support EBMA' },
   { href: '#uses', num: '2', title: 'Where support goes' },
   { href: '#ways', num: '3', title: 'Ways to support' },
   { href: '#recognition', num: '4', title: 'What sponsors receive' },
-  { href: '#current', num: '5', title: 'Current sponsors & partners' },
+  { href: '#current', num: '5', title: namedTitle.replace(/\*/g, '') },
   { href: '#become', num: '6', title: 'Become a sponsor' },
 ];
 ---
 
 <Base
   title="Sponsors & Partners"
-  description="Support math enrichment for East Bay students: where support goes, ways to help, what sponsors receive, and how to become a sponsor of EBMA."
+  description="Support math enrichment for East Bay students: legal and tax details, where support goes, ways to help, what sponsors receive, and how to become a sponsor of EBMA."
 >
   <PageHeader
     chapter={5}
     label="Acknowledgments"
-    note="(to everyone who makes this possible)"
+    note="(to everyone who will make this possible)"
     title="Sponsors & *partners*"
-    lede="Support from local businesses, foundations, universities, and individual donors can help East Bay students do real mathematics together. Here is why it matters, where support goes, and how to give."
+    lede="Support from local businesses, foundations, universities, and individual donors can help East Bay students do real mathematics together. Here is why it matters, where support goes, and how to give. Teach at a school or run a club? Start at <a href='/get-involved/#schools'>Schools&nbsp;&amp;&nbsp;teachers</a>."
     contents={contents}
   >
-    <Fragment slot="actions">
-      <a class="btn" href="#become">Become a sponsor <span class="arr" aria-hidden="true">↓</span></a>
-      <PhLink id="sponsors.packet" label="Sponsor packet (PDF)" class={packetClass}
-        >Sponsor packet (PDF) <span class="arr" aria-hidden="true">↓</span></PhLink
-      >
-    </Fragment>
+    <div slot="lede" class="head-more">
+      <div class="cta-row rise" style="--d:380">
+        <a class="btn" href={sponsorFormHref}>Become a sponsor <span class="arr" aria-hidden="true">→</span></a>
+        {
+          packetUrl ? (
+            <a class="xref" href={packetUrl}>
+              Sponsor packet (PDF) <span class="arr" aria-hidden="true">↓</span>
+            </a>
+          ) : (
+            <a class="xref" href="#give-details">
+              What we’re asking for <span class="arr" aria-hidden="true">↓</span>
+            </a>
+          )
+        }
+      </div>
+      <div class="front rise" style="--d:460" id="records">
+        <p class="front-h">For your records</p>
+        <dl>
+          <div>
+            <dt>Legal status</dt>
+            <dd>The East Bay Math Association is <span class="nowrap"><Ph id="org.legal-status" label="Legal status" />.</span></dd>
+          </div>
+          <div>
+            <dt>Tax-deductibility</dt>
+            <dd><Ph id="sponsors.tax-deductible" label="Tax-deductibility and EIN" /></dd>
+          </div>
+          <div>
+            <dt>Sponsorship contact</dt>
+            <dd><PhLink id="sponsors.contact" /></dd>
+          </div>
+          <div>
+            <dt>People</dt>
+            <dd><a href="/about/#people">Who runs the association</a>, on the About&nbsp;page</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
   </PageHeader>
 
   <!-- §1 -->
@@ -59,15 +103,15 @@ const contents = [
     id="why"
     num="1"
     title="Why support EBMA"
-    dek="What local math enrichment gives students, in plain terms."
+    dek="The case for supporting EBMA, in plain terms."
     note="A proposition is a claim worth proving. We think this one holds on sight, but the proof follows anyway."
   >
     <div class="why">
       <div class="why-claim">
         <p class="label">Proposition 1.1</p>
         <p class="claim">
-          Curiosity about mathematics turns up in every school in the East Bay. The chance to follow it further should not depend on which school that
-          is.
+          Curiosity about mathematics turns up in every school in the East Bay. The chance to follow it further should not depend on which school
+          that&nbsp;is.
         </p>
         <div class="why-links">
           <a class="xref" href="/about/">About the association <span class="arr" aria-hidden="true">→</span></a>
@@ -80,20 +124,20 @@ const contents = [
           <li>
             <span class="rn" aria-hidden="true">(i)</span>
             <div>
-              <h3>Close to home</h3>
+              <h3>Open to every school</h3>
               <p>
-                Enrichment nearby is enrichment students can actually reach: after school or on a weekend, with friends, without a long trip or a
-                special program to get into.
+                Not every school has a math club, a coach, or a team. EBMA aims to welcome students from any school in the East Bay, so a student whose
+                school has none still has somewhere to&nbsp;go.
               </p>
             </div>
           </li>
           <li>
             <span class="rn" aria-hidden="true">(ii)</span>
             <div>
-              <h3>Past the textbook</h3>
+              <h3>Close to home</h3>
               <p>
-                Hard problems teach students to try, get stuck, and try again, and to explain why an answer is right. Those habits outlast any single
-                test, in mathematics and well beyond it.
+                Enrichment nearby is enrichment students can actually reach: after school or on a weekend, with friends, without a long trip or a
+                special program to get&nbsp;into.
               </p>
             </div>
           </li>
@@ -102,14 +146,16 @@ const contents = [
             <div>
               <h3>In good company</h3>
               <p>
-                Meeting students from other schools who also love a hard problem makes it easier to keep going, and to aim higher than you would on
-                your own.
+                Meeting students from other schools who also love a hard problem means no one has to find that company inside their own school. It
+                makes it easier to keep going, and to aim&nbsp;higher.
               </p>
             </div>
           </li>
         </ol>
         <p class="conclude">
-          <span>Support for local math enrichment reaches students where they already are.</span><span class="qed" aria-hidden="true"></span>
+          <span>So a student’s school need not decide how far they go in mathematics. That is the work EBMA exists to do.</span><span
+            class="qed"
+            aria-hidden="true"></span>
         </p>
       </div>
     </div>
@@ -126,10 +172,10 @@ const contents = [
     <div class="uses">
       <div class="uses-text">
         <p class="uses-lede">
-          Support will pay for the practical things that turn a good problem into an afternoon students can come to. We’d rather show you than tell
-          you.
+          Support will pay for the practical things that turn a good problem into an afternoon students can come to. We’d rather show you than
+          tell&nbsp;you.
         </p>
-        <table class="table funds">
+        <table class:list={['table funds', { 'funds-sample': !fundingUses.length }]}>
           <caption class="caption">
             <b>Table 1.</b> How funds are used, published here so you can see where a gift goes before you give it.
           </caption>
@@ -148,18 +194,28 @@ const contents = [
                       <td>{u.share}</td>
                     </tr>
                   ))
-                : Array.from({ length: SAMPLE_FUNDING_ROWS }, () => (
-                    <tr>
-                      <th scope="row">
-                        <Ph id="sponsors.funding-uses" label="Use of funds" />
-                      </th>
-                      <td>
-                        <span class="skel" aria-hidden="true">
-                          —
-                        </span>
-                      </td>
-                    </tr>
-                  ))
+                : Array.from({ length: SAMPLE_FUNDING_ROWS }, (_, i) =>
+                    // The site's sample style: one tagged row with the chip, then blank ruled
+                    // rows (hidden from screen readers) so the table keeps its shape.
+                    i === 0 ? (
+                      <tr>
+                        <th scope="row">
+                          <span class="sample-tag">Sample</span>
+                          <Ph id="sponsors.funding-uses" label="Use of funds" />
+                        </th>
+                        <td>
+                          <span class="skel" aria-hidden="true">
+                            —
+                          </span>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr class="blank" aria-hidden="true">
+                        <td />
+                        <td />
+                      </tr>
+                    ),
+                  )
             }
           </tbody>
         </table>
@@ -185,7 +241,7 @@ const contents = [
     num="3"
     title="Ways to support"
     dek="Money is one way to help. Rooms, prizes, printing, and time are others."
-    note="A lemma is a smaller result that helps prove a bigger one. Each of these helps."
+    note="Mix and match: an organization can do more than one of these, and every one of them helps."
   >
     <div class="cells cells-4 ways">
       <article class="cell">
@@ -193,15 +249,16 @@ const contents = [
         <h3>Become a <em>sponsor.</em></h3>
         <p class="body">A gift from a business, foundation, or university department, recognized on this site and at events.</p>
         <ul class="gets">
-          <li>Levels: <span class="nowrap"><Ph id="sponsors.tiers" /></span></li>
+          <li>Levels: see <a href="#give-details">Table 2</a></li>
           <li>Recognition to match: <a href="#recognition">what sponsors receive</a></li>
+          <li>Tax status and contact: <a href="#records">top of this page</a></li>
         </ul>
-        <a class="xref" href="#become">Talk to us about sponsoring <span class="arr" aria-hidden="true">→</span></a>
+        <a class="xref" href={sponsorFormHref}>Talk to us about sponsoring <span class="arr" aria-hidden="true">→</span></a>
       </article>
       <article class="cell">
         <p class="label">Lemma 3.2</p>
         <h3>Give <em>in kind.</em></h3>
-        <p class="body">Not every gift is money. An organization can help with what it already has, for example:</p>
+        <p class="body">Not every gift is money. An organization can help with what it already has, for&nbsp;example:</p>
         <ul class="gets">
           <li>A room for an event</li>
           <li>Prizes or books for students</li>
@@ -213,7 +270,7 @@ const contents = [
       <article class="cell">
         <p class="label">Lemma 3.3</p>
         <h3>Give your <em>time.</em></h3>
-        <p class="body">Mathematicians, engineers, teachers, and college students: an afternoon of your time goes a long way.</p>
+        <p class="body">Mathematicians, engineers, teachers, and college students: an afternoon of your time goes a long&nbsp;way.</p>
         <ul class="gets">
           <li>Help run an event</li>
           <li>Write or check problems</li>
@@ -224,16 +281,24 @@ const contents = [
       <article class="cell" id="donors">
         <p class="label">Lemma 3.4</p>
         <h3>Give as an <em>individual.</em></h3>
-        <p class="body">Parents, neighbors, and anyone who remembers the teacher who made math click: gifts of any size help.</p>
+        <p class="body">Parents, neighbors, and anyone who remembers the teacher who made math click: gifts of any size&nbsp;help.</p>
         <ul class="gets">
           <li>
-            Online: <PhLink id="sponsors.donate" label="Donation link" class={donateClass}
-              >Give online <span class="arr" aria-hidden="true">→</span></PhLink
-            >
+            Online:{' '}
+            {
+              donateUrl === null ? (
+                <Ph id="sponsors.donate" label="Donation link" />
+              ) : donateExternal ? (
+                <ResourceLink href={donateUrl}>Give online</ResourceLink>
+              ) : (
+                <a href={donateUrl}>Give online</a>
+              )
+            }
           </li>
-          <li>By check: the mailing address is in §6</li>
+          {/* Points at the org.mailing-address row in Table 2: delete both if you take email only. */}
+          <li>By check: see <a href="#give-details">Table 2</a> for the address</li>
         </ul>
-        <a class="xref" href="#give-details">Giving and tax details <span class="arr" aria-hidden="true">→</span></a>
+        <a class="xref" href="#records">Tax and legal details <span class="arr" aria-hidden="true">↑</span></a>
       </article>
     </div>
     <p class="aside-line">
@@ -247,8 +312,8 @@ const contents = [
     id="recognition"
     num="4"
     title="What sponsors *receive*"
-    dek="Thanks in public, and an honest account in private."
-    note="A theorem is only as strong as its hypotheses. This one depends on the sponsorship level."
+    dek={'Thanks in public, and an honest account in\u00a0private.'}
+    note={'A theorem is only as strong as its hypotheses. This one depends on the sponsorship\u00a0level.'}
   >
     <div class="recv-grid">
       <div class="thm">
@@ -259,21 +324,21 @@ const contents = [
         <p class="thm-stmt">A sponsor will receive:</p>
         <ol class="recv">
           <li>
-            <span class="rl" aria-hidden="true">(a)</span>
+            <span class="rl">(a)</span>
             <div>
               <h3>Your name or logo on this site</h3>
               <p>On this page and in the acknowledgments on the <a href="/">Home</a> page, linked to your website.</p>
             </div>
           </li>
           <li>
-            <span class="rl" aria-hidden="true">(b)</span>
+            <span class="rl">(b)</span>
             <div>
               <h3>Thanks at events</h3>
-              <p>Named and thanked in person, in front of the students and families your support reaches.</p>
+              <p>Named and thanked in person, in front of the students and families your support&nbsp;reaches.</p>
             </div>
           </li>
           <li>
-            <span class="rl" aria-hidden="true">(c)</span>
+            <span class="rl">(c)</span>
             <div>
               <h3>A short impact report</h3>
               <p>
@@ -285,7 +350,8 @@ const contents = [
           </li>
         </ol>
         <p class="hyp">
-          <span class="hyp-k">Hypothesis.</span> The level you choose decides how you’re recognized in (a) and (b): <span class="nowrap"><Ph id="sponsors.tiers" /></span>
+          <span class="hyp-k">Hypothesis.</span> The level you choose decides how you’re recognized in (a) and (b). The levels are in
+          <a href="#give-details">Table 2</a>.
         </p>
       </div>
       <aside class="aside-box cropped remark">
@@ -293,7 +359,7 @@ const contents = [
         <h3>Recognition, not access.</h3>
         <p>
           Sponsorship thanks you in public. It does not come with students’ names or contact details. Our Privacy Notice explains how we handle
-          information about students and families.
+          information about students and&nbsp;families.
         </p>
         <a class="btn btn-quiet" href="/privacy/">Privacy Notice <span class="arr" aria-hidden="true">→</span></a>
       </aside>
@@ -304,9 +370,11 @@ const contents = [
   <Section
     id="current"
     num="5"
-    title="Current sponsors & partners"
-    dek="Organizations that support mathematics for East Bay students through EBMA."
-    note="Only organizations that have agreed to be named appear here."
+    title={namedTitle}
+    dek={hasSponsors
+      ? 'Organizations that support EBMA’s work with East Bay students.'
+      : 'Open slots for now: sponsors and partners will be listed here as they sign\u00a0on.'}
+    note={'Only organizations that have agreed to be named appear\u00a0here.'}
   >
     <div class="current">
       <div class="defs-col">
@@ -317,17 +385,24 @@ const contents = [
           </div>
           <div>
             <dt><span class="label">Definition 5.2</span> <dfn>Partner</dfn></dt>
-            <dd>An organization that works with EBMA on programs for students, such as a school, a library, or a university department.</dd>
+            <dd>An organization that works with EBMA on programs for students, such as a school, a library, or a university&nbsp;department.</dd>
           </div>
         </dl>
         <div class="defs-links">
-          <a class="xref" href="/get-involved/#schools">Partner with us <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href={sponsorFormHref}>Propose a partnership <span class="arr" aria-hidden="true">→</span></a>
           <a class="xref" href="/events/">Events & Competitions <span class="arr" aria-hidden="true">→</span></a>
         </div>
       </div>
       <figure class="wall">
-        <LogoSlots />
-        <figcaption class="caption"><b>Fig. 2.</b> Logos will appear here as sponsorships and partnerships are confirmed.</figcaption>
+        <LogoSlots ctaHref={sponsorFormHref} />
+        <figcaption class="caption">
+          <b>Fig. 2.</b>
+          {
+            hasSponsors
+              ? 'Sponsors and partners of the East Bay Math Association, with thanks.'
+              : 'Open slots. Logos will appear here as sponsorships and partnerships are\u00a0confirmed.'
+          }
+        </figcaption>
       </figure>
     </div>
   </Section>
@@ -337,8 +412,8 @@ const contents = [
     id="become"
     num="6"
     title="Become a *sponsor*"
-    dek="Tell us what you have in mind. We’ll reply and work out the details with you."
-    note="Unlike most problems on this site, this one has a short solution."
+    dek="What we’re asking for, and three short steps to get there."
+    note={'Unlike most problems on this site, this one has a short\u00a0solution.'}
   >
     <div class="become">
       <div class="how">
@@ -347,14 +422,16 @@ const contents = [
             <span class="step-n" aria-hidden="true">1</span>
             <div>
               <h3>Tell us you’re interested</h3>
-              <p>Use the short form, or email us. A sentence or two about what you’d like to support is plenty.</p>
+              <p>
+                Use the short form, or write to the <a href="#records">sponsorship contact</a>. A sentence or two about what you’d like to support is&nbsp;plenty.
+              </p>
             </div>
           </li>
           <li>
             <span class="step-n" aria-hidden="true">2</span>
             <div>
               <h3>Talk it through</h3>
-              <p>We’ll suggest a sponsorship level or an in-kind gift that fits, and answer any questions from your team.</p>
+              <p>We’ll suggest a level from Table 2 or an in-kind gift that fits, and answer any questions from your&nbsp;team.</p>
             </div>
           </li>
           <li>
@@ -367,32 +444,33 @@ const contents = [
         </ol>
         <div class="cta-row">
           <a class="btn" href={sponsorFormHref}>Start the conversation <span class="arr" aria-hidden="true">→</span></a>
-          <PhLink id="sponsors.packet" label="Sponsor packet (PDF)" class={packetClass}
-            >Sponsor packet (PDF) <span class="arr" aria-hidden="true">↓</span></PhLink
-          >
         </div>
       </div>
       <figure class="records" id="give-details">
         <dl>
           <div>
-            <dt>Sponsorship contact</dt>
-            <dd><PhLink id="sponsors.contact" /></dd>
+            <dt>Raising support for</dt>
+            <dd><Ph id="sponsors.current-need" label="Current need" /></dd>
           </div>
           <div>
-            <dt>Legal status</dt>
-            <dd>The East Bay Math Association is <span class="nowrap"><Ph id="org.legal-status" /></span></dd>
+            <dt>Sponsorship levels</dt>
+            <dd><Ph id="sponsors.tiers" /></dd>
           </div>
           <div>
-            <dt>Tax-deductibility</dt>
-            <dd><Ph id="sponsors.tax-deductible" /></dd>
+            <dt>Sponsor packet</dt>
+            <dd>
+              <PhLink id="sponsors.packet" label="Sponsor packet (PDF)">Download the sponsor packet (PDF)</PhLink>
+            </dd>
           </div>
+          {/* org.mailing-address; Lemma 3.4 ("By check") points here, so delete both or neither. */}
           <div>
             <dt>Checks by mail</dt>
             <dd><Ph id="org.mailing-address" /></dd>
           </div>
         </dl>
         <figcaption class="caption">
-          <b>Table 2.</b> Details for your records, for sponsors and individual donors alike. Another question? <a href={contactHref}>Contact us</a>.
+          <b>Table 2.</b> The ask in one place, for sponsors and individual donors alike. Legal status, tax-deductibility, and the sponsorship contact
+          are <a href="#records">at the top of this page</a>.
         </figcaption>
       </figure>
     </div>
@@ -402,21 +480,101 @@ const contents = [
     label="Corollary 6.1"
     m={8}
     title="Help write the next *chapter.*"
-    text="Sponsor an event, lend a room, or give an afternoon. Tell us what you have in mind, and we’ll find the right fit."
+    text="Sponsor an event, lend a room, or give an afternoon. Start from the levels in Table 2, or tell us what you have in mind."
   >
     <a class="btn" href={sponsorFormHref}>Become a sponsor <span class="arr" aria-hidden="true">→</span></a>
-    <a class="btn btn-quiet" href={contactHref}>Contact us</a>
+    {
+      hasSponsorContact ? (
+        <PhLink id="sponsors.contact" class="btn btn-quiet">
+          Email us about sponsoring
+        </PhLink>
+      ) : (
+        <a class="btn btn-quiet" href={contactHref}>
+          Contact us
+        </a>
+      )
+    }
   </Band>
 </Base>
 
 <style>
   /* Placeholder chips are 0.78em of their context; never let them drop under 12px here. */
+  .front :global(.ph),
   .why :global(.ph),
   .uses :global(.ph),
   .ways :global(.ph),
   .recv-grid :global(.ph),
   .become :global(.ph) {
     font-size: max(12px, 0.78em);
+  }
+
+  /* Reading text sets its rag with the browser's widow control; the last two words of each
+     paragraph are also joined with a no-break space in the markup for engines without it. */
+  .front dd,
+  .why p,
+  .uses p,
+  .ways .body,
+  .recv p,
+  .remark p,
+  .defs dd,
+  .steps p,
+  .records dd,
+  .caption {
+    text-wrap: pretty;
+  }
+
+  /* ---------- page header: actions, then "For your records" ---------- */
+  /* The first thing a sponsor checks is whether EBMA is real, so the legal and tax facts sit in
+     the header, set like the table of contents beside them (a ruled list under a small caps
+     heading), not in a box that competes with the call to action. */
+  .head-more .cta-row {
+    margin-top: clamp(26px, 3vw, 40px);
+  }
+  .front {
+    margin-top: clamp(30px, 3.4vw, 44px);
+    max-width: 40em;
+    border-top: 2px solid var(--ink);
+    padding-top: 14px;
+  }
+  .front-h {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  /* The rows share one label column (subgrid), as wide as the longest label. */
+  .front dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    column-gap: 28px;
+  }
+  .front dl > div {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    row-gap: 4px;
+    align-items: baseline;
+    padding: 11px 0 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .front dt {
+    font: 600 12px/1.3 var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .front dd {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  @media (max-width: 560px) {
+    .front dl,
+    .front dl > div {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   /* ---------- §1 why ---------- */
@@ -525,7 +683,32 @@ const contents = [
     font: 500 15.5px/1.4 var(--mono);
     color: var(--ink);
   }
-  /* Sample rows: the share column shows the shape of a value, not a value. */
+  /* While fundingUses is empty, Table 1 takes the site's sample style (.sample in global.css):
+     a 1px dashed outline in place of the ink rules, muted text, a "Sample" tag, one chip. The
+     caption stays outside the outline and keeps its normal color. */
+  .funds.funds-sample {
+    border: 1px dashed var(--rule-2);
+  }
+  .funds-sample thead,
+  .funds-sample tbody {
+    --ink: var(--ink-3);
+    --ink-2: var(--ink-3);
+  }
+  .funds.funds-sample th:first-child,
+  .funds.funds-sample td:first-child {
+    padding-left: 18px;
+  }
+  .funds.funds-sample thead th:last-child,
+  .funds.funds-sample td:last-child {
+    padding-right: 18px;
+  }
+  .funds-sample .sample-tag {
+    display: block;
+    margin-bottom: 8px;
+  }
+  .funds-sample .blank > td {
+    height: 3.1em;
+  }
   .skel {
     color: var(--ink-3);
   }
@@ -778,6 +961,9 @@ const contents = [
   .records dd {
     margin: 0;
     font-size: 17.5px;
+    color: var(--ink);
+  }
+  .steps a {
     color: var(--ink);
   }
 

@@ -8,8 +8,9 @@
  *
  * Storage: the D1 database bound as `DB` (see wrangler.toml and migrations/).
  * Env:
- *  - IP_SALT (secret): salts the hashed IP used for rate limiting. Without it no IP hash is
- *    stored at all and rate limiting is off (a public salt would make the hash reversible).
+ *  - IP_SALT (secret): salts the hashed IP used for the per-network rate limit. Without it no IP
+ *    hash is stored at all and only the per-email limit applies (a public salt would make the
+ *    hash reversible).
  *  - NOTIFY_WEBHOOK_URL (optional): a Slack- or Discord-compatible webhook pinged for each new
  *    submission.
  *
@@ -24,7 +25,18 @@ interface Env {
   NOTIFY_WEBHOOK_URL?: string;
 }
 
-const RATE_LIMIT = { max: 5, windowMinutes: 10 };
+/*
+ * Two limits over the same window. Per network (the salted IP hash) the ceiling is high, because a
+ * school, library, or campus puts every device behind one address and a whole class may send the
+ * form at once. Per email address it is low: one person rarely needs more than a couple of tries.
+ */
+const RATE_LIMIT = { perNetwork: 30, perEmail: 3, windowMinutes: 10 };
+const RATE_MESSAGES = {
+  'rate-email':
+    'We already have several forms from this email address from the last few minutes, so your message has reached us. To add something, please wait about 10 minutes and send it again, or email us instead.',
+  'rate-network':
+    'We’ve received a lot of forms from your network in the last few minutes (schools and campuses often share one connection). Please wait a few minutes, then try again, or email us instead.',
+} as const;
 const MIN_FILL_MS = 2000; // faster than a person can fill the form: almost certainly a bot
 const THANKS_PATH = '/get-involved/thanks/';
 /** The spam-trap field. A name no browser or password manager autofills (not "website" or "url"). */
@@ -97,22 +109,24 @@ async function handlePost({ request, env, waitUntil }: Parameters<PagesFunction<
   const salt = env.IP_SALT?.trim();
   if (!salt && !warnedNoSalt) {
     warnedNoSalt = true;
-    console.warn('join: IP_SALT is not set, so no IP hash is stored and rate limiting is off. Set it as a secret to turn rate limiting on.');
+    console.warn('join: IP_SALT is not set, so no IP hash is stored and only the per-email rate limit applies. Set it as a secret to turn on the per-network limit.');
   }
   const ip = request.headers.get('cf-connecting-ip') ?? '';
   const ipHash = salt && ip ? await sha256(`${salt}:${ip}`) : null;
 
   try {
-    if (ipHash) {
-      const recent = await env.DB.prepare(
-        `SELECT COUNT(*) AS n FROM submissions
-         WHERE ip_hash = ?1 AND created_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?2)`,
-      )
-        .bind(ipHash, `-${RATE_LIMIT.windowMinutes} minutes`)
-        .first<{ n: number }>();
-      if ((recent?.n ?? 0) >= RATE_LIMIT.max) {
-        return reply.error(429, 'We’ve received several forms from you in the last few minutes. Please wait a little while, then try again.');
-      }
+    // One pass over the last few minutes (idx_submissions_created) counts both. The email is
+    // already lowercased by validateJoin, as stored. With no IP hash, `ip_hash = NULL` counts 0.
+    const recent = await env.DB.prepare(
+      `SELECT COALESCE(SUM(email = ?1), 0) AS by_email, COALESCE(SUM(ip_hash = ?2), 0) AS by_network
+       FROM submissions WHERE created_at > strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?3)`,
+    )
+      .bind(values.email, ipHash, `-${RATE_LIMIT.windowMinutes} minutes`)
+      .first<{ by_email: number; by_network: number }>();
+    const limited =
+      (recent?.by_email ?? 0) >= RATE_LIMIT.perEmail ? 'rate-email' : (recent?.by_network ?? 0) >= RATE_LIMIT.perNetwork ? 'rate-network' : null;
+    if (limited) {
+      return reply.error(429, RATE_MESSAGES[limited], { code: limited, retryAfter: RATE_LIMIT.windowMinutes * 60 });
     }
 
     await env.DB.prepare(
@@ -230,8 +244,11 @@ function responder(wantsJSON: boolean) {
       wantsJSON
         ? json(422, { ok: false, errors })
         : errorPage(422, 'Please fix the following, then send it again:', Object.values(errors)),
-    error: async (status: number, message: string) =>
-      wantsJSON ? json(status, { ok: false, message }) : errorPage(status, message, []),
+    error: async (status: number, message: string, extra: { code?: string; retryAfter?: number } = {}) => {
+      const res = wantsJSON ? json(status, { ok: false, message, ...(extra.code && { code: extra.code }) }) : await errorPage(status, message, []);
+      if (extra.retryAfter) res.headers.set('retry-after', String(extra.retryAfter));
+      return res;
+    },
   };
 }
 

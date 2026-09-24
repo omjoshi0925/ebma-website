@@ -6,17 +6,130 @@
  * an error summary that takes focus, a fetch() submit that keeps the reader on the page, server
  * field errors mapped back onto the fields, and a focused success message.
  */
-import { INTERESTS, LIMITS, ROLES, validateJoin, type JoinErrors, type JoinField, type JoinInput } from '../../shared/join';
+import { INTERESTS, LIMITS, ROLES, validateJoin, type JoinErrors, type JoinField, type JoinInput, type Role } from '../../shared/join';
 
 const FIELDS: JoinField[] = ['name', 'email', 'role', 'grade', 'school', 'city', 'interests', 'message', 'consent'];
+
+/* ---------- what the form says, by role ---------- */
+
+/** A line of copy that may hold links: plain strings and { href, text } pieces, in order. */
+export type Rich = (string | { href: string; text: string })[];
+
+export interface RoleCopy {
+  /** Under Name. Empty hides it. */
+  nameHint: string;
+  /** null hides the Grade field and leaves it out of the submission. */
+  gradeLabel: string | null;
+  gradeHint: string;
+  schoolLabel: string;
+  schoolHint: string;
+  messageLabel: string;
+  messageHint: string;
+  /** A line at the top of the form, for readers who came in with this role. Empty for none. */
+  note: Rich;
+  /** Show the intro's "Filling this in for a child?" line (not for sponsors or teachers). */
+  family: boolean;
+  /** The success message's "while you wait" line. */
+  next: Rich;
+}
+
+/**
+ * What the page is built with, so all that a reader without JavaScript (or who hasn't chosen a
+ * role yet) sees. Every hint has to work for every role at once.
+ */
+export const NEUTRAL_COPY: RoleCopy = {
+  nameHint: '',
+  gradeLabel: 'Grade',
+  gradeHint: 'Yours, your child’s, or the grade you teach.',
+  schoolLabel: 'School or organization',
+  schoolHint: 'Your school, your child’s, or the organization you represent.',
+  messageLabel: 'Message',
+  messageHint: 'A question, what you’re hoping for, or anything we should know. Parents: tell us a little about your child.',
+  note: [],
+  family: true,
+  next: ['While you wait, ', { href: '/resources/#problems', text: 'try a problem' }, ' or ', { href: '/events/', text: 'see what’s coming up' }, '.'],
+};
+
+/** Once a role is chosen (or preselected by ?role=), the parts that differ from the neutral copy. */
+const ROLE_COPY: Record<Role, Partial<RoleCopy>> = {
+  student: {
+    gradeLabel: 'Your grade',
+    gradeHint: 'Your grade this school year.',
+    schoolLabel: 'Your school',
+    schoolHint: 'Where you go to school.',
+    messageHint: 'A question, or the kind of math you enjoy.',
+  },
+  parent: {
+    nameHint: 'Your own name. Tell us about your child in the fields below.',
+    gradeLabel: 'Your child’s grade',
+    gradeHint: 'More than one child? Say so in your message.',
+    schoolLabel: 'Your child’s school',
+    schoolHint: 'Where your child goes to school.',
+    messageLabel: 'Tell us about your child',
+    messageHint: 'What they enjoy, what they’d like to try, and any question you have.',
+    next: ['While you wait, ', { href: '/about/#faq', text: 'read the questions parents ask' }, ' or ', { href: '/events/', text: 'see what’s coming up' }, '.'],
+  },
+  educator: {
+    gradeLabel: 'Grade you teach',
+    gradeHint: 'The main one. Mention any others in your message.',
+    schoolLabel: 'Your school',
+    schoolHint: 'Where you teach.',
+    messageHint: 'What your students need, and what you have in mind.',
+    family: false,
+    note: ['Writing as a teacher? This form is the first step; ', { href: '#schools', text: '§3 explains how partnering works' }, '.'],
+    next: ['While you wait, ', { href: '#schools', text: 'read how partnering works' }, ' or ', { href: '/events/', text: 'see what’s coming up' }, '.'],
+  },
+  volunteer: {
+    gradeLabel: 'Your grade',
+    gradeHint: 'Only if you’re a student yourself.',
+    schoolLabel: 'School or workplace',
+    schoolHint: 'Where you study or work, if you’d like to say.',
+    messageHint: 'How you’d like to help (coaching, writing problems, checking answers, or running an event) and roughly when you’re free.',
+  },
+  sponsor: {
+    gradeLabel: null,
+    schoolLabel: 'Organization',
+    schoolHint: 'The business, school, or group you represent.',
+    messageHint: 'What you’d like to support: a competition, an event space, prizes, printing, or something else.',
+    family: false,
+    note: ['Sponsoring or partnering? Tell us your organization below. How support works is on ', { href: '/sponsors/', text: 'Sponsors & Partners' }, '.'],
+    next: ['While you wait, ', { href: '/sponsors/#uses', text: 'see where support goes' }, '.'],
+  },
+  other: {
+    messageHint: 'Anything at all: a question, an idea, or just hello.',
+  },
+};
+
+const isRole = (v: string | null | undefined): v is Role => ROLES.some((r) => r.value === v);
+const copyFor = (role: string | null | undefined): RoleCopy => ({ ...NEUTRAL_COPY, ...(isRole(role) ? ROLE_COPY[role] : {}) });
+
+/** Fills an element with a Rich line (links built as elements, never parsed from HTML). */
+function renderRich(el: HTMLElement, parts: Rich): void {
+  el.replaceChildren(
+    ...parts.map((p) => {
+      if (typeof p === 'string') return p;
+      const a = document.createElement('a');
+      a.href = p.href;
+      a.textContent = p.text;
+      return a;
+    }),
+  );
+}
+
+/* ---------- failures ---------- */
 
 const SEND_FAILED = 'We couldn’t send your form';
 /** Our own wording for each failure. The server's `message` is for the no-JavaScript error page. */
 const STATUS_MESSAGES: Record<number, string> = {
   400: 'We couldn’t read that form. Please reload the page and try again.',
   403: 'This form can only be sent from the EBMA website. Please reload the page and try again.',
-  429: 'We’ve received several forms from you in the last few minutes. Please wait a little while, then try again.',
+  429: 'We’ve received a lot of forms from your network in the last few minutes (schools and campuses often share one connection). Please wait a few minutes, then try again, or email us instead (see §4, Get in touch).',
   503: 'The form isn’t taking messages right now. Please email us instead (see §4, Get in touch).',
+};
+/** The server says which limit a 429 hit (functions/api/join.ts). */
+const RATE_MESSAGES: Record<string, string> = {
+  'rate-email':
+    'We already have several forms from this email address from the last few minutes, so your message has reached us. To add something, please wait about 10 minutes and send it again, or email us instead (see §4, Get in touch).',
 };
 const FALLBACK_MESSAGE = 'Something went wrong on our end. Please try again in a minute, or email us instead (see §4, Get in touch).';
 const OFFLINE_MESSAGE = 'We couldn’t reach our server. Check your internet connection and try again, or email us instead (see §4, Get in touch).';
@@ -53,17 +166,53 @@ export function mountJoinForm(form: HTMLFormElement): void {
   // timestamp, so a device clock that is off can't make a person look like a bot.
   const openedAt = performance.now();
 
+  /* ---------- the chosen role reshapes labels and hints ---------- */
+  const copySlot = (key: keyof RoleCopy) => root.querySelector<HTMLElement>(`[data-copy="${key}"]`);
+  const gradeField = form.querySelector<HTMLElement>('.jf-field[data-field="grade"]');
+  const gradeSelect = form.querySelector<HTMLSelectElement>('select[name="grade"]');
+  const checkedRole = () => form.querySelector<HTMLInputElement>('input[name="role"]:checked')?.value ?? null;
+  let currentCopy: RoleCopy = NEUTRAL_COPY;
+
+  const applyRoleCopy = () => {
+    const copy = copyFor(checkedRole());
+    currentCopy = copy;
+    for (const key of ['gradeHint', 'schoolLabel', 'schoolHint', 'messageLabel', 'messageHint'] as const) {
+      const el = copySlot(key);
+      if (el && el.textContent !== copy[key]) el.textContent = copy[key];
+    }
+    const nameHint = copySlot('nameHint');
+    if (nameHint) {
+      nameHint.textContent = copy.nameHint;
+      nameHint.hidden = !copy.nameHint;
+    }
+    const note = copySlot('note');
+    if (note) {
+      renderRich(note, copy.note);
+      note.hidden = copy.note.length === 0;
+    }
+    const family = copySlot('family');
+    if (family) family.hidden = !copy.family;
+    // No grade for sponsors: the field goes, and a disabled select is left out of the submission.
+    const noGrade = copy.gradeLabel === null;
+    const gradeLabel = copySlot('gradeLabel');
+    if (gradeLabel && copy.gradeLabel) gradeLabel.textContent = copy.gradeLabel;
+    if (gradeField) gradeField.hidden = noGrade;
+    if (gradeSelect) gradeSelect.disabled = noGrade;
+    if (noGrade && shown.has('grade')) setError('grade', undefined);
+  };
+
   /* ---------- ?role=sponsor → preselect the matching radio ---------- */
   const applyRoleFromURL = () => {
     const wanted = new URLSearchParams(location.search).get('role');
-    if (!wanted || !ROLES.some((r) => r.value === wanted)) return;
-    const radio = form.querySelector<HTMLInputElement>(`input[name="role"][value="${wanted}"]`);
-    if (radio) radio.checked = true;
-    const interest = ROLE_INTEREST[wanted];
-    const box = interest && form.querySelector<HTMLInputElement>(`input[name="interests"][value="${interest}"]`);
-    if (box) box.checked = true;
+    if (isRole(wanted)) {
+      const radio = form.querySelector<HTMLInputElement>(`input[name="role"][value="${wanted}"]`);
+      if (radio) radio.checked = true;
+      const interest = ROLE_INTEREST[wanted];
+      const box = interest && form.querySelector<HTMLInputElement>(`input[name="interests"][value="${interest}"]`);
+      if (box) box.checked = true;
+    }
+    applyRoleCopy();
   };
-  applyRoleFromURL();
 
   /* ---------- reading the form ---------- */
   const read = (): JoinInput => {
@@ -171,6 +320,7 @@ export function mountJoinForm(form: HTMLFormElement): void {
   });
   form.addEventListener('change', (e) => {
     const field = fieldOf(e.target);
+    if (field === 'role') applyRoleCopy();
     if (field) recheck(field, true);
   });
   form.addEventListener('focusout', (e) => {
@@ -179,13 +329,16 @@ export function mountJoinForm(form: HTMLFormElement): void {
   });
 
   /* ---------- message character count ---------- */
+  // The page says "Up to 2,000 characters", which stays true without JavaScript; the live count
+  // replaces it here.
   const message = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
   const count = form.querySelector<HTMLElement>('[data-count-for="join-message"]');
-  const countNum = count?.querySelector<HTMLElement>('[data-count]');
+  const countNum = document.createElement('span');
+  count?.replaceChildren(countNum, ` of ${LIMITS.message.toLocaleString('en-US')} characters`);
   const countLive = form.querySelector<HTMLElement>('[data-count-live]');
   let lastBand = -1;
   const updateCount = () => {
-    if (!message || !count || !countNum) return;
+    if (!message || !count) return;
     const used = message.value.length;
     const left = LIMITS.message - used;
     countNum.textContent = used.toLocaleString('en-US');
@@ -199,6 +352,10 @@ export function mountJoinForm(form: HTMLFormElement): void {
   };
   message?.addEventListener('input', updateCount);
   updateCount();
+
+  applyRoleFromURL();
+  // A restored page (Back/Forward) may come back with a different role checked.
+  addEventListener('pageshow', applyRoleCopy);
 
   /** Back to a blank form (plus any ?role= preselection), with no errors showing. */
   const clearForm = () => {
@@ -225,6 +382,9 @@ export function mountJoinForm(form: HTMLFormElement): void {
   const showSuccess = (email: string) => {
     const out = success.querySelector<HTMLElement>('[data-success-email]');
     if (out && email) out.textContent = email;
+    // The "while you wait" line suits whoever just wrote (read before the form is cleared).
+    const next = success.querySelector<HTMLElement>('[data-success-next]');
+    if (next) renderRich(next, currentCopy.next);
     // Empty the form now, so Back/Forward can't bring it back filled in and invite a duplicate.
     clearForm();
     form.hidden = true;
@@ -254,7 +414,7 @@ export function mountJoinForm(form: HTMLFormElement): void {
         body: new FormData(form),
         credentials: 'same-origin',
       });
-      const data = (await res.json().catch(() => null)) as { ok?: boolean; errors?: JoinErrors } | null;
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; errors?: JoinErrors; code?: string } | null;
       // Only our API's own `{ ok: true }` is a success: a captive portal or proxy page is not.
       if (res.ok && data?.ok === true) {
         showSuccess(values.email);
@@ -262,7 +422,8 @@ export function mountJoinForm(form: HTMLFormElement): void {
         renderErrors(data.errors);
         showSummary('Please check the form');
       } else {
-        showSummary(SEND_FAILED, STATUS_MESSAGES[res.status] ?? FALLBACK_MESSAGE);
+        const byCode = res.status === 429 && data?.code ? RATE_MESSAGES[data.code] : undefined;
+        showSummary(SEND_FAILED, byCode ?? STATUS_MESSAGES[res.status] ?? FALLBACK_MESSAGE);
       }
     } catch {
       showSummary(SEND_FAILED, OFFLINE_MESSAGE);

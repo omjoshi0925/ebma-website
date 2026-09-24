@@ -4,14 +4,18 @@
  * category (3.1–3.4) and numbered like references ([1]–[n]).
  *
  * Without JavaScript it is simply the full grouped list. With JavaScript a filter bar appears
- * (src/scripts/resources-filter.ts): category buttons and a "Free only" toggle, all
- * aria-pressed, then a live count ("Showing 13 of 40 resources: Practice online"). The bar is
- * one row that scrolls sideways when it doesn't fit, and it stays under the site header while
- * you scroll through the library, so the filters are always one tap away (forty cards is a long
- * way on a phone).
+ * (src/scripts/resources-filter.ts): a Type row (one category, or all), a Level row (middle
+ * school, high school, or all levels, from each listing's `grades`) and a "Free only" toggle, all
+ * aria-pressed, then a live count ("Showing 9 of 40 resources: Summer programs, middle school").
+ * The rows wrap, so every filter is always on screen, at any width or zoom.
+ *
+ * While you scroll through the library the bar stays under the site header when it is short
+ * enough (two rows on a wide screen). Otherwise the count line stays there instead, with a
+ * "Change filters" button that goes back up to the bar. Links and cards in the library scroll
+ * clear of whichever one is stuck (--lib-stick, set by the script).
  */
 import ResourceCard from './ResourceCard.astro';
-import { categories, resources, isFree } from '../data/resources';
+import { categories, resources, isFree, levelsOf, schoolLevels } from '../data/resources';
 
 let n = 0;
 const groups = categories.map((c, i) => ({
@@ -21,6 +25,7 @@ const groups = categories.map((c, i) => ({
 }));
 const total = resources.length;
 const freeTotal = resources.filter(isFree).length;
+const levels = schoolLevels.map((l) => ({ ...l, count: resources.filter((r) => levelsOf(r).includes(l.id)).length }));
 // "Two are free; the rest offer need-based aid." stays true to the data (every paid summer
 // program in the verified list mentions need-based aid).
 const summerFree = resources.filter((r) => r.category === 'summer' && isFree(r)).length;
@@ -38,27 +43,50 @@ const headingParts = (title: string) =>
 
 <div class="lib" data-lib>
   <p class="lib-bar-h" id="lib-filter-h" data-lib-ui hidden>Filter the library</p>
-  <div class="lib-bar" data-lib-bar hidden>
-    <div class="lib-scroll" data-lib-scroll>
-      <div class="lib-cats" role="group" aria-labelledby="lib-filter-h">
-        <button type="button" class="lib-btn" aria-pressed="true" data-filter-cat="all">
-          All <span class="lib-n" aria-hidden="true">{total}</span>
-        </button>
-        {
-          groups.map((g) => (
-            <button type="button" class="lib-btn" aria-pressed="false" data-filter-cat={g.id} data-label={g.short}>
-              {g.short} <span class="lib-n" aria-hidden="true">{g.items.length}</span>
-            </button>
-          ))
-        }
+  <div class="lib-bar" role="group" aria-labelledby="lib-filter-h" data-lib-bar hidden>
+    <div class="lib-row">
+      <p class="lib-row-h" id="lib-type-h" aria-hidden="true">Type</p>
+      <div class="lib-row-body">
+        <div class="lib-opts" role="group" aria-labelledby="lib-type-h">
+          <button type="button" class="lib-btn" aria-pressed="true" data-filter-cat="all">
+            All types <span class="lib-n" aria-hidden="true">{total}</span>
+          </button>
+          {
+            groups.map((g) => (
+              <button type="button" class="lib-btn" aria-pressed="false" data-filter-cat={g.id} data-label={g.short}>
+                {g.short} <span class="lib-n" aria-hidden="true">{g.items.length}</span>
+              </button>
+            ))
+          }
+        </div>
       </div>
-      <span class="lib-sep" aria-hidden="true"></span>
-      <button type="button" class="lib-btn lib-free" aria-pressed="false" data-filter-free>
-        <span class="lib-box" aria-hidden="true"></span>Free only <span class="lib-n" aria-hidden="true">{freeTotal}</span>
-      </button>
+    </div>
+    <div class="lib-row">
+      <p class="lib-row-h" id="lib-level-h" aria-hidden="true">Level</p>
+      <div class="lib-row-body">
+        <div class="lib-opts" role="group" aria-labelledby="lib-level-h">
+          <button type="button" class="lib-btn" aria-pressed="true" data-filter-level="all">
+            All levels <span class="lib-n" aria-hidden="true">{total}</span>
+          </button>
+          {
+            levels.map((l) => (
+              <button type="button" class="lib-btn" aria-pressed="false" data-filter-level={l.id} data-label={l.label.toLowerCase()}>
+                {l.label} <span class="lib-n" aria-hidden="true">{l.count}</span>
+              </button>
+            ))
+          }
+        </div>
+        <span class="lib-sep" aria-hidden="true"></span>
+        <button type="button" class="lib-btn lib-free" aria-pressed="false" data-filter-free>
+          <span class="lib-box" aria-hidden="true"></span>Free only <span class="lib-n" aria-hidden="true">{freeTotal}</span>
+        </button>
+      </div>
     </div>
   </div>
-  <p class="lib-status" role="status" data-lib-status data-lib-ui hidden>Showing all {total} resources</p>
+  <div class="lib-strip" data-lib-strip data-lib-ui hidden>
+    <p class="lib-status" role="status" data-lib-status>Showing all {total} resources</p>
+    <button type="button" class="lib-link lib-jump" data-lib-jump>Change filters <span class="arr" aria-hidden="true">↑</span></button>
+  </div>
 
   {
     groups.map((g) => (
@@ -72,8 +100,8 @@ const headingParts = (title: string) =>
             {g.id === 'practice' && <>Problem sets, lessons, videos, and tools. Everything in this group is free to use.</>}
             {g.id === 'local' && (
               <>
-                Math circles, festivals, and other programs based in the Bay Area. Looking for contests? BAMO and the Berkeley and Stanford math
-                tournaments are listed on the <a href="/events/#competitions">Events &amp; Competitions</a> page.
+                Math circles (math clubs built around solving problems together), festivals, and other programs based in the Bay Area. Looking for
+                contests? BAMO and the Berkeley and Stanford math tournaments are listed on the <a href="/events/#competitions">Events &amp; Competitions</a> page.
               </>
             )}
             {g.id === 'summer' && (
@@ -87,7 +115,7 @@ const headingParts = (title: string) =>
         </div>
         <ul class="lib-grid" role="list">
           {g.items.map(({ r, num }) => (
-            <li data-res data-cat={r.category} data-free={isFree(r) ? '1' : '0'}>
+            <li data-res data-cat={r.category} data-levels={levelsOf(r).join(' ')} data-free={isFree(r) ? '1' : '0'}>
               <ResourceCard resource={r} num={num} />
             </li>
           ))}
@@ -97,7 +125,7 @@ const headingParts = (title: string) =>
   }
 
   <p class="lib-empty" data-lib-empty hidden>
-    Nothing matches those filters. <button type="button" class="lib-reset" data-lib-reset>Show all resources</button>
+    Nothing matches those filters. <button type="button" class="lib-link lib-reset" data-lib-reset>Show all resources</button>
   </p>
 </div>
 
@@ -116,67 +144,58 @@ const headingParts = (title: string) =>
     letter-spacing: 0.16em;
     text-transform: uppercase;
   }
-  /* One row of buttons that stays under the site header while the library scrolls past (the
-     bar's containing block is the whole library, so it lets go after the last group). */
+  /* Two labeled rows, Type and Level (with Free only). Buttons wrap onto more lines rather than
+     scroll sideways, so every filter is on screen at any width or zoom. */
   .lib-bar {
-    position: sticky;
-    top: var(--head-h);
-    z-index: 5;
-    padding: 10px 0;
+    container: libbar / inline-size;
+    display: grid;
+    gap: 8px;
+    padding: 12px 0;
     background: var(--paper) var(--grain);
     border-bottom: 1px solid var(--rule-2);
   }
-  /* Scrolls sideways when the row is wider than the column. The 6px of padding keeps focus rings
-     inside the scroll box, where they would otherwise be clipped. */
-  .lib-scroll {
+  .lib-row {
+    display: grid;
+    grid-template-columns: 4.6em minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+  }
+  /* The row label sits level with the middle of the first line of buttons. */
+  .lib-row-h {
+    padding-top: calc((44px - 1em) / 2);
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .lib-row-body,
+  .lib-opts {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    margin: -6px;
-    padding: 6px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-padding-inline: 6px;
-    scrollbar-width: none;
-  }
-  .lib-scroll::-webkit-scrollbar {
-    display: none;
-  }
-  /* A fade on the side that has more buttons to scroll to (set by the script). */
-  .lib-bar[data-more='right'] .lib-scroll {
-    mask-image: linear-gradient(to right, black calc(100% - 48px), transparent);
-  }
-  .lib-bar[data-more='left'] .lib-scroll {
-    mask-image: linear-gradient(to left, black calc(100% - 48px), transparent);
-  }
-  .lib-bar[data-more='both'] .lib-scroll {
-    mask-image: linear-gradient(to right, transparent, black 48px, black calc(100% - 48px), transparent);
-  }
-  .lib-cats {
-    display: flex;
-    gap: 8px;
-    flex: none;
+    min-width: 0;
   }
   .lib-sep {
     flex: none;
-    height: 28px;
-    margin: 0 6px;
+    align-self: stretch;
+    margin: 6px 6px;
     border-left: 1px solid var(--rule-2);
   }
   .lib-btn {
-    flex: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     min-height: 44px;
+    max-width: 100%;
     padding: 0 14px;
     background: transparent;
     border: 1px solid var(--rule-2);
     border-radius: 0;
     color: var(--ink);
     font: 600 14.5px/1.1 var(--sans);
-    white-space: nowrap;
+    text-align: left;
     cursor: pointer;
     transition:
       background-color 0.15s,
@@ -190,16 +209,16 @@ const headingParts = (title: string) =>
     font: 500 12.5px/1 var(--mono);
     color: var(--ink-3);
   }
-  .lib-cats .lib-btn[aria-pressed='true'] {
+  .lib-opts .lib-btn[aria-pressed='true'] {
     background: var(--ink);
     border-color: var(--ink);
     color: var(--paper);
   }
-  .lib-cats .lib-btn[aria-pressed='true'] .lib-n {
+  .lib-opts .lib-btn[aria-pressed='true'] .lib-n {
     color: var(--paper);
     opacity: 0.8;
   }
-  /* "Free only" reads as a checkbox-style toggle, set apart from the category group. */
+  /* "Free only" reads as a checkbox-style toggle, set apart from the level group. */
   .lib-box {
     width: 16px;
     height: 16px;
@@ -224,30 +243,84 @@ const headingParts = (title: string) =>
     border-width: 0 2px 2px 0;
     transform: translateY(-1px) rotate(45deg);
   }
-  .lib-status {
+
+  /* The count line, and "Change filters" once the bar has scrolled away. */
+  .lib-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
     margin-top: 12px;
+  }
+  .lib-status {
+    flex: 0 1 auto;
+    min-width: 0;
     font: 500 13px/1.4 var(--mono);
     color: var(--ink-3);
   }
-  /* Short landscape screens: the header already takes a fifth of the height, so the bar scrolls
-     away with the page instead of sticking. */
-  @media (max-height: 540px) {
-    .lib-bar {
-      position: static;
+  .lib-jump {
+    flex: none;
+    display: none;
+  }
+  /* Text buttons: "Change filters ↑" and "Show all resources". */
+  .lib-link {
+    min-height: 32px;
+    padding: 6px 0 3px;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--rule-2);
+    font: 600 15px/1.3 var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .lib-link:hover {
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+  @media (pointer: coarse) {
+    .lib-link {
+      min-height: 44px;
     }
+  }
+
+  /* What stays under the site header (the script sets data-stick): the whole bar when it is
+     short, else the count line. On short screens (landscape phones, high zoom), neither. */
+  .lib[data-stick='bar'] .lib-bar,
+  .lib[data-stick='strip'] .lib-strip {
+    position: sticky;
+    top: var(--head-h);
+    z-index: 5;
+  }
+  .lib[data-stick='strip'] .lib-strip {
+    margin-top: 0;
+    padding: 6px 0;
+    background: var(--paper) var(--grain);
+    border-bottom: 1px solid transparent;
+  }
+  .lib[data-stick='strip'][data-past] .lib-strip {
+    border-bottom-color: var(--rule-2);
+  }
+  /* The button keeps its room while hidden, so the strip never changes height mid-scroll. */
+  .lib[data-stick='strip'] .lib-jump {
+    display: block;
+    visibility: hidden;
+  }
+  .lib[data-stick='strip'][data-past] .lib-jump,
+  .lib[data-stick='strip'] .lib-jump:focus {
+    visibility: visible;
   }
 
   /* Windows High Contrast and other forced-color modes drop backgrounds, which is how a pressed
      button shows. Use the system highlight colors instead, so the current filter stays visible. */
   @media (forced-colors: active) {
-    .lib-cats .lib-btn[aria-pressed='true'],
+    .lib-opts .lib-btn[aria-pressed='true'],
     .lib-free[aria-pressed='true'] {
       forced-color-adjust: none;
       background: Highlight;
       border-color: Highlight;
       color: HighlightText;
     }
-    .lib-cats .lib-btn[aria-pressed='true'] .lib-n,
+    .lib-opts .lib-btn[aria-pressed='true'] .lib-n,
     .lib-free[aria-pressed='true'] .lib-n {
       color: HighlightText;
       opacity: 1;
@@ -259,16 +332,23 @@ const headingParts = (title: string) =>
     .lib-free[aria-pressed='true'] .lib-box::after {
       border-color: Highlight;
     }
+    .lib-sep {
+      border-color: CanvasText;
+    }
   }
 
   /* ---------- groups ---------- */
   .lib-group {
     padding-top: clamp(36px, 4vw, 56px);
   }
-  /* In-page links to a group or a card land below the sticky bar, not under it. */
+  /* In-page links to a group or a card, and keyboard focus moving back up the list, land below
+     whatever is stuck under the header (the bar or the count line), never under it. The page's
+     scroll-padding already clears the header. */
   :global(html.js) .lib-group,
-  :global(html.js) .lib-grid :global(.res) {
-    scroll-margin-top: 72px;
+  :global(html.js) .lib-grid :global(.res),
+  :global(html.js) .lib-group :global(a),
+  :global(html.js) .lib-empty button {
+    scroll-margin-top: calc(var(--lib-stick, 0px) + 4px);
   }
   .lib-group-head {
     display: grid;
@@ -324,18 +404,6 @@ const headingParts = (title: string) =>
   }
   .lib-reset {
     margin-left: 0.4em;
-    padding: 6px 0 3px;
-    min-height: 32px;
-    background: none;
-    border: 0;
-    border-bottom: 1px solid var(--rule-2);
-    font: 600 15px/1.3 var(--sans);
-    color: var(--ink);
-    cursor: pointer;
-  }
-  .lib-reset:hover {
-    border-color: var(--accent);
-    color: var(--accent-text);
   }
 
   @media (max-width: 760px) {
@@ -344,10 +412,25 @@ const headingParts = (title: string) =>
       margin-bottom: 20px;
     }
   }
-  @media (max-width: 620px) {
-    .lib-bar {
-      padding: 8px 0;
+  /* A column too narrow for the Level row on one line (phones, tablets in portrait, a desktop at
+     200% zoom and more): each label goes above its buttons, which get the full width, and "Free
+     only" drops the separator, since it would start a line. */
+  @container libbar (max-width: 660px) {
+    .lib-row {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 8px;
     }
+    .lib-row + .lib-row {
+      margin-top: 4px;
+    }
+    .lib-row-h {
+      padding-top: 0;
+    }
+    .lib-sep {
+      display: none;
+    }
+  }
+  @media (max-width: 620px) {
     .lib-group {
       padding-top: 32px;
     }

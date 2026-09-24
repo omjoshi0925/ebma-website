@@ -43,8 +43,8 @@ export default define({
   },
   'org.mailing-address': {
     label: 'Mailing address',
-    note: 'A postal address for sponsor paperwork and checks. Optional; leave null and delete the line if you prefer email only.',
-    pages: ['/sponsors/', '/privacy/'],
+    note: 'A postal address for sponsor paperwork and checks. Optional: if you prefer email only, leave it null and remove its lines on the pages listed.',
+    pages: ['/sponsors/', '/get-involved/', '/privacy/'],
     example: 'PO Box 000, Berkeley, CA 94700',
     value: null,
   },
@@ -64,7 +64,7 @@ export default define({
   },
   'org.eligibility': {
     label: 'Who can join (grades / ages / area)',
-    note: 'Which students can take part: grade range or ages, and whether they must live or attend school in a particular part of the East Bay.',
+    note: 'Which students can take part: grade range or ages, and whether they must live or attend school in a particular part of the East Bay. Once this is filled, make the join form’s grade list (GRADES in shared/join.ts) match it.',
     pages: ['/about/', '/get-involved/'],
     example: 'Students in grades 6–12 who live or go to school in Alameda or Contra Costa County.',
     value: null,

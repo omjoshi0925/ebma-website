@@ -9,6 +9,10 @@
  * rounded decimal for a fraction with no exact decimal (0.9995 for 2025/2026) is called close,
  * with a nudge to give the exact fraction. Spaces inside a number are not ignored, so "8 9" is
  * not read as 89.
+ *
+ * A right answer is marked with more than color: a ∎ fills in beside "Correct.", the answer box
+ * takes a heavier ink edge, and a link to the next problem appears (the next one on the page, or
+ * the full set on Student Resources when this is the only one).
  */
 import 'katex/dist/katex.min.css';
 import { renderTeX } from '../lib/tex';
@@ -63,6 +67,11 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
           <button type="submit" class="btn btn-quiet">Check</button>
         </div>
         <p class="check-out" id={`${uid}-out`} role="status" />
+        <p class="check-next" hidden>
+          <a class="xref" href="/resources/#problems">
+            <span class="check-next-t">More problems to try</span> <span class="arr" aria-hidden="true">→</span>
+          </a>
+        </p>
       </form>
     )
   }
@@ -110,6 +119,10 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
   .statement + .disclose {
     margin-top: 24px;
   }
+  /* Display math: a little smaller on narrow phones so it fits, and it scrolls inside its own
+     box (never the page) if a reader's font settings still make it too wide; the script makes an
+     overflowing box focusable so it can be scrolled from the keyboard. Inline math takes the
+     site-wide KaTeX size (global.css). */
   .problem :global(.katex-display) {
     overflow-x: auto;
     overflow-y: hidden;
@@ -118,6 +131,16 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
   @media (max-width: 480px) {
     .problem :global(.katex-display > .katex) {
       font-size: 1em;
+    }
+  }
+  @media (max-width: 400px) {
+    .problem :global(.katex-display > .katex) {
+      font-size: 0.9em;
+    }
+  }
+  @media (max-width: 340px) {
+    .problem :global(.katex-display > .katex) {
+      font-size: 0.8em;
     }
   }
   .check {
@@ -180,9 +203,49 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
   }
   .check-out:global(.is-right) {
     color: var(--ink);
+    font-weight: 600;
+    /* hang the tombstone: a second line starts under the text, not under the mark */
+    padding-left: 1.17em;
+    text-indent: -1.17em;
+  }
+  /* The tombstone that ends a proof, filling in: the problem is done. */
+  .check-out:global(.is-right)::before {
+    content: '';
+    display: inline-block;
+    width: 0.62em;
+    height: 0.62em;
+    margin-right: 0.55em;
+    vertical-align: -0.02em;
+    border: 1.5px solid var(--accent);
+    background: var(--accent);
+    animation: qed-fill 0.6s 0.1s both;
+  }
+  @keyframes qed-fill {
+    from {
+      background-color: transparent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .check-out:global(.is-right)::before {
+      animation: none;
+    }
   }
   .check-out:global(.is-wrong) {
     color: var(--accent-text);
+  }
+  .check:global(.is-solved) input {
+    border-color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+  .check-next {
+    margin-top: 2px;
+  }
+  @media (forced-colors: active) {
+    .check-out:global(.is-right)::before {
+      forced-color-adjust: none;
+      background: CanvasText;
+      border-color: CanvasText;
+    }
   }
   .disclose-body :global(p + p) {
     margin-top: 0.8em;
@@ -222,12 +285,27 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
   document.querySelectorAll<HTMLFormElement>('form.check').forEach((form) => {
     const input = form.querySelector('input')!;
     const out = form.querySelector<HTMLElement>('.check-out')!;
+    const next = form.querySelector<HTMLElement>('.check-next');
     const expected = parse(form.dataset.answer ?? '')?.value ?? null;
+
+    // After a right answer, point to the next problem on this page if there is one; otherwise
+    // the link keeps its default, the full set on Student Resources.
+    const problem = form.closest('.problem');
+    const all = [...document.querySelectorAll<HTMLElement>('article.problem')];
+    const following = problem ? all[all.indexOf(problem as HTMLElement) + 1] : undefined;
+    const link = next?.querySelector('a');
+    const title = following?.querySelector('.problem-title')?.textContent?.trim();
+    if (following && link && title) {
+      link.href = `#${following.id}`;
+      link.querySelector('.check-next-t')!.textContent = `Next problem: ${title}`;
+    }
 
     const say = (text: string, right: boolean, invalid = false) => {
       out.textContent = text;
       out.classList.toggle('is-right', right);
       out.classList.toggle('is-wrong', !right);
+      form.classList.toggle('is-solved', right);
+      if (next) next.hidden = !right;
       if (invalid) input.setAttribute('aria-invalid', 'true');
       else input.removeAttribute('aria-invalid');
     };
@@ -252,8 +330,32 @@ const placeholder = isFraction ? 'a fraction, like a/b' : 'a whole number';
       if (out.textContent) {
         out.textContent = '';
         out.classList.remove('is-right', 'is-wrong');
+        form.classList.remove('is-solved');
+        if (next) next.hidden = true;
       }
       input.removeAttribute('aria-invalid');
     });
   });
+
+  // A display equation that is wider than its box scrolls sideways; make that box focusable (and
+  // name it) so it can be scrolled from the keyboard. Checked again whenever its size changes,
+  // e.g. when a Hint or Solution opens or the window is resized.
+  if ('ResizeObserver' in window) {
+    const fit = new ResizeObserver((entries) => {
+      for (const { target } of entries) {
+        const box = target as HTMLElement;
+        const scrolls = box.clientWidth > 0 && box.scrollWidth > box.clientWidth + 1;
+        if (scrolls && !box.hasAttribute('tabindex')) {
+          box.tabIndex = 0;
+          box.setAttribute('role', 'group');
+          box.setAttribute('aria-label', 'Equation (scrolls sideways)');
+        } else if (!scrolls && box.hasAttribute('tabindex')) {
+          box.removeAttribute('tabindex');
+          box.removeAttribute('role');
+          box.removeAttribute('aria-label');
+        }
+      }
+    });
+    document.querySelectorAll('.problem .katex-display').forEach((el) => fit.observe(el));
+  }
 </script>

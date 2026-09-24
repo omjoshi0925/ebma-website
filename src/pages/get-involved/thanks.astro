@@ -11,6 +11,7 @@ import Section from '../../components/Section.astro';
 import Band from '../../components/Band.astro';
 import Ph from '../../components/Ph.astro';
 import PhLink from '../../components/PhLink.astro';
+import GetInvolvedHat from '../../components/GetInvolvedHat.astro';
 ---
 
 <Base title="Thanks" description="Your form was sent to the East Bay Math Association. Here is what happens next." noindex>
@@ -25,6 +26,8 @@ import PhLink from '../../components/PhLink.astro';
       <a class="btn" href="/resources/#problems">Try a problem while you wait <span class="arr" aria-hidden="true">→</span></a>
       <a class="xref" href="/get-involved/">Back to Get Involved <span class="arr" aria-hidden="true">→</span></a>
     </Fragment>
+    {/* Closes the story Get Involved's Plate I starts: there the piece drops into its slot; here it is in place. */}
+    <GetInvolvedHat slot="aside" placed />
   </PageHeader>
 
   <Section id="next" num="1" title="What happens *next*" dek="Three steps, and only the last one is yours." note="Didn’t mean to send it, or spotted a mistake? Email us and we’ll fix it.">
@@ -41,7 +44,7 @@ import PhLink from '../../components/PhLink.astro';
         <div>
           <h3>We reply by email</h3>
           <p>
-            Usually within <span class="ty-tie"><Ph id="get-involved.response-time" />.</span> Nothing yet? Check your spam folder, then write to <span class="ty-tie"><PhLink id="org.email" />.</span>
+            Usually within <span class="nowrap"><Ph id="get-involved.response-time" />.</span> Nothing yet? Check your spam folder, then write to <span class="nowrap"><PhLink id="org.email" />.</span>
           </p>
         </div>
       </li>
@@ -49,7 +52,7 @@ import PhLink from '../../components/PhLink.astro';
         <span class="ty-n" aria-hidden="true">3</span>
         <div>
           <h3>You take it from there</h3>
-          <p>Come to an event, try a problem, or just keep an eye on your inbox.</p>
+          <p>Come to an event, try a problem, or just keep an eye on your inbox. Your form doesn’t register anyone for an event: each event listing will say how to sign up.</p>
         </div>
       </li>
     </ol>
@@ -79,8 +82,8 @@ import PhLink from '../../components/PhLink.astro';
     </div>
   </Section>
 
-  <Band m={2} label="Corollary 2.1" title="The next problem is *waiting.*" text="No sign-up needed. Work it out, check your answer, then compare methods.">
-    <a class="btn" href="/resources/#problems">Try a problem <span class="arr" aria-hidden="true">→</span></a>
+  <Band m={2} label="Corollary 2.1" title="Bring a *friend.*" text="Know a student who likes a hard problem? Send them our way. Events & Competitions is a good place to start.">
+    <a class="btn" href="/events/">See upcoming events <span class="arr" aria-hidden="true">→</span></a>
     <a class="btn btn-quiet" href="/">Home</a>
   </Band>
 </Base>
@@ -115,10 +118,6 @@ import PhLink from '../../components/PhLink.astro';
   }
   .ty-steps + .conclude {
     max-width: 48rem;
-  }
-  .ty-tie,
-  .ty-tie :global(.ph) {
-    white-space: nowrap;
   }
   .cells h3 {
     font-size: clamp(25px, 2.1vw, 31px);

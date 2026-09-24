@@ -3,8 +3,16 @@
  * Table 2 on /events/: the competition calendar as a table, in three groups: dates posted by the
  * organizers (soonest first), the usual timing where a 2027 date is not posted yet, and contests
  * with no date listed. Carries the same data as Fig. 1 (CompetitionTimeline.astro).
- * Rows carry data-end (the last day, or the end of the usual window) so that
- * scripts/events-calendar.ts can mark them "Passed" between deploys.
+ *
+ * Each name links to the contest's entry in §4 (#c-<id>: format, cost, who can enter, and the
+ * official site). Rows carry data-end (the last day, or the end of the usual window) so that
+ * scripts/events-calendar.ts can mark them "Passed" between deploys, and data-cid so that the
+ * grade finder (scripts/events-grades.ts) can hide the contests a grade can't enter; its note for
+ * the chosen grade goes in the empty [data-fit] spans.
+ *
+ * On phones the Where and Who columns are folded into the Competition cell as a visual copy
+ * (.ct-narrow, aria-hidden), while the real cells stay in the table, visually hidden, so screen
+ * readers keep all four columns with their headers.
  */
 import { competitions, upcomingDates, formatRange, SEASON } from '../data/competitions';
 
@@ -14,17 +22,17 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
 ---
 
 <div class="table-wrap ct-wrap" data-calendar-root>
-  <table class="table ct">
+  <table class="table ct" data-gf-table>
     <caption>
-      <b>Table 2.</b> The {SEASON.label} competition calendar: the dates in Fig. 1, with where each contest happens and who can enter. Names link to
-      the official sites; EBMA is not affiliated with these organizations.
+      <b>Table 2.</b> The {SEASON.label} competition calendar: the dates in Fig. 1, with where each contest happens and who can enter. Each name links
+      to that contest’s entry in §4, which links to its official site.
     </caption>
     <thead>
       <tr>
         <th scope="col" class="ct-date">Date</th>
         <th scope="col">Competition</th>
-        <th scope="col" class="ct-wide">Where</th>
-        <th scope="col" class="ct-wide">Who can enter</th>
+        <th scope="col" class="ct-wide"><span class="ct-in">Where</span></th>
+        <th scope="col" class="ct-wide"><span class="ct-in">Who can enter</span></th>
       </tr>
     </thead>
     {
@@ -34,28 +42,30 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
             <th scope="rowgroup" colspan="4">Dates posted by the organizers</th>
           </tr>
           {dated.map((d) => (
-            <tr data-end={d.end ?? d.start}>
+            <tr data-end={d.end ?? d.start} data-cid={d.competition.id}>
               <td class="ct-date">
                 <span class="ct-when">{formatRange(d.start, d.end, { weekday: !d.end, year: true })}</span>
                 {d.kind === 'window' && <span class="ct-kind">Window</span>}
                 {d.kind === 'deadline' && <span class="ct-kind">Deadline</span>}
               </td>
               <th scope="row" class="ct-name">
-                <a href={d.competition.url} rel="noopener">
-                  {d.label}
-                  <span class="ext" aria-hidden="true">
-                    ↗
-                  </span>
-                  <span class="sr-only"> (external site)</span>
-                </a>
+                <a href={`#c-${d.competition.id}`}>{d.label}</a>
                 {d.note && <span class="ct-note">{d.note}</span>}
-                <span class="ct-narrow">
+                <span class="ct-narrow" aria-hidden="true">
                   {d.where && <span>{d.where}</span>}
                   <span>{d.competition.levelShort}</span>
+                  <span class="ct-fit" data-fit hidden />
                 </span>
               </th>
-              <td class="ct-wide">{d.where ?? '—'}</td>
-              <td class="ct-wide">{d.competition.levelShort}</td>
+              <td class="ct-wide">
+                <span class="ct-in">{d.where ?? '—'}</span>
+              </td>
+              <td class="ct-wide">
+                <span class="ct-in">
+                  {d.competition.levelShort}
+                  <span class="ct-fit" data-fit hidden />
+                </span>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -67,26 +77,28 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
       </tr>
       {
         typical.map((c) => (
-          <tr data-end={c.typicalWindow?.end}>
+          <tr data-end={c.typicalWindow?.end} data-cid={c.id}>
             <td class="ct-date">
               <span class="ct-when ct-typ">{c.typicalWindow ? `Typically ${c.typicalWindow.label}` : 'Not posted'}</span>
             </td>
             <th scope="row" class="ct-name">
-              <a href={c.url} rel="noopener">
-                {c.name}
-                <span class="ext" aria-hidden="true">
-                  ↗
-                </span>
-                <span class="sr-only"> (external site)</span>
-              </a>
+              <a href={`#c-${c.id}`}>{c.name}</a>
               <span class="ct-note">{c.typically}</span>
-              <span class="ct-narrow">
+              <span class="ct-narrow" aria-hidden="true">
                 {c.venue && <span>{c.venue}</span>}
                 <span>{c.levelShort}</span>
+                <span class="ct-fit" data-fit hidden />
               </span>
             </th>
-            <td class="ct-wide">{c.venue ?? '—'}</td>
-            <td class="ct-wide">{c.levelShort}</td>
+            <td class="ct-wide">
+              <span class="ct-in">{c.venue ?? '—'}</span>
+            </td>
+            <td class="ct-wide">
+              <span class="ct-in">
+                {c.levelShort}
+                <span class="ct-fit" data-fit hidden />
+              </span>
+            </td>
           </tr>
         ))
       }
@@ -97,26 +109,28 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
       </tr>
       {
         undated.map((c) => (
-          <tr>
+          <tr data-cid={c.id}>
             <td class="ct-date">
               <span class="ct-when ct-typ">Not posted</span>
             </td>
             <th scope="row" class="ct-name">
-              <a href={c.url} rel="noopener">
-                {c.name}
-                <span class="ext" aria-hidden="true">
-                  ↗
-                </span>
-                <span class="sr-only"> (external site)</span>
-              </a>
+              <a href={`#c-${c.id}`}>{c.name}</a>
               {c.pending && <span class="ct-note">{c.pending}</span>}
-              <span class="ct-narrow">
+              <span class="ct-narrow" aria-hidden="true">
                 {c.venue && <span>{c.venue}</span>}
                 <span>{c.levelShort}</span>
+                <span class="ct-fit" data-fit hidden />
               </span>
             </th>
-            <td class="ct-wide">{c.venue ?? '—'}</td>
-            <td class="ct-wide">{c.levelShort}</td>
+            <td class="ct-wide">
+              <span class="ct-in">{c.venue ?? '—'}</span>
+            </td>
+            <td class="ct-wide">
+              <span class="ct-in">
+                {c.levelShort}
+                <span class="ct-fit" data-fit hidden />
+              </span>
+            </td>
           </tr>
         ))
       }
@@ -191,22 +205,24 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
   .ct-name a {
     color: var(--ink);
     text-decoration-color: var(--rule-2);
+    text-underline-offset: 0.16em;
   }
   .ct-name a:hover {
     color: var(--accent-text);
     text-decoration-color: currentColor;
-  }
-  .ext {
-    font-family: var(--sans);
-    font-size: 0.8em;
-    margin-left: 0.2em;
-    color: var(--accent-text);
   }
   .ct-note {
     display: block;
     margin-top: 3px;
     font: italic 15.5px/1.4 var(--serif);
     color: var(--ink-3);
+  }
+  /* The grade finder's note for this contest ("For grade 11: AMC 12."). */
+  .ct-fit {
+    display: block;
+    margin-top: 4px;
+    font: 600 14px/1.4 var(--sans);
+    color: var(--accent-text);
   }
   .ct-narrow {
     display: none;
@@ -228,7 +244,8 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
   .ct tbody tr:last-child > * {
     border-bottom: 1px solid var(--rule);
   }
-  .ct tbody:last-of-type tr:last-child > * {
+  .ct tbody:last-of-type tr:last-child > *,
+  .ct tr:global(.ct-end) > * {
     border-bottom: 0;
   }
   .ct tr:global(.is-past) > * {
@@ -239,8 +256,26 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
   }
 
   @media (max-width: 700px) {
-    .ct-wide {
-      display: none;
+    /* Where and Who: out of sight but still in the table for screen readers (the visible copy is
+       .ct-narrow). The cells collapse to nothing; their text is clipped like .sr-only. */
+    .ct .ct-wide {
+      width: 0;
+      padding: 0;
+    }
+    .ct-in {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .ct td.ct-date {
+      padding-right: 14px;
+    }
+    .ct th.ct-name {
+      padding-right: 0;
     }
     .ct-date {
       width: 7.5em;
@@ -264,9 +299,9 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
       font: 500 14px/1.4 var(--sans);
       color: var(--ink-2);
     }
-    .ct th,
-    .ct td {
-      padding-right: 14px;
+    .ct-narrow .ct-fit {
+      margin-top: 2px;
+      font-weight: 600;
     }
   }
   /* No reading text under 16px on a phone (the italic notes read smaller than their size). */
@@ -274,6 +309,11 @@ const undated = competitions.filter((c) => !c.dates.length && !c.typically);
     .ct caption,
     .ct-note {
       font-size: 16.5px;
+    }
+  }
+  @media print {
+    .ct tr {
+      break-inside: avoid;
     }
   }
 </style>

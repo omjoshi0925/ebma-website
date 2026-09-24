@@ -14,10 +14,19 @@
  *   - Competitions are listed on the Events page (/events/#competitions), not here.
  *   - `cost` is the tag shown on the card: 'free', 'free-tier' (free with paid extras), 'paid'
  *     or 'varies'. The "Free only" filter shows 'free' and 'free-tier'.
+ *   - `grades` restates `level` as a grade range for the Level filter. Derive it from the
+ *     verified level text only, and change the two together.
  */
 
 export type ResourceCategory = 'practice' | 'local' | 'summer' | 'reading';
 export type ResourceCost = 'free' | 'free-tier' | 'paid' | 'varies';
+
+/**
+ * A grade range, lowest and highest school grade the listing is for: K = 0, and 13 means
+ * "beyond grade 12" (college and adult readers). Ages convert by grade ≈ age − 5 (age 13 is about
+ * grade 8). "All levels" or "all ages" is [0, 13]; "High school and up" is [9, 13].
+ */
+export type GradeRange = readonly [from: number, to: number];
 
 export interface Resource {
   /** Stable slug; the card's anchor is #lib-<id>. */
@@ -29,11 +38,27 @@ export interface Resource {
   /** Official site. */
   url: string;
   description: string;
+  /** The level as the official site states it, shown on the card. */
   level: string;
+  /** `level` as a grade range (see GradeRange), for the Level filter. */
+  grades: GradeRange;
   cost: ResourceCost;
   /** When it runs or when applications are due, if the official site says. */
   timing?: string;
 }
+
+/**
+ * The Level filter in the library. A listing counts for a level when its grade range overlaps
+ * that level's grades (middle school here means grades 6–8), so an all-ages listing shows under
+ * both, and "Grades 1–6" shows under middle school as well as below it.
+ */
+export type SchoolLevel = 'middle' | 'high';
+export const schoolLevels: { id: SchoolLevel; label: string; grades: GradeRange }[] = [
+  { id: 'middle', label: 'Middle school', grades: [6, 8] },
+  { id: 'high', label: 'High school', grades: [9, 12] },
+];
+export const levelsOf = (r: Pick<Resource, 'grades'>): SchoolLevel[] =>
+  schoolLevels.filter((l) => r.grades[0] <= l.grades[1] && r.grades[1] >= l.grades[0]).map((l) => l.id);
 
 export interface ResourceCategoryInfo {
   id: ResourceCategory;
@@ -73,6 +98,7 @@ export const resources: Resource[] = [
     url: 'https://artofproblemsolving.com/alcumus',
     description: 'Adaptive practice from Art of Problem Solving with over 13,000 problems and solutions, many from contests such as MATHCOUNTS and the AMC. Free; requires a free AoPS account.',
     level: 'Middle and high school',
+    grades: [6, 12],
     cost: 'free',
   },
   {
@@ -83,6 +109,7 @@ export const resources: Resource[] = [
     url: 'https://artofproblemsolving.com/wiki/index.php/AMC_Problems_and_Solutions',
     description: 'Community-edited AoPS Wiki archive of past AMC 8, AMC 10, AMC 12, AIME, USAMO, and USAJMO problems and solutions.',
     level: 'Middle and high school',
+    grades: [6, 12],
     cost: 'free',
   },
   {
@@ -93,6 +120,7 @@ export const resources: Resource[] = [
     url: 'https://www.khanacademy.org/math',
     description: 'Free lessons, videos, and practice exercises from a nonprofit, covering math from early elementary grades through AP/college calculus, statistics, and linear algebra.',
     level: 'All levels (K–12 and early college)',
+    grades: [0, 13],
     cost: 'free',
   },
   {
@@ -103,6 +131,7 @@ export const resources: Resource[] = [
     url: 'https://web.evanchen.cc/olympiad.html',
     description: 'Free PDF handouts by Evan Chen on olympiad algebra, combinatorics, geometry, number theory, and proof writing. His site also offers free drafts of the OTIS Excerpts problem book and the Napkin.',
     level: 'High school (olympiad level) and beyond',
+    grades: [9, 13],
     cost: 'free',
   },
   {
@@ -113,6 +142,7 @@ export const resources: Resource[] = [
     url: 'https://projecteuler.net/',
     description: 'Challenging problems that combine mathematics and programming; most require writing code to solve. Problems can be browsed without an account, and a free account tracks progress.',
     level: 'High school and up',
+    grades: [9, 13],
     cost: 'free',
   },
   {
@@ -123,6 +153,7 @@ export const resources: Resource[] = [
     url: 'https://www.3blue1brown.com/',
     description: 'Animated video lessons by Grant Sanderson that explain math visually, on topics such as linear algebra, calculus, and neural networks. Free on YouTube, with written versions of many lessons on the site.',
     level: 'High school and college',
+    grades: [9, 13],
     cost: 'free',
   },
   {
@@ -133,6 +164,7 @@ export const resources: Resource[] = [
     url: 'https://www.youtube.com/@numberphile',
     description: 'YouTube channel of videos about numbers and mathematics, made by Brady Haran since 2011. Free to watch.',
     level: 'All levels (general audience)',
+    grades: [0, 13],
     cost: 'free',
   },
   {
@@ -143,6 +175,7 @@ export const resources: Resource[] = [
     url: 'https://www.youtube.com/@Mathologer',
     description: 'YouTube channel with accessible explanations of hard and beautiful mathematics, presented by Burkard Polster, a math professor at Monash University in Australia. Free to watch.',
     level: 'High school and up',
+    grades: [9, 13],
     cost: 'free',
   },
   {
@@ -153,6 +186,7 @@ export const resources: Resource[] = [
     url: 'https://www.desmos.com/calculator',
     description: 'Free online graphing calculator for plotting functions, adding sliders, and animating graphs. Desmos also offers free scientific, geometry, and 3D calculators.',
     level: 'Middle school and up',
+    grades: [6, 13],
     cost: 'free',
   },
   {
@@ -163,6 +197,7 @@ export const resources: Resource[] = [
     url: 'https://www.geogebra.org/',
     description: 'Interactive graphing, geometry, 3D, and scientific calculators plus ready-made activities. Free for non-commercial use, which includes most use by students, teachers, and parents.',
     level: 'All levels',
+    grades: [0, 13],
     cost: 'free',
   },
   {
@@ -173,6 +208,7 @@ export const resources: Resource[] = [
     url: 'https://oeis.org/',
     description: 'A searchable database of hundreds of thousands of integer sequences, with formulas and references. Useful for spotting patterns while exploring a problem.',
     level: 'All levels (reference)',
+    grades: [0, 13],
     cost: 'free',
   },
   {
@@ -183,6 +219,7 @@ export const resources: Resource[] = [
     url: 'https://tutorial.math.lamar.edu/',
     description: 'Free online and downloadable notes by Paul Dawkins covering algebra, Calculus I–III, and differential equations, written for the classes he teaches at Lamar University.',
     level: 'Advanced high school and college',
+    grades: [9, 13],
     cost: 'free',
   },
   {
@@ -193,6 +230,7 @@ export const resources: Resource[] = [
     url: 'https://ocw.mit.edu/',
     description: 'Free lecture notes, exams, and videos from MIT courses, including many in mathematics. No registration required. Materials are university level and best suited to advanced students.',
     level: 'Advanced high school and college',
+    grades: [9, 13],
     cost: 'free',
   },
   // ---------- local ----------
@@ -204,8 +242,9 @@ export const resources: Resource[] = [
     url: 'https://mathcircle.berkeley.edu/',
     description: 'Long-running math circle at UC Berkeley. Its Math Taught the Right Way program for middle and high schoolers meets Monday evenings (fall 2026 applications are closed); the BMC-Upper circle is paused through spring 2027.',
     level: 'Middle and high school',
+    grades: [6, 12],
     cost: 'paid',
-    timing: 'Math Taught the Right Way meets Monday evenings, 5–8 pm, at UC Berkeley during the academic year; the fall 2026 term runs Aug 24–Dec 14, 2026',
+    timing: 'Math Taught the Right Way meets Monday evenings, 5–8 pm, at UC Berkeley during the academic year; the fall 2026 term runs August 24–December 14, 2026',
   },
   {
     id: 'bmc-elementary',
@@ -215,8 +254,9 @@ export const resources: Resource[] = [
     url: 'https://sumizdat.startlogic.com/bmc_elementary/home.html',
     description: 'The Berkeley Math Circle’s program for grades 1–6, running since 2009, with puzzles, games, and problem solving at three levels. Weekly classes are offered online and in person; financial aid is available.',
     level: 'Grades 1–6',
+    grades: [1, 6],
     cost: 'paid',
-    timing: 'Fall 2026 and Spring 2027 classes meet weekly on Tuesdays or Wednesdays at 5, 6, or 7 pm Pacific',
+    timing: 'Fall 2026 and spring 2027 classes meet weekly on Tuesdays or Wednesdays at 5, 6, or 7 pm Pacific',
   },
   {
     id: 'jrmf',
@@ -226,8 +266,9 @@ export const resources: Resource[] = [
     url: 'https://jrmf.org/',
     description: 'Nonprofit, started in the Bay Area in 2007, that runs noncompetitive math festivals built on hands-on puzzles. It hosts free monthly drop-in family math afternoons in Pleasanton and San Jose.',
     level: 'Ages 5–18 (drop-in events open to all ages)',
+    grades: [0, 13],
     cost: 'free',
-    timing: '2nd Saturdays, 1–3 pm, at TEAM Theatre in Pleasanton and at RAFT in San Jose (Oct 10, Nov 14, Dec 12, 2026)',
+    timing: 'Second Saturdays, 1–3 pm, at TEAM Theatre in Pleasanton and at RAFT in San Jose (October 10, November 14, December 12, 2026)',
   },
   {
     id: 'stanford-math-circle',
@@ -237,8 +278,9 @@ export const resources: Resource[] = [
     url: 'https://mathcircle.spcs.stanford.edu/',
     description: 'Weekly, quarter-long math circle sessions led by mathematicians and educators from the Stanford community and beyond. Online for grades 1–12 (open to students anywhere), with an in-person section for grades 9–12.',
     level: 'Grades 1–12',
+    grades: [1, 12],
     cost: 'paid',
-    timing: 'Ten-week sessions in the Fall, Winter, and Spring quarters; Fall 2026 runs Sept 29–Dec 10, 2026',
+    timing: 'Ten-week sessions in the fall, winter, and spring quarters; fall 2026 runs September 29–December 10, 2026',
   },
   {
     id: 'sf-math-circle',
@@ -248,8 +290,9 @@ export const resources: Resource[] = [
     url: 'https://sfmathcircle.org/',
     description: 'Math enrichment program affiliated with SF State’s Center for Science & Math Education, offering weekly small-group classes and summer day camps built on puzzles and games. Payment plans and scholarships available.',
     level: 'Grades 2–5 (fall classes); rising grades 2–6 (summer camps)',
+    grades: [1, 5], // "rising grades 2–6" in summer are students finishing grades 1–5
     cost: 'paid',
-    timing: 'Fall 2026 classes run in 10-week terms on Mondays, Wednesdays, or Saturdays at SF State, starting Sept 21–26',
+    timing: 'Fall 2026 classes run in ten-week terms on Mondays, Wednesdays, or Saturdays at SF State, starting September 21–26',
   },
   {
     id: 'lawrence-hall',
@@ -259,6 +302,7 @@ export const resources: Resource[] = [
     url: 'https://lawrencehallofscience.org/',
     description: 'UC Berkeley’s public science center, with hands-on exhibits, camps, and school programs. Exhibits include Making Music, on the math and science behind music, and activities such as math games from around the world.',
     level: 'All ages',
+    grades: [0, 13],
     cost: 'paid',
     timing: 'Open Wednesday–Sunday, 10 am–5 pm',
   },
@@ -270,6 +314,7 @@ export const resources: Resource[] = [
     url: 'https://www.slmath.org/public-understanding-of-math',
     description: 'Berkeley math research institute (formerly MSRI) whose public outreach includes the Mathical Book Prize, honoring math-rich books for ages 2–18, and documentary films about mathematicians.',
     level: 'All ages (Mathical books for ages 2–18)',
+    grades: [0, 13],
     cost: 'varies',
     timing: 'Mathical prizes are announced each spring',
   },
@@ -280,8 +325,9 @@ export const resources: Resource[] = [
     name: 'MIT PRIMES and PRIMES-USA',
     org: 'MIT Department of Mathematics',
     url: 'https://math.mit.edu/research/highschool/primes/',
-    description: 'Free, year-long research and guided-reading programs for high school sophomores and juniors. PRIMES-USA mentors students remotely anywhere in the U.S. outside Greater Boston. Admission is by application and problem set.',
+    description: 'Free, year-long research and guided-reading programs for high school sophomores and juniors. PRIMES-USA mentors students remotely anywhere in the US outside Greater Boston. Admission is by application and problem set.',
     level: 'Grades 10–11',
+    grades: [10, 11],
     cost: 'free',
     timing: 'Runs through the calendar year; applications for the 2027 program (PRIMES, PRIMES-USA, and PRIMES Circle) due November 2, 2026',
   },
@@ -293,6 +339,7 @@ export const resources: Resource[] = [
     url: 'https://mathroots.mit.edu/',
     description: 'A free 14-day residential summer program at MIT on creative math and problem solving for high school students. It especially encourages applicants who have overcome barriers to learning. Admission is by application.',
     level: 'Grades 9–11 (current high school students who will still be in high school the next fall)',
+    grades: [9, 11],
     cost: 'free',
     timing: '14 days in summer (2026: July 1–15); applications open in early January and close in early March',
   },
@@ -304,6 +351,7 @@ export const resources: Resource[] = [
     url: 'https://rossprogram.org/',
     description: 'A six-week residential summer program centered on number theory for motivated pre-college students; nearly all first-year students are 15–18. Admission is by application with math problems; need-based aid is available.',
     level: 'High school (nearly all first-year students are ages 15–18)',
+    grades: [9, 12],
     cost: 'paid',
     timing: 'Six weeks in summer (2026: June 14–July 24); applications due March 8 in the 2026 cycle',
   },
@@ -313,8 +361,9 @@ export const resources: Resource[] = [
     name: 'PROMYS (Program in Mathematics for Young Scientists)',
     org: 'PROMYS (nonprofit), at Boston University',
     url: 'https://promys.org/programs/promys/for-students/',
-    description: 'A six-week residential summer program centered on number theory at Boston University for students ages 14–18 who have finished 9th grade. Admission includes a problem set; free for U.S. families earning under $80,000.',
+    description: 'A six-week residential summer program centered on number theory at Boston University for students ages 14–18 who have finished 9th grade. Admission includes a problem set; free for US families earning under $80,000.',
     level: 'High school (ages 14–18, completed 9th grade)',
+    grades: [9, 12],
     cost: 'paid',
     timing: 'Six weeks in summer (2027: June 27–August 7); application deadline end of February 2027 (exact date to be announced)',
   },
@@ -324,8 +373,9 @@ export const resources: Resource[] = [
     name: 'Canada/USA Mathcamp',
     org: 'Canada/USA Mathcamp (nonprofit)',
     url: 'https://www.mathcamp.org/',
-    description: 'A five-week residential summer program for talented math students ages 13–18. Applicants solve a Qualifying Quiz. Aid is need-based; free for U.S. and Canadian families earning under $100,000 with typical assets.',
+    description: 'A five-week residential summer program for talented math students ages 13–18. Applicants solve a Qualifying Quiz. Aid is need-based; free for US and Canadian families earning under $100,000 with typical assets.',
     level: 'Ages 13–18',
+    grades: [7, 12], // ages 13–18 are about grades 7–12
     cost: 'paid',
     timing: 'About five weeks in summer (2026: June 28–August 2). In the 2026 cycle applications opened January 12 and were due February 23; 2027 dates will be announced in December.',
   },
@@ -337,6 +387,7 @@ export const resources: Resource[] = [
     url: 'https://sumac.spcs.stanford.edu/',
     description: 'Stanford’s selective summer math program for students in grades 10–11: a four-week residential session on campus or a three-week online session. Admission includes a proof-based exam; need-based aid is offered.',
     level: 'Grades 10–11 at time of application (at least 15 during program)',
+    grades: [10, 11],
     cost: 'paid',
     timing: 'Summer: 3 weeks online or 4 weeks residential; 2026 applications were due February 2, with decisions in mid-April',
   },
@@ -346,8 +397,9 @@ export const resources: Resource[] = [
     name: 'Hampshire College Summer Studies in Mathematics (HCSSiM)',
     org: 'Yellow Pig Math Foundation (separate from Hampshire College)',
     url: 'https://hcssim.org/',
-    description: 'A six-week residential summer program in college-level math for high school students, most after 10th or 11th grade. Applicants take an Interesting Test. Aid is need-based; free for U.S. families earning under $85,000.',
+    description: 'A six-week residential summer program in college-level math for high school students, most after 10th or 11th grade. Applicants take an Interesting Test. Aid is need-based; free for US families earning under $85,000.',
     level: 'High school (most students have finished 10th or 11th grade)',
+    grades: [9, 12],
     cost: 'paid',
     timing: 'Six weeks in summer (2026: June 28–August 8); rolling decisions with a full-consideration deadline near the end of April. Moving to a new campus in 2027.',
   },
@@ -359,6 +411,7 @@ export const resources: Resource[] = [
     url: 'https://www.mathily.org/',
     description: 'A five-week intensive residential summer program in advanced, mostly discrete mathematics for high school students. Financial aid is need-based and can cover the full fee for admitted students with significant need.',
     level: 'High school',
+    grades: [9, 12],
     cost: 'paid',
     timing: 'Five weeks in summer (2026: June 28–August 1 at Bryn Mawr College); applications received by April 28 got full consideration in 2026',
   },
@@ -370,6 +423,7 @@ export const resources: Resource[] = [
     url: 'https://www.txst.edu/mathworks/mathworks-camps/hsmc.html',
     description: 'A six-week residential, multi-summer math camp for high school students at Texas State University. Returning students do original research with mentors. Admission is by application; need-based scholarships are offered.',
     level: 'High school',
+    grades: [9, 12],
     cost: 'paid',
     timing: 'Six weeks in summer (2027: June 20–July 31); applications open December 1 with rolling admission',
   },
@@ -382,6 +436,7 @@ export const resources: Resource[] = [
     url: 'https://press.princeton.edu/books/paperback/9780691164076/how-to-solve-it',
     description: 'Pólya’s classic guide to approaching problems, first published in 1945. It includes a heuristic dictionary covering techniques such as analogy, induction, and working backward from the goal.',
     level: 'High school and up',
+    grades: [9, 13],
     cost: 'paid',
   },
   {
@@ -392,6 +447,7 @@ export const resources: Resource[] = [
     url: 'https://artofproblemsolving.com/store/list/aops-curriculum',
     description: 'Full-course textbooks, each with a solutions book: Prealgebra, Introduction to Algebra, Counting & Probability, Geometry, and Number Theory. The publisher calls the series a complete curriculum for grades 6–10.',
     level: 'Grades 6–10',
+    grades: [6, 10],
     cost: 'paid',
   },
   {
@@ -402,6 +458,7 @@ export const resources: Resource[] = [
     url: 'https://artofproblemsolving.com/store/book/aops-vol1',
     description: 'A problem-solving textbook with a separate solutions book. The publisher aims it at students in grades 7–10 who are preparing for contests such as MATHCOUNTS and the AMC 8/10/12.',
     level: 'Grades 7–10',
+    grades: [7, 10],
     cost: 'paid',
   },
   {
@@ -412,6 +469,7 @@ export const resources: Resource[] = [
     url: 'https://artofproblemsolving.com/store/book/aops-vol2',
     description: 'The follow-up to Volume 1, for students who have mastered its fundamentals. The publisher aims it at grades 9–12 and at advanced high school contests such as the AMC 12, AIME, and HMMT.',
     level: 'Grades 9–12',
+    grades: [9, 12],
     cost: 'paid',
   },
   {
@@ -422,6 +480,7 @@ export const resources: Resource[] = [
     url: 'https://link.springer.com/book/10.1007/b97682',
     description: 'A large collection of competition problems grouped by strategy (invariance, coloring, the extremal principle, induction, and more), with solutions for most. Written for contest trainers and participants.',
     level: 'Advanced high school (olympiad level)',
+    grades: [9, 12],
     cost: 'paid',
   },
   {
@@ -432,6 +491,7 @@ export const resources: Resource[] = [
     url: 'https://www.wiley.com/en-us/the-art-and-craft-of-problem-solving-3rd-edition-p-9781119239901',
     description: 'Teaches mathematics through problem solving rather than routine exercises, drawing on the author’s experience as an International Mathematical Olympiad coach. Aimed at college students and independent learners.',
     level: 'College and advanced independent learners',
+    grades: [13, 13], // the publisher aims it at college students and independent learners
     cost: 'paid',
   },
   {
@@ -442,6 +502,7 @@ export const resources: Resource[] = [
     url: 'https://link.springer.com/book/10.1007/978-3-662-57265-8',
     description: 'A collection of elegant proofs from number theory, geometry, analysis, combinatorics, and graph theory. The title comes from Paul Erdős’s idea of “The Book” holding the best proof of each theorem.',
     level: 'Advanced high school and university',
+    grades: [9, 13],
     cost: 'paid',
   },
   {
@@ -452,6 +513,7 @@ export const resources: Resource[] = [
     url: 'https://www.stevenstrogatz.com/books/the-joy-of-x',
     description: 'Short, accessible chapters that grew out of the author’s 2010 New York Times series “The Elements of Math.” It moves from numbers and shapes to calculus and infinity and assumes no prior background.',
     level: 'High school and general readers',
+    grades: [9, 13],
     cost: 'paid',
   },
   {
@@ -462,6 +524,7 @@ export const resources: Resource[] = [
     url: 'https://www.gutenberg.org/ebooks/201',
     description: 'An 1884 novella narrated by a square living in a two-dimensional world, and a playful way into thinking about dimensions. It is in the public domain and free to read online.',
     level: 'Grade 8 and up',
+    grades: [8, 13],
     cost: 'free',
   },
   {
@@ -472,6 +535,7 @@ export const resources: Resource[] = [
     url: 'https://www.penguinrandomhouse.com/books/299264/euclid-in-the-rainforest-by-joseph-mazur/',
     description: 'Explores logic and mathematical reasoning through adventure stories and historical narratives. It argues that logical reasoning is also a creative process shaped by intuition.',
     level: 'High school and general readers',
+    grades: [9, 13],
     cost: 'paid',
   },
   {
@@ -482,6 +546,7 @@ export const resources: Resource[] = [
     url: 'https://www.blpress.org/books/a-mathematicians-lament/',
     description: 'An essay by a research mathematician who has also taught K–12 students. It presents mathematics as a creative art and critiques how the subject is commonly taught in schools.',
     level: 'High school, parents, and educators',
+    grades: [9, 13],
     cost: 'paid',
   },
 ];
@@ -498,7 +563,7 @@ export const domainOf = (url: string): string => new URL(url).hostname.replace(/
 
 /**
  * Problem sets and handouts from EBMA's own events (placeholder `resources.handouts`).
- * While this list is empty the page shows one sample row with a placeholder chip.
+ * While this list is empty, Remark 1.1 on the page ends with a placeholder chip instead.
  * Add entries soonest-last, e.g.
  *   { title: 'Fall Problem-Solving Day: problems and solutions', date: '2026-10-17', href: '/handouts/fall-2026.pdf' }
  * and put the PDFs in public/handouts/.

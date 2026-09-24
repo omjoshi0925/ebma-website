@@ -62,7 +62,7 @@ for (let i = 0; i <= STEPS; i++) {
   plate="Plate I"
   corner={`<span class="m" style="text-transform:none">n</span> = ${n}`}
   fig="Fig. 1."
-  caption={`Join each point <span class="m">k</span> on a circle of <span class="m">n</span> = ${n} points to the point <span class="m">mk</span> (mod <span class="m">n</span>). Only straight lines are drawn, yet a curve appears: for whole-number <span class="m">m</span> it is an epicycloid with <span class="m">m</span>&thinsp;−&thinsp;1 cusps, traced in red.<span class="tt-nojs"> Shown here with <span class="m">m</span> = 2: the cardioid.</span>`}
+  caption={`Place <span class="nowrap"><span class="m">n</span> = ${n}</span> points around a circle and join each point <span class="m">k</span> to the point <span class="nowrap"><span class="m">mk</span> (mod <span class="m">n</span>)</span>, wrapping past <span class="m">n</span> back to 0 the way a clock does. Only straight lines are drawn, yet a curve appears: for whole-number <span class="m">m</span> it is an epicycloid (the path of a point on a wheel rolling around a circle) with <span class="nowrap"><span class="m">m</span>&thinsp;−&thinsp;1</span> cusps, or sharp points, traced in red.<span class="tt-nojs"> Shown here with <span class="nowrap"><span class="m">m</span> = 2:</span> the cardioid, or heart curve.</span>`}
 >
   <div class="tt-stage">
     <canvas
@@ -81,17 +81,27 @@ for (let i = 0; i <= STEPS; i++) {
       <path class="tt-env" d={`M${envelope.join('L')}`}></path>
     </svg>
   </div>
-  <div slot="controls" class="fig-ctl">
-    <button type="button" class="fig-btn" id="fig-1-play" data-state="playing">
-      <span class="ic" aria-hidden="true"></span><span class="t">Pause</span><span class="sr-only"> animation</span>
-    </button>
-    <label for="fig-1-m"><span class="sr-only">Multiplier </span>m</label>
-    <input type="range" id="fig-1-m" min="2" max="9" step="0.05" value="2" aria-valuetext="m = 2.00, cardioid" />
+  <div slot="controls">
+    <div class="fig-ctl">
+      <button type="button" class="fig-btn" id="fig-1-play" data-state="playing">
+        <span class="ic" aria-hidden="true"></span><span class="t">Pause</span><span class="sr-only"> animation</span>
+      </button>
+      <label for="fig-1-m"><span class="sr-only">Multiplier </span>m</label>
+      <input type="range" id="fig-1-m" min="2" max="9" step="0.05" value="2" aria-valuetext="m = 2.00, cardioid" />
+      {
+        /* A visual readout only: the slider's aria-valuetext carries the same value for screen
+           readers, so this must not be a live region (it changes on every animation frame). */
+      }
+      <span class="fig-out" id="fig-1-out" aria-hidden="true"><span class="fig-out-m">2.00</span> <span class="fig-out-name">cardioid</span></span>
+    </div>
     {
-      /* A visual readout only: the slider's aria-valuetext carries the same value for screen
-         readers, so this must not be a live region (it changes on every animation frame). */
+      /* The figure is a toy, and nothing else says so on a phone (there is no drag cursor). It sits
+         outside the caption paragraph, so it is not part of the figure's accessible name. */
     }
-    <span class="fig-out" id="fig-1-out" aria-hidden="true"><span class="fig-out-m">2.00</span> <span class="fig-out-name">cardioid</span></span>
+    <p class="fig-hint">
+      <span class="fig-hint-k">Try it</span>
+      <span class="hint-touch">Swipe sideways across the figure</span><span class="hint-mouse">Drag sideways across the figure</span>, or move the slider, to change <span class="m">m</span>. What happens between <span class="nowrap"><span class="m">m</span> = 3</span> and <span class="nowrap"><span class="m">m</span> = 4?</span>
+    </p>
   </div>
 </Plate>
 
@@ -149,9 +159,35 @@ for (let i = 0; i <= STEPS; i++) {
     display: none;
   }
 
-  /* Controls: play/pause, the m slider and its readout. They need JavaScript. */
-  :global(html:not(.js)) .fig-ctl {
+  /* Controls: play/pause, the m slider and its readout, and the hint. They need JavaScript. */
+  :global(html:not(.js)) .fig-ctl,
+  :global(html:not(.js)) .fig-hint {
     display: none;
+  }
+  .fig-hint {
+    margin-top: 12px;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .fig-hint-k {
+    font: 600 12px/1 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+    margin-right: 0.5em;
+  }
+  /* Name the gesture the reader's pointer makes: a swipe on touch screens, a drag with a mouse. */
+  .hint-touch {
+    display: none;
+  }
+  @media (pointer: coarse) {
+    .hint-touch {
+      display: inline;
+    }
+    .hint-mouse {
+      display: none;
+    }
   }
   .fig-out {
     font: 500 13px/1 var(--mono);

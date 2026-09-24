@@ -1,7 +1,12 @@
 ---
 /**
  * One person on the About page (§5). Pass a real `member` from src/data/team.ts, or `sample`
- * (1-based) for a sample card made of placeholder chips while that list is empty.
+ * (1-based) for a sample card while that list is empty.
+ *
+ * Sample cards take the site's one quiet treatment for empty states (as EventCard's do): a dashed
+ * outline instead of the portrait's crop marks, a small mono "Sample" tag and muted strokes. Only
+ * the first sample carries placeholder chips (Role, Name); the others show blank ruled lines where
+ * those will go, and are hidden from assistive technology.
  */
 import Ph from './Ph.astro';
 import type { TeamMember } from '../data/team';
@@ -10,7 +15,8 @@ interface Props {
   member?: TeamMember;
   sample?: number;
 }
-const { member } = Astro.props;
+const { member, sample = 1 } = Astro.props;
+const ghost = !member && sample > 1;
 const initials = member
   ? member.name
       .split(/\s+/)
@@ -22,38 +28,49 @@ const initials = member
   : '';
 ---
 
-<article class="person">
-  <div class:list={['portrait cropped', { sample: !member }]}>
-    {
-      member?.photo ? (
-        <img src={member.photo} alt="" loading="lazy" decoding="async" width="240" height="300" />
-      ) : member ? (
-        <span class="initials" aria-hidden="true">
-          {initials}
-        </span>
-      ) : (
+{
+  member ? (
+    <article class="person">
+      <div class="portrait cropped">
+        {member.photo ? (
+          <img src={member.photo} alt="" loading="lazy" decoding="async" width="240" height="300" />
+        ) : (
+          <span class="initials" aria-hidden="true">
+            {initials}
+          </span>
+        )}
+      </div>
+      <p class="role">{member.role}</p>
+      <h3 class="name">{member.name}</h3>
+      {member.bio && <p class="bio">{member.bio}</p>}
+    </article>
+  ) : (
+    <article class="person sample" aria-hidden={ghost ? 'true' : undefined}>
+      <p class="sample-tag">Sample</p>
+      <div class="portrait">
         <svg class="sil" viewBox="0 0 120 110" aria-hidden="true" focusable="false">
           <circle cx="60" cy="38" r="22" />
           <path d="M10 110 V 100 C 10 78, 30 68, 60 68 C 90 68, 110 78, 110 100 V 110" />
         </svg>
-      )
-    }
-  </div>
-  <p class="role">{member ? member.role : <Ph id="about.team" label="Role" />}</p>
-  {member ? <h3 class="name">{member.name}</h3> : <p class="name"><Ph id="about.team" label="Name" /></p>}
-  {
-    member?.bio ? (
-      <p class="bio">{member.bio}</p>
-    ) : (
-      !member && (
-        <span class="skel" aria-hidden="true">
+      </div>
+      {ghost ? (
+        <div class="blank">
           <span />
           <span />
-        </span>
-      )
-    )
-  }
-</article>
+        </div>
+      ) : (
+        <>
+          <p class="role">
+            <Ph id="about.team" label="Role" />
+          </p>
+          <p class="name">
+            <Ph id="about.team" label="Name" />
+          </p>
+        </>
+      )}
+    </article>
+  )
+}
 
 <style>
   .person {
@@ -72,10 +89,6 @@ const initials = member
     --w: 1px;
     margin-bottom: 8px;
   }
-  /* A sample card is a stand-in, not a photo frame: keep it square so four of them don't fill a screen. */
-  .portrait.sample {
-    aspect-ratio: 1;
-  }
   .portrait img {
     width: 100%;
     height: 100%;
@@ -86,51 +99,80 @@ const initials = member
     letter-spacing: -0.02em;
     color: var(--ink-3);
   }
-  .sil {
-    align-self: end;
-    width: 74%;
-    height: auto;
-    overflow: visible;
-  }
-  .sil circle,
-  .sil path {
-    fill: none;
-    stroke: var(--ink-3);
-    stroke-width: 1.2;
-    vector-effect: non-scaling-stroke;
-    stroke-dasharray: 3 4;
-  }
   .role {
     font: 600 12px/1.3 var(--sans);
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--accent-text);
   }
-  .role :global(.ph) {
-    font-size: 12px;
-    letter-spacing: 0.01em;
-  }
   .name {
     font: 400 clamp(22px, 1.9vw, 26px) / 1.15 var(--serif);
     letter-spacing: -0.01em;
-  }
-  .name :global(.ph) {
-    font-size: 15px;
   }
   .bio {
     font-size: 16.5px;
     color: var(--ink-2);
   }
-  .skel {
+
+  /* ---- sample (empty-state) cards ---- */
+  .sample {
+    gap: 8px;
+    padding: 12px 12px 14px;
+    border: 1px dashed var(--rule-2);
+  }
+  .sample-tag {
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  /* A stand-in, not a photo frame: unframed and shorter than a portrait, so four don't fill a screen. */
+  .sample .portrait {
+    aspect-ratio: 4 / 3;
+    margin-bottom: 4px;
+    background: none;
+  }
+  .sil {
+    align-self: end;
+    width: 70%;
+    height: auto;
+    overflow: visible;
+  }
+  .sil circle,
+  .sil path {
+    fill: none;
+    stroke: var(--rule-2);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 3 4;
+  }
+  .sample .role,
+  .sample .name {
+    line-height: 1;
+  }
+  .sample :global(.ph) {
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    text-transform: none;
+  }
+  /* Later samples: blank ruled lines where the role and name will go. */
+  .blank {
     display: grid;
-    gap: 9px;
-    padding-top: 6px;
+    gap: 22px;
+    padding: 12px 0 8px;
   }
-  .skel span {
-    height: 1px;
-    background: var(--rule-2);
+  .blank span {
+    border-bottom: 1px solid var(--rule-2);
+    width: 45%;
   }
-  .skel span + span {
-    width: 62%;
+  .blank span + span {
+    width: 70%;
+  }
+
+  @media (forced-colors: active) {
+    .sil circle,
+    .sil path {
+      stroke: CanvasText;
+    }
   }
 </style>

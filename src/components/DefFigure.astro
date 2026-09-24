@@ -4,6 +4,9 @@
  * vermilion point: a staircase y = ⌊x⌋ (compete: you level up), the spiral r = θ (explore:
  * it keeps going), and the complete graph K₆ (belong: everyone connected to everyone).
  * They draw themselves in once when scrolled into view (scripts/site.ts reveal).
+ *
+ * Each drawing starts at the left edge of its box (x ≈ 1), so the three sit flush with the
+ * labels and headings under them.
  */
 interface Props {
   kind: 'compete' | 'explore' | 'belong';
@@ -16,20 +19,27 @@ const f = (n: number) => n.toFixed(1);
 let lines: string[] = [];
 let dot: [number, number] = [0, 0];
 let hollow: [number, number][] = [];
+let closed: [number, number][] = [];
 let caption = '';
+let sub = '';
+/** Where the caption starts: just right of the drawing (the staircase's caption sits under its top step). */
+let capX = W - 2;
+let anchor: 'start' | 'end' = 'end';
 
 if (kind === 'compete') {
-  // y = floor(x) for x in [0, 4): four treads, closed dot at each left end, open at each right.
-  const x0 = 14, y0 = 74, sx = 26, sy = 16;
+  // y = floor(x) for x in [0, 4): four treads, a closed dot at each left end (the top one in
+  // vermilion) and an open one at each right end.
+  const x0 = 3.6, y0 = 74, sx = 26, sy = 16;
   for (let k = 0; k < 4; k++) {
     lines.push(`M${f(x0 + k * sx)} ${f(y0 - k * sy)} H${f(x0 + (k + 1) * sx - 4)}`);
-    if (k < 3) hollow.push([x0 + (k + 1) * sx, y0 - k * sy]);
+    hollow.push([x0 + (k + 1) * sx, y0 - k * sy]);
+    if (k < 3) closed.push([x0 + k * sx, y0 - k * sy]);
   }
   dot = [x0 + 3 * sx, y0 - 3 * sy];
   caption = 'y = ⌊x⌋';
 } else if (kind === 'explore') {
-  // Archimedean spiral r = a·θ, θ from 0 to 3.2π.
-  const cx = 64, cy = 44, a = 3.6;
+  // Archimedean spiral r = a·θ, θ from 0 to 3.2π; its leftmost stroke (θ = 3π) sits at x ≈ 1.
+  const cx = 36, cy = 44, a = 3.6;
   const pts: string[] = [];
   const end = 3.2 * Math.PI;
   for (let i = 0; i <= 160; i++) {
@@ -39,25 +49,31 @@ if (kind === 'compete') {
   lines.push(`M${pts.join(' L')}`);
   dot = [cx + a * end * Math.cos(end), cy - a * end * Math.sin(end)];
   caption = 'r = θ';
+  capX = 66;
+  anchor = 'start';
 } else {
-  // K6: six points on a circle, all fifteen edges.
-  const cx = 66, cy = 42, r = 34;
+  // K6: six points on a circle, all fifteen edges; the two left points sit at x ≈ 1.
+  const cx = 33.4, cy = 42, r = 34;
   const P = Array.from({ length: 6 }, (_, i) => {
     const t = -Math.PI / 2 + (i * Math.PI) / 3;
     return [cx + r * Math.cos(t), cy + r * Math.sin(t)] as [number, number];
   });
   for (let i = 0; i < 6; i++) for (let j = i + 1; j < 6; j++) lines.push(`M${f(P[i][0])} ${f(P[i][1])} L${f(P[j][0])} ${f(P[j][1])}`);
-  hollow = P.slice(1);
+  closed = P.slice(1);
   dot = P[0];
-  caption = 'K₆';
+  caption = 'K';
+  sub = '6';
+  capX = 72;
+  anchor = 'start';
 }
 ---
 
 <svg class="deffig" data-reveal viewBox={`0 0 ${W} ${H}`} width={W} height={H} aria-hidden="true" focusable="false">
   {lines.map((d) => <path d={d} pathLength="1" class="ln" />)}
-  {hollow.map(([x, y]) => <circle cx={x} cy={y} r="2.6" class={kind === 'belong' ? 'pt' : 'open'} />)}
+  {hollow.map(([x, y]) => <circle cx={x} cy={y} r="2.6" class="open" />)}
+  {closed.map(([x, y]) => <circle cx={x} cy={y} r={kind === 'belong' ? 2.6 : 2.4} class="pt" />)}
   <circle cx={dot[0]} cy={dot[1]} r="3.6" class="hot" />
-  <text x={W - 2} y={H - 2} text-anchor="end" class="cap">{caption}</text>
+  <text x={capX} y={H - (sub ? 6 : 2)} text-anchor={anchor} class="cap">{caption}{sub && <tspan class="sub" dy="4">{sub}</tspan>}</text>
 </svg>
 
 <style>
@@ -87,8 +103,13 @@ if (kind === 'compete') {
     fill: var(--accent);
   }
   .cap {
-    font: italic 13px var(--math);
+    font: italic 14px var(--math);
     fill: var(--ink-3);
+  }
+  /* A real subscript, set upright and kept at the 12px floor (a Unicode ₆ fell back to ~6px). */
+  .sub {
+    font: 12px var(--serif);
+    font-style: normal;
   }
   .deffig:global(.armed) .ln {
     stroke-dashoffset: 1;

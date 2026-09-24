@@ -7,7 +7,9 @@
  *    construction once when it scrolls into view; never under prefers-reduced-motion;
  *  - pauses while the figure is off screen, and offers Pause / Play / Replay;
  *  - lets the reader step with Previous / Next or the numbered list, announcing each step
- *    (a step picked from the list first brings the figure into view if it is off screen).
+ *    (a step picked from the list first brings the figure into view if it is off screen; when
+ *    that is done from the keyboard and scrolls the list away, focus moves to the plate's own
+ *    Next button, or Previous at the last step, so the focused control stays on screen).
  * Colors are CSS custom properties on the SVG, so a theme change needs no redraw.
  */
 import { construction, STEPS, pathAt, arcPoint, angleOf, lerp, type Item, type Pt } from './about-pentagon-geometry';
@@ -51,9 +53,15 @@ export function mountPentagon(root: HTMLElement) {
     b.className = 'step-btn';
     while (li.firstChild) b.appendChild(li.firstChild);
     li.appendChild(b);
-    b.addEventListener('click', () => {
-      bringFigureIntoView();
+    b.addEventListener('click', (e) => {
+      // Enter or Space (detail 0): whatever has focus must still be on screen after the scroll.
+      const keyboard = e.detail === 0;
+      const dy = bringFigureIntoView(keyboard);
       go(i, true);
+      if (keyboard && dy) {
+        const r = b.getBoundingClientRect();
+        if (r.top - dy < headerCover() || r.bottom - dy > innerHeight) (i === last ? prevBtn : nextBtn).focus({ preventScroll: true });
+      }
     });
     return b;
   });
@@ -201,19 +209,38 @@ export function mountPentagon(root: HTMLElement) {
     forced = null;
   }
 
+  /** The height of the sticky header, which covers the top of the viewport. */
+  function headerCover() {
+    return parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+  }
+
   /**
    * In the one-column layout the list sits below the figure, so a step picked there would be
    * drawn off screen. Bring the figure up first (under the sticky header). The drawing waits
    * while the figure is out of view (see frame()), so it starts as the figure arrives.
+   * `withControls` (a keyboard choice, whose focus may move to Next) keeps the readout and the
+   * Previous / Next row in view too. Returns how far the page scrolls, so the caller can tell
+   * where the chosen step's button ends up.
    */
-  function bringFigureIntoView() {
+  function bringFigureIntoView(withControls: boolean): number {
     const r = svg!.getBoundingClientRect();
-    const covered = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    const covered = headerCover();
+    const room = innerHeight - covered;
     const seen = Math.min(r.bottom, innerHeight) - Math.max(r.top, covered);
-    if (seen >= r.height * 0.8) return;
-    // The whole plate (header line, drawing, step readout, controls) when it fits; else the drawing.
-    const target = plateFrame && plateFrame.getBoundingClientRect().height <= innerHeight - covered ? plateFrame : svg!;
-    target.scrollIntoView({ block: r.top < covered ? 'start' : 'nearest', behavior: reduceMQ.matches ? 'auto' : 'smooth' });
+    if (seen >= r.height * 0.8) return 0;
+    // The whole plate (header line, drawing, step readout, controls) when it fits; else the drawing,
+    // down to the controls when they are needed.
+    const f = plateFrame?.getBoundingClientRect();
+    const box = f && f.height <= room ? f : { top: r.top, bottom: withControls ? foot!.getBoundingClientRect().bottom : r.bottom };
+    // As scrollIntoView's 'nearest'; a box taller than the room shows its top, or its bottom when that holds the controls.
+    let dy = 0;
+    if (box.bottom - box.top > room) dy = withControls && box !== f ? box.bottom - innerHeight : box.top - covered;
+    else if (box.top < covered) dy = box.top - covered;
+    else if (box.bottom > innerHeight) dy = box.bottom - innerHeight;
+    const max = document.documentElement.scrollHeight - innerHeight;
+    dy = Math.round(Math.max(-scrollY, Math.min(max - scrollY, dy)));
+    if (dy) scrollTo({ top: scrollY + dy, behavior: reduceMQ.matches ? 'auto' : 'smooth' });
+    return dy;
   }
 
   /** Show step i: drawn in front of the reader, or at once (going back, or reduced motion). */
@@ -248,6 +275,15 @@ export function mountPentagon(root: HTMLElement) {
     } else {
       run(tau, T, null);
     }
+  });
+
+  // Printing: always print the finished construction, whatever step the reader is on.
+  addEventListener('beforeprint', () => {
+    stop();
+    armed = false;
+    tau = T;
+    render(false);
+    setToggle();
   });
 
   // Start: finished figure, unless it is still below the fold and motion is welcome.

@@ -10,6 +10,8 @@
  * - `typically` is the organizer's own wording for the usual timing, used only when no exact
  *   2026–27 date is posted; `typicalWindow` places it on the calendar figure as an open mark.
  * - `pending` says what is not posted yet.
+ * - `grades` is who can enter, in grade numbers, as the organizer states it. It drives the grade
+ *   finder on /events/ and the per-grade calendar files (src/pages/events/[calendar].ics.ts).
  */
 
 export type CostTag = 'free' | 'paid' | 'varies' | 'not-stated';
@@ -32,6 +34,16 @@ export interface CompetitionDate {
   figRow?: string;
   /** Calendar figure: how to print the date, with {d} for the date, e.g. 'A {d}' or '{d} online'. */
   figTag?: string;
+}
+
+/** One grade range a contest (or one part of it) is open to. Grades: K = 0, 1–12. */
+export interface GradeRange {
+  /** Lowest grade that can enter. Leave it out when the organizer sets no lower limit ("grade 8 and below"). */
+  minGrade?: number;
+  /** Highest grade that can enter; 12 means "has not finished high school". */
+  maxGrade: number;
+  /** The part of the contest this range is for, when the parts differ, e.g. 'AMC 10'. */
+  part?: string;
 }
 
 export interface Competition {
@@ -64,6 +76,13 @@ export interface Competition {
   typically?: string;
   typicalWindow?: { start: string; end: string; label: string };
   pending?: string;
+  /**
+   * Who can enter, by grade, exactly as the organizer states it (see GradeRange). "High school"
+   * is read as grades 9–12; "middle school" is not given numbers, because districts differ. Leave
+   * it out when the organizer states no grades in numbers ("middle and high school", "by
+   * invitation"): the grade finder then keeps the contest and says to check the official site.
+   */
+  grades?: GradeRange[];
 }
 
 /** The day every entry was last checked against its official site. */
@@ -93,6 +112,7 @@ export const competitions: Competition[] = [
     when: 'Every January, over the course of a week. 2027: January 21–27.',
     tags: ['multiple-choice', 'individual', 'national', 'middle school'],
     group: 'middle',
+    grades: [{ maxGrade: 8 }],
     dates: [{ label: 'AMC 8', start: '2027-01-21', end: '2027-01-27', kind: 'window', where: 'At host schools and sites' }],
   },
   {
@@ -111,10 +131,11 @@ export const competitions: Competition[] = [
     when: 'Chapter contests in February, state in March, national in May.',
     tags: ['middle school', 'team', 'individual', 'in-person', 'national'],
     group: 'middle',
+    grades: [{ minGrade: 6, maxGrade: 8 }],
     dates: [
       { label: 'MATHCOUNTS chapter contests', start: '2027-02-01', end: '2027-02-28', kind: 'window', note: 'East Bay chapter: Feb 21', figRow: 'MATHCOUNTS chapters' },
       { label: 'MATHCOUNTS state contests', start: '2027-03-01', end: '2027-03-31', kind: 'window', note: 'For students who advance', figRow: 'MATHCOUNTS state' },
-      { label: 'MATHCOUNTS National', start: '2027-05-09', end: '2027-05-10', kind: 'contest', note: 'For students who advance', figRow: 'MATHCOUNTS National' },
+      { label: 'MATHCOUNTS national contest', start: '2027-05-09', end: '2027-05-10', kind: 'contest', note: 'For students who advance', figRow: 'MATHCOUNTS national' },
     ],
   },
   {
@@ -133,6 +154,7 @@ export const competitions: Competition[] = [
     when: 'East Bay chapter: Sunday, February 21, 2027, in Castro Valley.',
     tags: ['middle school', 'local', 'East Bay', 'MATHCOUNTS', 'in-person', 'team'],
     group: 'middle',
+    grades: [{ minGrade: 6, maxGrade: 8 }],
     dates: [
       {
         label: 'MATHCOUNTS East Bay chapter',
@@ -161,6 +183,8 @@ export const competitions: Competition[] = [
     when: 'In 2026: April 12 in person and June 6 online.',
     tags: ['middle school', 'team', 'in-person', 'online', 'Bay Area', 'East Bay'],
     group: 'middle',
+    // "open to middle school students in grades 8 or below … there is no lower age limit"
+    grades: [{ maxGrade: 8 }],
     dates: [],
     pending: '2027 dates not yet posted (in 2026: April 12, and June 6 online).',
   },
@@ -175,13 +199,17 @@ export const competitions: Competition[] = [
     description:
       'The high school contests of the American Mathematics Competitions (AMC), taken through a host school or site. The number is the highest grade that can enter. A qualifying score on either one earns an invitation to the AIME (American Invitational Mathematics Examination).',
     level: 'AMC 10: grade 10 and below. AMC 12: grade 12 and below',
-    levelShort: 'Grade 10 / 12 and below',
+    levelShort: 'AMC 10: grade 10 and below; AMC 12: grade 12 and below',
     format: '25 multiple-choice questions in 75 minutes',
     cost: 'varies',
     costNote: 'Host schools and sites register and pay the fees',
     when: 'Every November, in two versions. 2026: A on November 5, B on November 13.',
     tags: ['multiple-choice', 'individual', 'national', 'high school', 'olympiad pathway'],
     group: 'high',
+    grades: [
+      { part: 'AMC 10', maxGrade: 10 },
+      { part: 'AMC 12', maxGrade: 12 },
+    ],
     dates: [
       { label: 'AMC 10/12 A', start: '2026-11-05', kind: 'contest', where: 'At host schools and sites', figTag: 'A {d}' },
       { label: 'AMC 10/12 B', start: '2026-11-13', kind: 'contest', where: 'At host schools and sites', figTag: 'B {d}' },
@@ -197,12 +225,14 @@ export const competitions: Competition[] = [
       'Student-run tournament with original problems for high school and advanced middle school students, held on the UC Berkeley campus. A separate online edition follows.',
     level: 'Grade 12 and below (high school and advanced middle school)',
     levelShort: 'Grade 12 and below',
-    format: 'Teams of up to 6: a proof-based Power round, an Individual round, and a Guts round',
+    format: 'Teams of up to 6: a proof-based Power round, an Individual round, and a Guts round (short problems handed in one set at a time, against the clock)',
     cost: 'paid',
     costNote: 'Fee waivers for financial hardship',
     when: 'Once a year. 2026: November 14 at UC Berkeley; online edition December 5.',
     tags: ['high school', 'team', 'in-person', 'online', 'Bay Area', 'East Bay'],
     group: 'high',
+    // "Students must be in grade 12 or below … there is no lower age limit"
+    grades: [{ maxGrade: 12 }],
     dates: [
       { label: 'BMT 2026', start: '2026-11-14', kind: 'contest', where: 'UC Berkeley' },
       { label: 'BMT 2026 Online', start: '2026-12-05', kind: 'contest', where: 'Online', figTag: '{d} online' },
@@ -215,9 +245,9 @@ export const competitions: Competition[] = [
     url: 'https://www.stanfordmathtournament.org/',
     org: 'Stanford Math Tournament (Stanford students, supported by the Stanford Undergraduate Mathematics Organization and the Stanford Department of Mathematics)',
     description:
-      'Student-run tournament at Stanford for US high schoolers, with teams chosen by application and lottery. SMT Online is open to middle and high schoolers anywhere.',
-    level: 'High school (in person); middle and high school (SMT Online)',
-    levelShort: 'High school; SMT Online also middle school',
+      'Student-run tournament at Stanford for US high schoolers, with teams chosen by application and lottery. SMT Online is open to students of any grade, anywhere.',
+    level: 'High school (in person); any grade (SMT Online)',
+    levelShort: 'High school; SMT Online: any grade',
     format: 'Teams of 5–6; individuals can apply and are placed on teams',
     venue: 'Stanford, plus SMT Online',
     cost: 'paid',
@@ -225,6 +255,12 @@ export const competitions: Competition[] = [
     when: 'In 2026: April 17–18 at Stanford, with SMT Online soon after.',
     tags: ['high school', 'middle school', 'team', 'in-person', 'online', 'Bay Area'],
     group: 'high',
+    // FAQ: "Students must be in high school to participate in SMT 2026 in-person. However, SMT
+    // 2026 Online is open to students of all grades."
+    grades: [
+      { part: 'SMT', minGrade: 9, maxGrade: 12 },
+      { part: 'SMT Online', maxGrade: 12 },
+    ],
     dates: [],
     pending: '2027 dates not yet posted (in 2026: April 17–18).',
   },
@@ -238,11 +274,13 @@ export const competitions: Competition[] = [
       'Student-run high school tournaments in Massachusetts: HMMT November at Harvard, and the harder HMMT February at MIT, with a proof-based team round. Spots are given by lottery.',
     level: 'High school',
     levelShort: 'High school',
-    format: 'Individual, team, and guts rounds; November teams of 4–6, February teams of 6–8',
+    format: 'Individual, team, and Guts rounds; November teams of 4–6, February teams of 6–8',
     cost: 'paid',
     when: 'HMMT November at Harvard and HMMT February at MIT. Next: November 7, 2026 and February 13, 2027.',
     tags: ['high school', 'team', 'individual', 'in-person', 'national', 'olympiad-level'],
     group: 'high',
+    // "Eligibility: High school students around the world"
+    grades: [{ minGrade: 9, maxGrade: 12 }],
     dates: [
       { label: 'HMMT November', start: '2026-11-07', kind: 'contest', where: 'Harvard, Massachusetts', note: 'Registration closed', figTag: 'Harvard {d}' },
       { label: 'HMMT February', start: '2027-02-13', kind: 'contest', where: 'MIT, Massachusetts', figTag: 'MIT {d}' },
@@ -265,6 +303,8 @@ export const competitions: Competition[] = [
     when: 'Dates are not listed here; check the official site.',
     tags: ['team', 'high school', 'national', 'in-person', 'regional teams', 'Bay Area'],
     group: 'high',
+    // SFBA/NorCal ARML: "open to students of all ages who are in grade 12 or below"
+    grades: [{ maxGrade: 12 }],
     dates: [],
     pending: 'Dates not listed here; see the official site.',
   },
@@ -284,6 +324,7 @@ export const competitions: Competition[] = [
     when: 'Each fall at MIT. 2026: Sunday, October 11 (applications closed May 31).',
     tags: ['high school', 'individual', 'in-person', 'girls', 'national', 'AMC-qualified'],
     group: 'high',
+    grades: [{ maxGrade: 11 }],
     dates: [
       {
         label: 'Math Prize for Girls',
@@ -333,6 +374,10 @@ export const competitions: Competition[] = [
     when: 'Typically the last Tuesday or Wednesday of February.',
     tags: ['olympiad', 'proof-based', 'Bay Area', 'local', 'middle school', 'high school', 'individual'],
     group: 'olympiad',
+    grades: [
+      { part: 'BAMO-8', maxGrade: 8 },
+      { part: 'BAMO-12', maxGrade: 12 },
+    ],
     dates: [],
     typically: 'Typically the last Tuesday or Wednesday of February',
     // The last Tuesday or Wednesday of February 2027 necessarily falls between Feb 22 and 28.
@@ -349,13 +394,16 @@ export const competitions: Competition[] = [
     org: 'Art of Problem Solving Initiative',
     description:
       'A free, proof-based contest you do on your own time, with over a month per round. Graders return written feedback, and it is one route to qualifying for the AIME.',
-    level: 'Middle and high school (US citizens or residents who have not finished high school)',
-    levelShort: 'Middle and high school',
+    level: 'Grade 12 and below: anyone who has not finished high school (US citizens or residents); middle schoolers are welcome',
+    levelShort: 'Grade 12 and below',
     format: 'Individual; each round is 1 puzzle and 4 proof-based problems, written up on your own time',
     cost: 'free',
     when: 'Three rounds each school year. 2026–27 Round 1 is due October 13, 2026.',
     tags: ['proof-based', 'individual', 'online', 'free', 'middle school', 'high school', 'AIME pathway'],
     group: 'online',
+    // Rules: "Participants must not have completed high school. Middle school students are allowed to
+    // participate."
+    grades: [{ maxGrade: 12 }],
     dates: [{ label: 'USAMTS Round 1 due', start: '2026-10-13', kind: 'deadline', where: 'Online', note: 'First of three rounds', figTag: 'Round 1 due {d}' }],
   },
   {
@@ -365,7 +413,7 @@ export const competitions: Competition[] = [
     url: 'https://purplecomet.org/',
     org: 'Purple Comet! Math Meet',
     description:
-      'A free, international online team contest. Teams start any time during a ten-day window, with an adult supervisor.',
+      'A free, international online team contest. Each team needs an adult supervisor and can start any time in a ten-day window.',
     level: 'Middle and high school',
     levelShort: 'Middle and high school',
     format: 'Teams of 1–6. Middle school: 20 problems in 60 minutes. High school: 30 problems in 90 minutes',
@@ -391,6 +439,7 @@ export const competitions: Competition[] = [
     when: 'Individual contest every March (the FAQ says the third Thursday); team contest every fall.',
     tags: ['multiple-choice', 'individual', 'team', 'international', 'elementary', 'middle school', 'high school'],
     group: 'online',
+    grades: [{ minGrade: 0, maxGrade: 12 }],
     dates: [],
     typically: 'Individual contest annually in March (the FAQ says the third Thursday); team contest in the fall',
     typicalWindow: { start: '2027-03-01', end: '2027-03-31', label: 'March' },
@@ -399,7 +448,7 @@ export const competitions: Competition[] = [
 ];
 
 export const groups: { id: CompetitionGroup; title: string; dek: string }[] = [
-  { id: 'middle', title: 'Middle school', dek: 'Contests written for grade 8 and below.' },
+  { id: 'middle', title: 'Middle school', dek: 'Contests written for grade 8 and below. Middle schoolers can enter most of the contests in the other groups too: see “Who” on each.' },
   { id: 'high', title: 'High school', dek: 'Individual contests and team tournaments, near home and farther away.' },
   { id: 'olympiad', title: 'Olympiad & invitational', dek: 'Olympiads, where you write out full proofs, and contests you qualify for by invitation.' },
   { id: 'online', title: 'Online options', dek: 'Contests you can take online. Two of the three are free.' },
@@ -451,4 +500,36 @@ export function upcomingDates(now = new Date()): CalendarItem[] {
     .flatMap((c) => c.dates.map((d) => ({ ...d, competition: c })))
     .filter((d) => (d.end ?? d.start) >= asOf)
     .sort((a, b) => a.start.localeCompare(b.start) || (a.end ?? a.start).localeCompare(b.end ?? b.start));
+}
+
+/* ---------------- grade finder ---------------- */
+
+/** The grades the finder on /events/ offers. */
+export const FINDER_GRADES = [5, 6, 7, 8, 9, 10, 11, 12] as const;
+
+/**
+ * Whether a student in grade `g` can enter `c`, going only by the organizer's stated grades:
+ * 'yes' (with the parts open to them, when only some parts are), 'no', or 'check' when the
+ * organizer gives no grade numbers.
+ */
+export function gradeFit(c: Competition, g: number): { fit: 'yes' | 'no' | 'check'; parts?: string[] } {
+  if (!c.grades?.length) return { fit: 'check' };
+  const open = c.grades.filter((r) => (r.minGrade ?? -Infinity) <= g && g <= r.maxGrade);
+  if (!open.length) return { fit: 'no' };
+  const some = open.length < c.grades.length ? open.flatMap((r) => (r.part ? [r.part] : [])) : [];
+  return some.length ? { fit: 'yes', parts: some } : { fit: 'yes' };
+}
+
+/** "For grade 11: AMC 12." / "No grade numbers given: see the official site." / '' */
+export function gradeFitNote(c: Competition, g: number) {
+  const f = gradeFit(c, g);
+  if (f.fit === 'check') return 'No grade numbers given: see the official site.';
+  if (f.fit === 'yes' && f.parts) return `For grade ${g}: ${f.parts.join(' and ')}.`;
+  return '';
+}
+
+/** Base name of the season's calendar download, e.g. "competitions-2026-27" (+ "-grade-7"). */
+export function calendarFile(grade?: number) {
+  const base = `competitions-${SEASON.start.slice(0, 4)}-${SEASON.end.slice(2, 4)}`;
+  return grade === undefined ? base : `${base}-grade-${grade}`;
 }

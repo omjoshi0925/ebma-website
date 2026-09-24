@@ -10,7 +10,7 @@
  *
  * `title` may contain one *italic* word. `wide` lets the body span the margin column too.
  */
-import { emph } from '../lib/text';
+import { emph, noWidow } from '../lib/text';
 
 interface Props {
   id: string;
@@ -23,6 +23,8 @@ interface Props {
 }
 const { id, num, title, dek, note, wide = false, class: className } = Astro.props;
 const hasNote = Boolean(note) || Astro.slots.has('note');
+// No one-word last line in any engine (Firefox has no text-wrap: pretty): see noWidow.
+const titleHTML = noWidow(emph(title), 16);
 ---
 
 <section class:list={['sec wrap', className]} id={id} aria-labelledby={`${id}-h`}>
@@ -31,8 +33,8 @@ const hasNote = Boolean(note) || Astro.slots.has('note');
       <div class="secno" aria-hidden="true"><span class="s">§</span>{num}</div>
       <div class="sec-titles">
         <div>
-          <h2 id={`${id}-h`}><span class="sr-only">Section {num}: </span><Fragment set:html={emph(title)} /></h2>
-          {dek && <p class="dek">{dek}</p>}
+          <h2 id={`${id}-h`}><span class="sr-only">Section {num}: </span><Fragment set:html={titleHTML} /></h2>
+          {dek && <p class="dek">{noWidow(dek)}</p>}
         </div>
         <slot name="actions" />
       </div>

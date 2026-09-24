@@ -31,7 +31,7 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
       <span class="menu-label">Menu</span><span class="bars" aria-hidden="true"></span>
     </button>
     <!-- Without JavaScript the button cannot open anything: jump to the footer's contents instead. -->
-    <a class="menu-link" href="#foot-contents">Menu <span aria-hidden="true">↓</span></a>
+    <a class="menu-link" href="#foot-contents">Menu <span class="arr" aria-hidden="true">↓</span></a>
   </div>
   <div class="mobile-menu" id="mobile-menu" hidden>
     <nav class="wrap" aria-label="Primary (mobile)">
@@ -42,7 +42,7 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
               <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
                 <span class="t">{item.title}</span>
                 <span class="lead" aria-hidden="true" />
-                <span class="go" aria-hidden="true">
+                <span class="go arr" aria-hidden="true">
                   →
                 </span>
               </a>
@@ -226,7 +226,7 @@ const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWi
     border-bottom: 1px solid var(--rule);
   }
   .toc .go {
-    font: 500 16px/1 var(--sans);
+    font: 500 16px/1 var(--arrows);
     color: var(--accent-text);
   }
   .toc .t {

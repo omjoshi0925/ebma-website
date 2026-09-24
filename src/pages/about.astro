@@ -10,9 +10,17 @@ import AboutPentagon from '../components/AboutPentagon.astro';
 import AboutPerson from '../components/AboutPerson.astro';
 import { team, SAMPLE_COUNT } from '../data/team';
 import { joinHref, contactHref } from '../data/site';
+import { valueOf } from '../data/placeholders';
 
 /** Volunteer calls to action open the join form with Volunteer preselected. */
 const volunteerHref = '/get-involved/?role=volunteer#join';
+/** The FAQ is for parents: its "write to us" link opens the form as a parent. The form takes any question. */
+const messageHref = '/get-involved/?role=parent#join';
+/**
+ * Keeps a chip on the same line as the punctuation after it (every engine may break between them).
+ * Only while it is a chip: a filled value is plain text, and a long one must be free to wrap.
+ */
+const glue = (id: string) => (valueOf(id) === null ? 'nowrap' : undefined);
 
 // Geography, not a claim of presence: the incorporated cities of the two East Bay counties.
 const alameda = ['Alameda', 'Albany', 'Berkeley', 'Dublin', 'Emeryville', 'Fremont', 'Hayward', 'Livermore', 'Newark', 'Oakland', 'Piedmont', 'Pleasanton', 'San Leandro', 'Union City'];
@@ -62,7 +70,7 @@ const contents = [
         <div class="prose">
           <p>
             <strong>In plain terms:</strong> the East Bay Math Association (EBMA) is a math organization for students in the East Bay area of
-            California. It was founded in <Ph id="org.founded" />.
+            California. It was founded in <span class={glue('org.founded')}><Ph id="org.founded" />.</span>
           </p>
           <p>
             We aim to bring students from different schools and cities together for competitions, events, and problem solving, and to gather good
@@ -82,30 +90,30 @@ const contents = [
     id="values"
     num="2"
     title="What we *value*"
-    dek="Four axioms: the things we take as given, and build everything else on."
+    dek="Four axioms: the things we take as given."
     note="An axiom is a starting point: a statement you accept without proof, then build on."
   >
     <div class="cells cells-4 axioms">
       <article class="cell">
-        <p class="formal" aria-hidden="true">curiosity <span class="op">≥</span> head start</p>
+        <p class="formal" aria-hidden="true">curiosity <span class="op"><TeX tex={String.raw`\geq`} /></span> head start</p>
         <p class="label">Axiom 2.1</p>
         <h3>Curiosity <em>counts</em> most.</h3>
-        <p class="body">A student who enjoys a good puzzle belongs here, whatever their grades say and wherever they are starting from.</p>
+        <p class="body">A student who enjoys a good puzzle belongs here, whatever their grades say.</p>
       </article>
       <article class="cell">
-        <p class="formal" aria-hidden="true">stuck <span class="op">≠</span> lost</p>
+        <p class="formal" aria-hidden="true">stuck <span class="op"><TeX tex={String.raw`\neq`} /></span> lost</p>
         <p class="label">Axiom 2.2</p>
         <h3>Being stuck is <em>part</em> of it.</h3>
         <p class="body">Good problems take a while. Getting stuck is where the thinking happens, not a sign you’re in the wrong place.</p>
       </article>
       <article class="cell">
-        <p class="formal upright" aria-hidden="true">1 + 1 <span class="op">&gt;</span> 2</p>
+        <p class="formal upright" aria-hidden="true">1 <span class="bin"><TeX tex="+" /></span> 1 <span class="op"><TeX tex=">" /></span> 2</p>
         <p class="label">Axiom 2.3</p>
         <h3>Better <em>together</em>.</h3>
         <p class="body">Mathematics is more fun with company. Students learn as much from each other’s ideas as from any lesson.</p>
       </article>
       <article class="cell">
-        <p class="formal" aria-hidden="true">unknown <span class="op">⇒</span> say so</p>
+        <p class="formal" aria-hidden="true">unknown <span class="op"><TeX tex={String.raw`\Rightarrow`} /></span> say so</p>
         <p class="label">Axiom 2.4</p>
         <h3>Straight <em>answers</em>.</h3>
         <p class="body">Families should know the dates, the costs, and who is supervising before anyone signs up. If we don’t know something yet, we say so.</p>
@@ -128,7 +136,7 @@ const contents = [
     id="who"
     num="4"
     title="Who we *serve*"
-    dek="Students in the East Bay, whichever city they live in and whichever school they attend."
+    dek="Students in the East Bay, whichever city they call home."
     note="The domain of a function is the set of inputs it is defined for. Ours is the East Bay."
   >
     <div class="domain">
@@ -147,14 +155,13 @@ const contents = [
               <span class="lhs" aria-hidden="true">
                 <span class="m">{set.sym}</span> = <span class="br">{'{'}</span>
               </span>
+              {/* The closing brace lives inside the last city's box, so a line can never break between them.
+                  Keep each <li> on one line: whitespace inside it would show before the comma. */}
               <ul class="cities" aria-labelledby={`${set.id}-h`}>
-                {set.cities.map((city) => (
-                  <li>{city}</li>
+                {set.cities.map((city, i) => (
+                  <li>{city}{i === set.cities.length - 1 && <span class="br br-close" aria-hidden="true">{'}'}</span>}</li>
                 ))}
               </ul>
-              <span class="br" aria-hidden="true">
-                {'}'}
-              </span>
             </div>
           </div>
         ))
@@ -180,7 +187,7 @@ const contents = [
     </div>
   </Section>
 
-  <Section id="people" num="5" title="The *people*" dek="The people behind the association.">
+  <Section id="people" num="5" title="The *people*" dek="Who runs the association, and how to help.">
     <p slot="note">Want to help run things? Volunteers are welcome: see <a href={volunteerHref}>Get Involved</a>.</p>
     <ul class="team">
       {
@@ -191,14 +198,15 @@ const contents = [
               </li>
             ))
           : Array.from({ length: SAMPLE_COUNT }, (_, i) => (
-              <li class:list={{ 'sample-extra': i > 1 }}>
+              // Only the first sample carries chips; the empty ones after it are left out of the list's count.
+              <li class:list={{ 'sample-extra': i > 1 }} aria-hidden={i > 0 ? 'true' : undefined}>
                 <AboutPerson sample={i + 1} />
               </li>
             ))
       }
     </ul>
     <div class="advisor">
-      <p class="advisor-line"><span class="label">Adult advisor</span> <Ph id="about.advisor" /></p>
+      <p class="advisor-line"><span class="label">Adult advisor</span> <Ph id="about.advisor" label="Name and role" /></p>
       <div class="cta-row">
         <a class="xref" href={contactHref}>Contact a person <span class="arr" aria-hidden="true">→</span></a>
         <a class="xref" href={volunteerHref}>Volunteer with us <span class="arr" aria-hidden="true">→</span></a>
@@ -270,7 +278,7 @@ const contents = [
         <details class="disclose">
           <summary><span class="qn" aria-hidden="true">Q7</span><span class="qt">Is EBMA a nonprofit?</span></summary>
           <div class="disclose-body">
-            <p>The East Bay Math Association is <Ph id="org.legal-status" />.</p>
+            <p>The East Bay Math Association is <span class={glue('org.legal-status')}><Ph id="org.legal-status" />.</span></p>
             <p>Organizations that would like to support EBMA can find out how on the <a href="/sponsors/#become">Sponsors &amp; Partners page</a>.</p>
           </div>
         </details>
@@ -278,8 +286,8 @@ const contents = [
           <summary><span class="qn" aria-hidden="true">Q8</span><span class="qt">How do I reach a real person?</span></summary>
           <div class="disclose-body">
             <p>
-              Email <PhLink id="org.email" />, or use the contact details on the <a href={contactHref}>Get Involved page</a>. A real person will read
-              every message.
+              Email <span class={glue('org.email')}><PhLink id="org.email" />,</span> <a href={messageHref}>send us a message with the form</a>, or use the
+              other contact details on the <a href={contactHref}>Get Involved page</a>. A real person will read every message.
             </p>
           </div>
         </details>
@@ -350,10 +358,15 @@ const contents = [
   .formal.upright {
     font-style: normal;
   }
+  /* The operators are typeset in the TeX font (the text faces have no ≥ ≠ ⇒, so each browser
+     would borrow a different system glyph), in the accent color that holds 4.5:1 at this size. */
   .formal .op {
     font-style: normal;
-    color: var(--accent);
+    color: var(--accent-text);
     margin: 0 0.12em;
+  }
+  .formal .bin {
+    margin: 0 0.06em;
   }
   .axioms h3 em {
     font-style: italic;
@@ -426,7 +439,11 @@ const contents = [
     margin-right: 0.3em;
   }
   .cities li:last-child {
-    margin-right: 0.12em;
+    margin-right: 0;
+  }
+  /* The same gap as between the opening brace and the first city. */
+  .br-close {
+    margin-left: 0.25em;
   }
   .cities li:not(:last-child)::after {
     content: ',';

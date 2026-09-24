@@ -7,7 +7,8 @@
  * SVG text scales with its viewBox, so the figure is laid out three times at build time for
  * three widths (phone, tablet, desktop) and CSS shows the one that keeps text at 12px or more.
  * The same data is in Table 2 (CompetitionTable.astro) for screen readers and for reading.
- * scripts/events-calendar.ts adds a "today" line and fades contests that have passed.
+ * scripts/events-calendar.ts adds a "today" line and fades contests that have passed; the grade
+ * finder (scripts/events-grades.ts) fades the rows a chosen grade can't enter (data-cid).
  * Each SVG is named by its <title> child alone (no aria-labelledby), so screen readers don't
  * also read the same text again as its description.
  */
@@ -140,7 +141,7 @@ const summary = `Timeline of the ${SEASON.label} competition season from Septemb
   plate="Plate I"
   corner={`<span class="m">t</span> ∈ [Sep 2026, Jun 2027]`}
   fig="Fig. 1."
-  caption={`The ${SEASON.label} competition season, one row per contest, in date order. Filled marks are dates posted by the organizers; open dashed bars show the usual timing where the 2027 date is not posted yet. Dates verified from each official site on September 23, 2026. Always confirm with the organizer.`}
+  caption={`The ${SEASON.label} competition season, one row per contest, in date order. Filled marks are dates posted by the organizers; open dashed bars show the usual timing where the 2027 date is not posted yet. Dates verified from each official site on September 23, 2026.`}
   class="cal-plate"
 >
   <div class="cal-box">
@@ -167,7 +168,7 @@ const summary = `Timeline of the ${SEASON.label} competition season from Septemb
           </g>
           <g class="cal-rows">
             {g.rows.map((r, i) => (
-              <g class="cal-row" data-end={r.end}>
+              <g class="cal-row" data-end={r.end} data-cid={r.comp.id}>
                 <text x={g.mode === 'column' ? 0 : 1} y={f(r.nameY)} class="cal-name">
                   {r.name}
                 </text>
@@ -416,5 +417,16 @@ const summary = `Timeline of the ${SEASON.label} competition season from Septemb
   }
   .cal-svg:global(.armed.in) .cal-mark:global(.is-past) {
     opacity: 0.38;
+  }
+
+  /* Rows the chosen grade can't enter (the grade finder): faded further, out of the way. */
+  .cal-row:global(.is-out) {
+    opacity: 0.18;
+    transition: opacity 0.2s;
+  }
+  @media print {
+    :global(.cal-plate) {
+      break-inside: avoid;
+    }
   }
 </style>

@@ -9,7 +9,7 @@
  *     <a class="btn" href="…">Join EBMA</a> …
  *   </Band>
  */
-import { emph } from '../lib/text';
+import { emph, noWidow } from '../lib/text';
 
 interface Props {
   label: string;
@@ -26,8 +26,8 @@ const { label, title, text, id = 'closing', m = 3 } = Astro.props;
   <div class="wrap band-grid">
     <div>
       <p class="label">{label}</p>
-      <h2 id={`${id}-h`} set:html={emph(title)} />
-      {text && <p>{text}</p>}
+      <h2 id={`${id}-h`} set:html={noWidow(emph(title), 13)} />
+      {text && <p>{noWidow(text)}</p>}
       <div class="cta-row"><slot /></div>
     </div>
   </div>
@@ -52,17 +52,25 @@ const { label, title, text, id = 'closing', m = 3 } = Astro.props;
     opacity: 0.9;
     pointer-events: none;
   }
+  /* One column: the whole curve, small, as an emblem under the buttons (a corner of a large one
+     read as stray texture and ran through the buttons). It lines up with the text's left edge. */
   @media (max-width: 980px) {
+    .band {
+      display: flex;
+      flex-direction: column;
+    }
     .band-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
+      width: 100%;
     }
     .band-fig {
-      width: 120vw;
-      right: -50vw;
-      top: auto;
-      bottom: -40vw;
+      order: 1;
+      position: static;
+      align-self: flex-start;
+      width: 156px;
+      margin: 40px 0 -8px var(--gut);
       transform: none;
-      opacity: 0.5;
+      opacity: 1;
     }
   }
 </style>

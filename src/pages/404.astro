@@ -13,6 +13,18 @@ import Section from '../components/Section.astro';
 import Plate from '../components/Plate.astro';
 import { nav, contactHref } from '../data/site';
 
+/* Each page is listed under its own kicker, the small label above its title, so the list keeps the
+   paper flavor without a second numbering scheme (a "§1" here would clash with this page's own §1).
+   Keep these in step with the `label` on each page's PageHeader (the home page's is its Theorem 1).
+   The kicker is flavor, so it is hidden from assistive tech: each link's name starts with the page. */
+const kickers: Record<string, string> = {
+  '/': 'Theorem 1',
+  '/about/': 'Preliminaries',
+  '/events/': 'Chronology',
+  '/resources/': 'Exercises',
+  '/get-involved/': 'Correspondence',
+  '/sponsors/': 'Acknowledgments',
+};
 const blurbs: Record<string, string> = {
   '/': 'The East Bay theorem, upcoming events, and a problem to try.',
   '/about/': 'What the association is for, and the questions parents ask.',
@@ -22,8 +34,8 @@ const blurbs: Record<string, string> = {
   '/sponsors/': 'Support mathematics for students across the East Bay.',
 };
 const pages = [
-  ...nav.map((item) => ({ href: item.href, n: `§${item.n}`, title: item.title, blurb: blurbs[item.href] ?? '' })),
-  { href: '/privacy/', n: 'App. A', title: 'Privacy Notice', blurb: 'What this site collects, and what it does not.' },
+  ...nav.map((item) => ({ href: item.href, kicker: kickers[item.href] ?? '', title: item.title, blurb: blurbs[item.href] ?? '' })),
+  { href: '/privacy/', kicker: 'Fine print', title: 'Privacy Notice', blurb: 'What this site collects, and what it does not.' },
 ];
 
 // ---- figure geometry (viewBox units; labels are sized to stay ≥ 12 px down to the narrowest
@@ -75,7 +87,7 @@ const ticks = [100, 200, 300, 500].map(X);
         plate="Plate I"
         corner={`<span class="m" style="text-transform:none">f</span>(404) = ??`}
         fig="Fig. 1."
-        caption={`A curve defined at every point but one. At <span class="m">x</span> = 404 it has a hole, which mathematicians call a <i>removable</i> discontinuity. The links below remove it.`}
+        caption={`A curve defined at every point but one. At <span class="nowrap"><span class="m">x</span> = 404</span> it has a hole, which mathematicians call a <i>removable</i> discontinuity. The links below remove it.`}
       >
         <svg class="nf-fig" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false">
           <!-- axes -->
@@ -113,7 +125,7 @@ const ticks = [100, 200, 300, 500].map(X);
           pages.map((p) => (
             <li>
               <a href={p.href}>
-                <span class="pg-n">{p.n}</span>
+                <span class="pg-k" aria-hidden="true">{p.kicker}</span>
                 <span class="pg-t">{p.title}</span>
                 <span class="pg-d">{p.blurb}</span>
                 <span class="pg-go" aria-hidden="true">
@@ -231,7 +243,7 @@ const ticks = [100, 200, 300, 500].map(X);
   }
   .pages a {
     display: grid;
-    grid-template-columns: 4.2em minmax(0, 15em) minmax(0, 1fr) auto;
+    grid-template-columns: 8.2rem minmax(0, 15em) minmax(0, 1fr) auto;
     align-items: baseline;
     gap: 6px 20px;
     padding: 16px 0;
@@ -240,8 +252,8 @@ const ticks = [100, 200, 300, 500].map(X);
     text-decoration: none;
     color: var(--ink);
   }
-  .pg-n {
-    font: 500 12.5px/1 var(--mono);
+  .pg-k {
+    font: 500 12.5px/1.2 var(--mono);
     color: var(--accent-text);
     white-space: nowrap;
   }
@@ -279,17 +291,27 @@ const ticks = [100, 200, 300, 500].map(X);
     color: var(--accent-text);
   }
 
+  /* narrow: the kicker sits above the title, as it does at the top of each page */
   @media (max-width: 760px) {
     .pages a {
-      grid-template-columns: 3.6em minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto;
+      row-gap: 4px;
     }
-    .pg-d {
-      grid-column: 2;
+    .pg-k {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .pg-t {
+      grid-column: 1;
       grid-row: 2;
     }
+    .pg-d {
+      grid-column: 1;
+      grid-row: 3;
+    }
     .pg-go {
-      grid-column: 3;
-      grid-row: 1;
+      grid-column: 2;
+      grid-row: 2;
     }
   }
   @media (max-width: 980px) {

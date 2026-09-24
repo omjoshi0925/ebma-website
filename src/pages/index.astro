@@ -9,15 +9,17 @@ import Band from '../components/Band.astro';
 import Ph from '../components/Ph.astro';
 import PhLink from '../components/PhLink.astro';
 import DefFigure from '../components/DefFigure.astro';
-import { events, SAMPLE_COUNT, dateParts } from '../data/events';
+import { events, upcomingEvents, SAMPLE_COUNT, dateParts } from '../data/events';
 import { problems } from '../data/problems';
+import { SEASON } from '../data/competitions';
 import { joinHref, contactHref } from '../data/site';
 
 /** The join form, with the role preselected (see src/scripts/join-form.ts). */
 const joinAs = (role: string) => `/get-involved/?role=${role}#join`;
 
-const upcoming = events.slice(0, 3);
-const next = events[0];
+/* Events that have not passed yet, soonest first. The page lists all of them but shows the first
+   three cards and one "Next up" line; the script below drops any that pass before the next build. */
+const upcoming = upcomingEvents(events);
 const featured = problems.find((p) => p.id === 'frog')!;
 ---
 
@@ -35,8 +37,8 @@ const featured = problems.find((p) => p.id === 'frog')!;
         </p>
         <h1 id="hero-title" class="rise" style="--d:120">Every student in the East&nbsp;Bay can do <em>real</em> mathematics.</h1>
         <p class="proof rise" style="--d:300">
-          <em>Proof.</em> By construction. The East Bay Math Association brings students from across the East Bay together
-          for competitions, events, and serious fun with hard problems. The remaining steps are left as an exercise for you.<span
+          <em>Proof.</em> By construction. The East Bay Math Association is built to bring students from across the East Bay
+          together for competitions, events, and serious fun with hard problems. The remaining steps are left as an exercise for&nbsp;you.<span
             class="qed qed-float"
             aria-hidden="true"></span>
         </p>
@@ -48,21 +50,38 @@ const featured = problems.find((p) => p.id === 'frog')!;
           <p class="next-up">
             <span class="next-tag">Next up</span>
             {
-              next ? (
-                <a href={next.href ?? '/events/'}>
-                  {next.title} · {dateParts(next.date).long}
-                </a>
+              events.length === 0 ? (
+                <Ph id="events.upcoming" label="First event and date" />
               ) : (
-                <span>
-                  <Ph id="events.upcoming" label="Event name" /> · <Ph id="events.upcoming" label="Date" />
-                </span>
+                <>
+                  <span class="next-list" data-upcoming data-empty="next-none" hidden={upcoming.length === 0}>
+                    {upcoming.map((e) => (
+                      <a href="/events/#upcoming" data-end={e.date}>
+                        {e.title} · {dateParts(e.date).long}
+                      </a>
+                    ))}
+                  </span>
+                  <span id="next-none" class="next-none" hidden={upcoming.length > 0}>
+                    No events scheduled right now. <a href="/events/#calendar">See the competition calendar</a>.
+                  </span>
+                </>
               )
             }
           </p>
-          <p class="note hero-aside">
-            <span class="fn" aria-hidden="true">1</span>Parent, teacher, or sponsor? Skip to <a href="#cases">§3, <i>Proof by cases</i></a>:
-            there is a case for you.
-          </p>
+          <div class="routes">
+            <p class="routes-h" id="routes-h">Start here</p>
+            <ul aria-labelledby="routes-h">
+              <li>
+                <a href="#exercise">Students: try a <span class="nowrap">problem<span class="arr" aria-hidden="true">↓</span></span></a>
+              </li>
+              <li>
+                <a href="/about/#faq">Parents: your questions, <span class="nowrap">answered<span class="arr" aria-hidden="true">→</span></span></a>
+              </li>
+              <li>
+                <a href="#cases">Teachers and sponsors: find your <span class="nowrap">place<span class="arr" aria-hidden="true">↓</span></span></a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
       <div class="hero-fig rise" style="--d:200">
@@ -77,8 +96,8 @@ const featured = problems.find((p) => p.id === 'frog')!;
       <h2 id="abstract-h">Abstract</h2>
       <p class="lede">
         The East Bay Math Association exists so that every student in the East Bay who is curious about mathematics has somewhere to take that
-        curiosity: problems worth their time, competitions worth preparing for, and people who take both seriously. We bring students together
-        across schools and cities to explore, to compete, and to find out how far a good idea can go.
+        curiosity: problems worth their time, competitions worth preparing for, and people who take both seriously. We aim to bring students
+        together across schools and cities to explore, to compete, and to find out how far a good idea can go.
       </p>
       <p class="keywords"><b>Keywords:</b> problem solving · competitions · community · East Bay</p>
     </div>
@@ -118,32 +137,41 @@ const featured = problems.find((p) => p.id === 'frog')!;
     note="All times Pacific. Each listing gives the date, time, place, who it’s for, and cost."
   >
     <a slot="actions" class="xref" href="/events/#upcoming">All upcoming events <span class="arr" aria-hidden="true">→</span></a>
-    <div class="events">
-      {
-        upcoming.length
-          ? upcoming.map((event, i) => (
+    {
+      events.length === 0 ? (
+        <div class="events">
+          {Array.from({ length: SAMPLE_COUNT }, (_, i) => (
+            <div class:list={['ev-item', { 'sample-extra': i > 0 }]}>
+              <EventCard sample={i + 1} num={`2.${i + 1}`} />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <>
+          <div class="events" data-upcoming="2" data-empty="events-none" hidden={upcoming.length === 0}>
+            {upcoming.map((event, i) => (
               <div class="ev-item">
                 <EventCard event={event} num={`2.${i + 1}`} />
               </div>
-            ))
-          : Array.from({ length: SAMPLE_COUNT }, (_, i) => (
-              <div class:list={['ev-item', { 'sample-extra': i > 0 }]}>
-                <EventCard sample={i + 1} num={`2.${i + 1}`} />
-              </div>
-            ))
-      }
-    </div>
+            ))}
+          </div>
+          <p class="ev-none" id="events-none" hidden={upcoming.length > 0}>
+            No EBMA events are scheduled right now. <a href={joinHref}>Join EBMA</a> to hear about the next one first.
+          </p>
+        </>
+      )
+    }
     <p class="tcap">
-      <b>Table 1.</b> Upcoming EBMA events, in date order. Looking further ahead? See the <a href="/events/#calendar">2026–27 competition calendar</a>.
+      <b>Table 1.</b> Upcoming EBMA events, in date order. Looking further ahead? See the <a href="/events/#calendar">{SEASON.label} competition calendar</a>.
     </p>
   </Section>
 
   <Section
     id="cases"
     num="3"
-    title="Proof by *cases*"
+    title="Find your *place*"
     dek="Whoever you are, the claim holds. Pick your case."
-    note="A proof by cases splits a claim into every possible situation, then proves each one on its own."
+    note="This section is a proof by cases: it splits a claim into every possible situation, then proves each one on its own."
   >
     <div class="cells cells-4">
       <article class="cell">
@@ -155,7 +183,10 @@ const featured = problems.find((p) => p.id === 'frog')!;
           <li>A verified calendar of competitions you can enter</li>
           <li>Events with students from other schools</li>
         </ul>
-        <a class="xref" href="/resources/">Start with resources <span class="arr" aria-hidden="true">→</span></a>
+        <div class="xrefs">
+          <a class="xref" href="/resources/">Start with resources <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="/events/#calendar">Competition calendar <span class="arr" aria-hidden="true">→</span></a>
+        </div>
       </article>
       <article class="cell">
         <p class="label">Case 3.2</p>
@@ -166,7 +197,10 @@ const featured = problems.find((p) => p.id === 'frog')!;
           <li>Supervision and safety: <Ph id="org.safety-policy" label="Policy" /></li>
           <li>A real person to ask: <PhLink id="org.email" label="Contact email" /></li>
         </ul>
-        <a class="xref" href="/about/#faq">Questions parents ask <span class="arr" aria-hidden="true">→</span></a>
+        <div class="xrefs">
+          <a class="xref" href="/about/#faq">Questions parents ask <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href={joinAs('parent')}>Tell us about your child <span class="arr" aria-hidden="true">→</span></a>
+        </div>
       </article>
       <article class="cell">
         <p class="label">Case 3.3</p>
@@ -177,18 +211,24 @@ const featured = problems.find((p) => p.id === 'frog')!;
           <li>Share opportunities with your students</li>
           <li>Tell us what your students need</li>
         </ul>
-        <a class="xref" href={joinAs('educator')}>Partner with us <span class="arr" aria-hidden="true">→</span></a>
+        <div class="xrefs">
+          <a class="xref" href="/get-involved/#schools">How partnering works <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href="/events/#calendar">Competition calendar <span class="arr" aria-hidden="true">→</span></a>
+        </div>
       </article>
       <article class="cell">
         <p class="label">Case 3.4</p>
         <h3>You’d like to <em>help.</em></h3>
-        <p class="body">Support the next generation of East Bay problem solvers, and be recognized for it in front of the families you serve.</p>
+        <p class="body">Fund a competition, host an event, or give an afternoon, and be thanked in front of the students and families your support reaches.</p>
         <ul class="gets">
           <li>Recognition at events and on this site</li>
           <li>A clear account of what your support made possible</li>
           <li>Volunteers welcome too, not only funding</li>
         </ul>
-        <a class="xref" href={joinAs('sponsor')}>Sponsor EBMA <span class="arr" aria-hidden="true">→</span></a>
+        <div class="xrefs">
+          <a class="xref" href="/sponsors/">How sponsoring works <span class="arr" aria-hidden="true">→</span></a>
+          <a class="xref" href={joinAs('volunteer')}>Offer to help <span class="arr" aria-hidden="true">→</span></a>
+        </div>
       </article>
     </div>
     <p class="conclude"><span>In every case, there is a place for you at EBMA.</span><span class="qed" aria-hidden="true"></span></p>
@@ -216,7 +256,7 @@ const featured = problems.find((p) => p.id === 'frog')!;
   >
     <div class="ack">
       <div>
-        <p class="ack-lede">Every problem set, every room, every student who shows up: none of it happens alone.</p>
+        <p class="ack-lede">Every problem set, every room, every student who shows up: none of it happens&nbsp;alone.</p>
         <p class="ack-sub">We are grateful to the organizations that support mathematics for students in the East Bay.</p>
         <a class="xref" href="/sponsors/">Sponsors &amp; Partners <span class="arr" aria-hidden="true">→</span></a>
       </div>
@@ -300,11 +340,52 @@ const featured = problems.find((p) => p.id === 'frog')!;
   .next-up a {
     color: var(--ink);
   }
-  .hero-aside {
-    max-width: 26em;
+  /* Every upcoming event is in the markup, soonest first; only the first one shows. */
+  .next-list > * + * {
+    display: none;
   }
-  .hero-aside a {
+  .next-none {
+    color: var(--ink-2);
+  }
+
+  /* Plain-English routes for the readers who arrive with one question. */
+  .routes-h {
+    font: 600 12px/1.2 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+  }
+  .routes ul {
+    list-style: none;
+  }
+  /* A long route wraps like a sentence, and the arrow stays with its last word. */
+  .routes a {
+    display: inline-block;
+    max-width: 100%;
+    padding: 4px 0;
+    font: 600 14.5px/1.5 var(--sans);
     color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-2);
+    text-underline-offset: 0.22em;
+    transition:
+      color 0.2s,
+      text-decoration-color 0.2s;
+  }
+  .routes a:hover {
+    color: var(--accent-text);
+    text-decoration-color: var(--accent);
+  }
+  .routes .arr {
+    display: inline-block;
+    margin-left: 0.4em;
+    text-decoration: none;
+  }
+  @media (pointer: coarse) {
+    .routes a {
+      padding: 11px 0;
+    }
   }
 
   .abstract {
@@ -365,6 +446,24 @@ const featured = problems.find((p) => p.id === 'frog')!;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: clamp(16px, 2vw, 28px);
   }
+  /* Every event on the list has passed (see prunePastEvents in src/data/events.ts). */
+  .ev-none {
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 22px 0 24px;
+    font-size: 19px;
+    text-wrap: pretty;
+  }
+  .ev-none a {
+    color: var(--ink);
+  }
+  /* A case can end with two links; they share the cell's last row. */
+  .xrefs {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
   .tcap {
     margin-top: 20px;
     font-size: 15.5px;
@@ -410,6 +509,12 @@ const featured = problems.find((p) => p.id === 'frog')!;
 
   @media (max-width: 1180px) {
     .ack {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  /* Beside the figure the text column is narrow: stack "Next up" over the routes. */
+  @media (min-width: 981px) and (max-width: 1180px) {
+    .hero-foot {
       grid-template-columns: minmax(0, 1fr);
     }
   }
@@ -465,6 +570,10 @@ const featured = problems.find((p) => p.id === 'frog')!;
     display: grid;
     min-width: 0;
   }
+  /* Three cards at most; the section's "All upcoming events" link leads to the rest. */
+  .ev-item:nth-child(n + 4) {
+    display: none;
+  }
   @media (max-width: 620px) {
     .hero-foot {
       grid-template-columns: 1fr;
@@ -475,3 +584,9 @@ const featured = problems.find((p) => p.id === 'frog')!;
     }
   }
 </style>
+
+<script>
+  // The page is built ahead of time: drop any listed event whose day has passed since.
+  import { prunePastEvents } from '../data/events';
+  prunePastEvents();
+</script>

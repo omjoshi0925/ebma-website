@@ -12,8 +12,15 @@ export const ROLES = [
   { value: 'sponsor', label: 'Sponsor or partner' },
   { value: 'other', label: 'Something else' },
 ] as const;
+export type Role = (typeof ROLES)[number]['value'];
 
+/*
+ * Wide on purpose, at both ends: the list must not suggest who is eligible (that is the
+ * org.eligibility placeholder's job). Once eligibility is known, the list can match it. Stored
+ * values stay stable ('other' predates the relabel), since D1 rows keep them.
+ */
 export const GRADES = [
+  { value: '4-below', label: 'Grade 4 or below' },
   { value: '5', label: 'Grade 5' },
   { value: '6', label: 'Grade 6' },
   { value: '7', label: 'Grade 7' },
@@ -22,7 +29,7 @@ export const GRADES = [
   { value: '10', label: 'Grade 10' },
   { value: '11', label: 'Grade 11' },
   { value: '12', label: 'Grade 12' },
-  { value: 'other', label: 'Other / not in school' },
+  { value: 'other', label: 'College, adult, or not in school' },
 ] as const;
 
 export const INTERESTS = [

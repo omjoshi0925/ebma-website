@@ -76,9 +76,10 @@ h4 {
   margin: 0;
   font-weight: 400;
   text-wrap: balance;
-  /* A single long word in a big heading may break rather than run off a narrow screen
-     (320px, or large text with WCAG text-spacing overrides). */
-  overflow-wrap: break-word;
+  /* A single long word in a big heading may break rather than run off a narrow screen (320px, or
+     large text with WCAG text-spacing overrides). "anywhere", not "break-word": only "anywhere"
+     also lowers the heading's min-content width, so a grid or flex track can shrink to fit. */
+  overflow-wrap: anywhere;
 }
 ul,
 ol {
@@ -112,8 +113,9 @@ textarea {
   padding-inline: var(--gut);
 }
 /* Keep a phrase on one line, e.g. a placeholder chip and the punctuation after it:
- * <span class="nowrap"><Ph id="…" />.</span>. (A chip is an inline-block, and Chrome will break
- * between it and a following period.) The chip itself can still wrap inside if the line is too narrow. */
+ * <span class="nowrap"><Ph id="…" />.</span>. (A chip is an inline-block, and every engine may
+ * break between it and a following period or comma.) The chip itself can still wrap inside if the
+ * line is too narrow. */
 .nowrap {
   white-space: nowrap;
 }
@@ -164,6 +166,18 @@ textarea {
   font-weight: 400;
   font-size: 1.06em;
   letter-spacing: 0;
+}
+/* Typeset math (<Math>, and problems via renderTeX): one size everywhere. KaTeX's default 1.21em
+ * makes Computer Modern's figures stand taller than Newsreader's; at 1.08em their heights match.
+ * Pages set display math larger with a more specific rule (.x .katex-display > .katex). */
+html .katex {
+  font-size: 1.08em;
+}
+/* \text{…} is set in the page's own serif, as LaTeX sets it in the document's text face, and at
+ * the size of the text around it. Variables stay in TeX's math italic. */
+html .katex .text {
+  font-family: var(--serif);
+  font-size: calc(100% / 1.08);
 }
 /* Marginalia and asides. */
 .note {
@@ -248,6 +262,35 @@ textarea {
   border-color: var(--band-accent);
 }
 
+/* ---------- sample entries (empty states) ----------
+ * While a list in src/data is empty (events, officers, sponsors), its section shows sample entries
+ * built from placeholder chips. Every sample on every page gets the same quieter treatment: a 1px
+ * dashed outline instead of the entry's own rules and crop marks, muted text, a small mono
+ * "Sample" tag on its first line, and at most two chips. Real entries keep the full style.
+ *   <article class="card sample"><p class="sample-tag">Sample</p> … <Ph id="…" /> …</article>
+ * The outline wins over a component's own borders; a component that draws rules another way
+ * (a ::before line, a box-shadow) leaves them off for samples: `.card:not(.sample)::before`.
+ */
+.sample {
+  --ink: var(--ink-3);
+  --ink-2: var(--ink-3);
+  border: 1px dashed var(--rule-2) !important;
+  box-shadow: none !important;
+  background: none;
+  padding: 16px 18px 18px;
+}
+.sample.cropped,
+.sample .cropped,
+.sample .frame {
+  background-image: none;
+}
+.sample-tag {
+  font: 500 12px/1.2 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
 /* ---------- buttons & cross-reference links ---------- */
 .btn {
   --bg: var(--accent);
@@ -297,11 +340,13 @@ textarea {
   --fg: var(--band-bg);
 }
 .band .btn-quiet {
+  /* Opaque, so the band's figure never runs through a label. */
+  --bg: var(--band-bg);
   --fg: var(--band-fg);
   --bd: var(--band-rule);
 }
 .band .btn-quiet:hover {
-  --bg: transparent;
+  --bg: var(--band-bg);
   --fg: var(--band-fg);
   --bd: var(--band-fg);
 }
@@ -341,6 +386,33 @@ textarea {
   align-items: center;
   gap: 14px 22px;
 }
+/* Every arrow glyph (→ ← ↑ ↓ ↗) is drawn from one font, the platform's UI face (see --arrows). */
+.arr {
+  font-family: var(--arrows);
+}
+
+/* ---------- external links ----------
+ * One implementation everywhere (<ResourceLink>, and <PhLink> once its value is a web address):
+ * the last word and a small ↗ stay on one line, the arrow is an inline-block so the link's
+ * underline does not run on under it, and screen readers hear "(external site)" instead of it.
+ *   <a class="ext" href="https://…" rel="external noopener">Art of Problem <span class="ext-tail"
+ *     >Solving<span class="ext-arr" aria-hidden="true">↗</span></span><span class="sr-only">
+ *     (external site)</span></a>
+ */
+.ext-tail {
+  white-space: nowrap;
+}
+.ext-arr {
+  display: inline-block;
+  margin-left: 0.2em;
+  font: 500 0.78em/1 var(--arrows);
+  color: var(--accent-text);
+  text-decoration: none;
+  transition: transform 0.2s var(--ease-out);
+}
+.ext:hover .ext-arr {
+  transform: translate(1px, -1px);
+}
 
 /* ---------- running head (top of each page) ---------- */
 .runhead {
@@ -368,6 +440,8 @@ textarea {
 /* The tombstone ∎ that ends a proof. Filled by default; .armed/.in animate it (scripts/reveal.ts). */
 .qed {
   display: inline-block;
+  /* A square wherever it sits, including as a flex item beside a line that wraps (.conclude). */
+  flex: none;
   width: 0.62em;
   height: 0.62em;
   border: 1.5px solid var(--accent);
@@ -616,7 +690,9 @@ input[type='range']::-moz-range-thumb {
   min-width: 0;
 }
 .sec-titles h2 {
-  font: 300 clamp(38px, 4.4vw, 64px) / 1 var(--serif-display);
+  /* 38px from 340px up; a touch smaller on the narrowest phones, so a long word such as
+     "Acknowledgments" fits whole at 320px instead of breaking. */
+  font: 300 clamp(min(38px, 11.2vw), 4.4vw, 64px) / 1 var(--serif-display);
   letter-spacing: -0.022em;
   font-variation-settings: 'opsz' 72;
 }
@@ -628,6 +704,7 @@ input[type='range']::-moz-range-thumb {
   max-width: 36em;
   color: var(--ink-2);
   font-size: 18px;
+  text-wrap: pretty;
 }
 .margin-note {
   grid-column: 1;
@@ -828,6 +905,7 @@ input[type='range']::-moz-range-thumb {
   color: var(--band-fg-2);
   max-width: 30em;
   font-size: 19px;
+  text-wrap: pretty;
 }
 .band .cta-row {
   margin-top: 36px;
@@ -1022,4 +1100,164 @@ main:focus {
 .aside-box p:not(.label) {
   font-size: 16.5px;
   color: var(--ink-2);
+}
+
+/* ---------- print ----------
+ * Teachers print the calendar and the problem sets. Print the paper, not the website: no header,
+ * menu, footer, preview bar, closing band or controls; black on white in either theme; a web
+ * address after every link to another site; figures, table rows and problems kept whole.
+ * scripts/site.ts opens every closed disclosure (FAQ answers, folded lists) for printing, except
+ * a problem's hint and solution: those print only if the reader opened them, so a printed problem
+ * set is a worksheet unless its solutions were asked for.
+ */
+@media print {
+  @page {
+    margin: 14mm 13mm 16mm;
+  }
+  :root,
+  :root:not([data-theme='light']),
+  :root[data-theme] {
+    color-scheme: light;
+    --paper: #fff;
+    --paper-2: #fff;
+    --paper-3: #f1f1f1;
+    --ink: #000;
+    --ink-2: #1f1f1f;
+    --ink-3: #474747;
+    --rule: #bdbdbd;
+    --rule-2: #7a7a7a;
+    --accent: #b3301a;
+    --accent-text: #9c2a0e;
+    --accent-wash: transparent;
+    --accent-line: #b3301a;
+    --ph-bg: #fff;
+    --ph-text: #9c2a0e;
+    --fig-ink: #000;
+    --fig-ink-3: #474747;
+    --fig-chord: rgb(0 0 0 / 0.35);
+    --fig-accent: #b3301a;
+    --band-bg: #fff;
+    --band-fg: #000;
+    --band-fg-2: #1f1f1f;
+    --band-accent: #b3301a;
+    --band-rule: #7a7a7a;
+    --grain: none;
+  }
+  html {
+    /* Screen sizes are generous; this sets body text near 11.5 pt. */
+    zoom: 0.8;
+  }
+  html,
+  body {
+    background: #fff;
+  }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
+  .js .rise {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .sec-head.armed::before,
+  .sec-head.armed::after {
+    transform: none;
+  }
+  .qed.armed {
+    background: var(--accent);
+  }
+
+  /* Chrome and controls */
+  .skip,
+  .site-header,
+  .site-footer,
+  .prelaunch,
+  .band,
+  .runhead,
+  .toc-box,
+  .btn,
+  .fig-ctl,
+  .fig-btn,
+  form.check,
+  .lib-bar,
+  .lib-bar-h,
+  [data-lib-ui],
+  .sec-titles > .xref,
+  .ext-arr,
+  .problem details:not([open]) {
+    display: none !important;
+  }
+  .disclose > summary::after {
+    content: none;
+  }
+
+  /* Layout: sections close up, and a margin note never runs into a heading's cross-reference. */
+  .sec {
+    padding-block: 28px;
+  }
+  .sec + .sec {
+    padding-top: 12px;
+  }
+  /* In block flow (not a grid) a section's heading keeps with what follows it. */
+  .sec-grid {
+    display: block;
+  }
+  .margin-note {
+    margin: 0 0 16px;
+    max-width: 38em;
+  }
+  .page-head {
+    padding-bottom: 20px;
+  }
+  .table-wrap {
+    overflow: visible;
+  }
+
+  /* Links: the address after every link to another site. */
+  a[href^='http']::after {
+    content: '(' attr(href) ')';
+    /* An inline-block, so the link's underline does not run on under the address. */
+    display: inline-block;
+    margin-left: 0.4em;
+    font: 500 0.72em/1.3 var(--mono);
+    color: var(--ink-3);
+    overflow-wrap: anywhere;
+  }
+
+  /* Pagination */
+  h1,
+  h2,
+  h3,
+  h4,
+  .sec-head,
+  .cg-head,
+  .frame-top,
+  .problem-top,
+  [data-keep-with-next],
+  thead {
+    break-after: avoid;
+  }
+  figure,
+  .plate,
+  .frame,
+  svg,
+  img,
+  tr,
+  article,
+  .cell,
+  .aside-box,
+  .disclose,
+  .katex-display {
+    break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
+  }
 }

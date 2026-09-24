@@ -43,7 +43,7 @@ const f = (n: number) => n.toFixed(2);
     >
       <title id="pent-title">Constructing a regular pentagon with a compass and a straightedge</title>
       <desc id="pent-desc"
-        >A circle with center O and two perpendicular diameters, with ends A and B and top point P. An arc about A through O finds M, the midpoint of OA.
+        >The finished construction: a circle with center O and two perpendicular diameters, with ends A and B and top point P. An arc about A through O finds M, the midpoint of OA.
         An arc about M through P meets the diameter at Q, so that OQ is the radius divided by the golden ratio φ. The segment PQ is the side of the
         regular pentagon: stepped around the circle with the compass it marks five points, which are joined to form the pentagon, drawn in red, with
         its star of diagonals.</desc
@@ -113,7 +113,12 @@ const f = (n: number) => n.toFixed(2);
           <svg class="ic-re" viewBox="0 0 12 12" aria-hidden="true" focusable="false"
             ><path d="M10.2 6.9A4.3 4.3 0 1 1 8.8 2.7M9.4.8v2.6H6.8" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg
           >
-          <span class="t">Replay</span>
+          {/* The hidden labels hold the button at the width of its longest label, so it never changes size (or re-wraps the row) with its state. */}
+          <span class="t-box">
+            <span class="t">Replay</span>
+            <span class="t-size" aria-hidden="true">Show all</span>
+            <span class="t-size" aria-hidden="true">Restart</span>
+          </span>
         </button>
       </div>
     </div>
@@ -332,9 +337,16 @@ const f = (n: number) => n.toFixed(2);
     margin-left: auto;
     min-width: 7.5em;
   }
+  /* The icons keep their size: a flex item would otherwise shrink to a sliver in a narrow button. */
+  .pbtn-toggle .ic,
+  .ic-re {
+    flex: none;
+  }
+  /* 10px plus side margins: the same 13px as the replay icon, so the button keeps its width. */
   .pbtn-toggle .ic {
     width: 10px;
     height: 11px;
+    margin: 0 1.5px;
     border-left: 3px solid currentColor;
     border-right: 3px solid currentColor;
   }
@@ -356,6 +368,16 @@ const f = (n: number) => n.toFixed(2);
   }
   .pbtn-toggle:is([data-state='replay'], [data-state='restart'], [data-state='finish']) .ic-re {
     display: block;
+  }
+  .t-box {
+    display: inline-grid;
+    justify-items: center;
+  }
+  .t-box > * {
+    grid-area: 1 / 1;
+  }
+  .t-size {
+    visibility: hidden;
   }
 
   /* ---- the written construction ---- */
@@ -460,16 +482,16 @@ const f = (n: number) => n.toFixed(2);
     }
   }
   @media (max-width: 620px) {
-    .pent-ctl {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+    /* Three equal buttons across while their labels fit (each grows from zero, never below its
+       content); where they don't (320px, or with wider text spacing), the toggle wraps to a full-width
+       row of its own instead of the labels spilling past the borders. */
     .pbtn {
+      flex: 1 1 0;
+      min-width: max-content;
       padding: 0 8px;
     }
     .pbtn-toggle {
       margin-left: 0;
-      min-width: 0;
     }
     .pent-read {
       font-size: 16.5px;

@@ -13,3 +13,7 @@
 # Fingerprinted build assets (scripts, styles, fonts) never change under the same name.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
+
+/events/*.ics
+  Content-Type: text/calendar; charset=utf-8
+  Content-Disposition: attachment

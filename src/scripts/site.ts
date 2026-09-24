@@ -1,6 +1,6 @@
 /**
  * Site-wide behavior: header rule on scroll, the mobile menu, reveal-on-scroll for section
- * rules and ∎ tombstones, and the footer theme control.
+ * rules and ∎ tombstones, the footer theme control, and getting the page ready to print.
  */
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -21,7 +21,7 @@ const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
 const menu = document.getElementById('mobile-menu');
 if (toggle && menu) {
   const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
-  const behind = [document.querySelector('main'), document.querySelector('.site-footer'), document.querySelector('.skip')];
+  const behind = ['main', '.site-footer', '.skip', '.prelaunch'].map((s) => document.querySelector(s));
   const setOpen = (open: boolean) => {
     toggle.setAttribute('aria-expanded', String(open));
     menu.hidden = !open;
@@ -135,4 +135,36 @@ if (control) {
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   document.dispatchEvent(new CustomEvent('themechange'));
+});
+
+/* ---------- print ----------
+ * Print the whole paper (global.css has the print styles): open every closed disclosure (FAQ
+ * answers, folded lists) and finish any figure still waiting to draw itself in. A problem's Hint
+ * and Solution stay as the reader left them, so a printed problem set is a worksheet unless its
+ * solutions were opened. Paper is white, so a dark page switches to the light theme for the print
+ * (the canvas figures redraw in ink). Everything changed here is put back afterwards. */
+let printUndo: (() => void) | null = null;
+addEventListener('beforeprint', () => {
+  if (printUndo) return;
+  const opened = [...document.querySelectorAll<HTMLDetailsElement>('details:not([open])')].filter((d) => !d.closest('.problem'));
+  for (const d of opened) d.open = true;
+  document.querySelectorAll('.armed').forEach((el) => el.classList.remove('armed'));
+  const theme = root.getAttribute('data-theme');
+  const dark = theme === 'dark' || (theme === null && matchMedia('(prefers-color-scheme: dark)').matches);
+  if (dark) {
+    root.setAttribute('data-theme', 'light');
+    document.dispatchEvent(new CustomEvent('themechange'));
+  }
+  printUndo = () => {
+    for (const d of opened) d.open = false;
+    if (dark) {
+      if (theme === null) root.removeAttribute('data-theme');
+      else root.setAttribute('data-theme', theme);
+      document.dispatchEvent(new CustomEvent('themechange'));
+    }
+  };
+});
+addEventListener('afterprint', () => {
+  printUndo?.();
+  printUndo = null;
 });

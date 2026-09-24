@@ -162,6 +162,10 @@ export function createTimesTable(canvas: HTMLCanvasElement, variant: Variant, n:
 /**
  * Hero plate: plotter-style intro, then m drifts through whole numbers with a pause at each.
  *
+ * The intro starts the first time the figure is on screen (at least 30% of it, in a visible tab),
+ * not when the script loads: on a phone the plate sits below the fold, and the drawing should
+ * happen where the reader can see it. Until then the canvas stays blank.
+ *
  * Accessibility: the readout next to the slider is visual only (aria-hidden); the slider's
  * aria-valuetext carries the value and is always written together with slider.value. Nothing is
  * a live region, and focusing the slider pauses the animation, so a screen reader never hears a
@@ -206,7 +210,8 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
   let to = 2;
   const HOLD = 2200;
   const MOVE = 3600;
-  const intro = { start: performance.now(), done: reduce };
+  /** start: when the intro began (0 until the figure is first seen). */
+  const intro = { start: 0, done: reduce };
   let raf = 0;
 
   const setPlaying = (p: boolean) => {
@@ -286,12 +291,26 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
   setPlaying(playing);
   show(fig.state.m);
 
-  new IntersectionObserver((entries) => {
-    visible = entries[0].isIntersecting;
-    if (visible) kick();
-  }).observe(canvas);
+  let seen = false; // enough of the figure is on screen for the intro to be worth watching
+  const maybeStartIntro = () => {
+    if (intro.done || intro.start || !seen || document.hidden) return;
+    intro.start = performance.now();
+    kick();
+  };
+  new IntersectionObserver(
+    (entries) => {
+      const entry = entries[entries.length - 1];
+      visible = entry.isIntersecting;
+      if (entry.intersectionRatio >= 0.3) seen = true;
+      maybeStartIntro();
+      if (visible) kick();
+    },
+    { threshold: [0, 0.3] },
+  ).observe(canvas);
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) kick();
+    if (document.hidden) return;
+    maybeStartIntro();
+    kick();
   });
 
   function kick() {
@@ -301,8 +320,10 @@ export function mountHeroFigure(canvas: HTMLCanvasElement) {
     raf = 0;
     let more = false;
     if (!intro.done) {
+      // Blank until the figure is first on screen (see maybeStartIntro); nothing to animate yet.
+      if (!intro.start) return;
       // A quick plotter pass (about 1.4 s) so the fold settles fast.
-      const e = now - intro.start;
+      const e = Math.max(0, now - intro.start);
       const seg = (a: number, b: number) => clamp01((e - a) / b);
       fig.state.circle = ease(seg(0, 350));
       fig.state.chords = 1 - Math.pow(1 - seg(150, 800), 2);

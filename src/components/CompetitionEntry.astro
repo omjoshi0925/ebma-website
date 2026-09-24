@@ -2,10 +2,12 @@
 /**
  * One competition in "Competitions to know" on /events/, set like a numbered reference and laid
  * out like a Student Resources entry (ResourceCard.astro): "[n]" and the cost tag, the name
- * (linking to the official site), the organizer, a description, who / format / when (and a cost
- * note when there is one), and the domain the link goes to. Facts come from
- * src/data/competitions.ts (verified research).
+ * (linking to the official site through ResourceLink, the site's one external-link style), the
+ * organizer, a description, who / format / when (and a cost note when there is one), and the
+ * domain the link goes to. Facts come from src/data/competitions.ts (verified research).
+ * data-cid lets the grade finder (scripts/events-grades.ts) hide it or add a note ([data-fit]).
  */
+import ResourceLink from './ResourceLink.astro';
 import { costLabel, type Competition } from '../data/competitions';
 
 interface Props {
@@ -19,20 +21,16 @@ const domain = u.hostname.replace(/^www\./, '');
 const showOrg = c.org.trim().toLowerCase() !== c.name.trim().toLowerCase();
 ---
 
-<article class="ce" id={`c-${c.id}`} aria-labelledby={`c-${c.id}-h`}>
+<article class="ce" id={`c-${c.id}`} aria-labelledby={`c-${c.id}-h`} data-cid={c.id}>
   <p class="ce-n" aria-hidden="true">[{n}]</p>
-  <h4 class="ce-name" id={`c-${c.id}-h`}>
-    <a href={c.url} rel="noopener">
-      {c.name}<span class="ext" aria-hidden="true">↗</span><span class="sr-only"> (external site)</span>
-    </a>
-  </h4>
+  <h4 class="ce-name" id={`c-${c.id}-h`}><ResourceLink href={c.url}>{c.name}</ResourceLink></h4>
   <p class="ce-cost"><span class:list={['tag', `tag-${c.cost}`]}><span class="sr-only">Cost: </span>{costLabel[c.cost]}</span></p>
   {showOrg && <p class="ce-org">{c.org}</p>}
   <p class="ce-desc">{c.description}</p>
   <dl class="ce-facts">
     <div>
       <dt>Who</dt>
-      <dd>{c.level}</dd>
+      <dd>{c.level}<span class="ce-fit" data-fit hidden></span></dd>
     </div>
     <div>
       <dt>Format</dt>
@@ -56,14 +54,15 @@ const showOrg = c.org.trim().toLowerCase() !== c.name.trim().toLowerCase();
 
 <style>
   /* Row 1: the reference number and the cost tag. Then the name, and the rest, full width. The
-     name comes before the tag in the source so a screen reader meets the heading first. */
+     name comes before the tag in the source so a screen reader meets the heading first. The top
+     rule is ink, as on a Student Resources entry. */
   .ce {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-content: start;
     column-gap: 16px;
     padding: 18px 0 26px;
-    border-top: 1px solid var(--rule);
+    border-top: 1px solid var(--ink);
     min-width: 0;
   }
   .ce > :not(.ce-n, .ce-cost) {
@@ -86,21 +85,17 @@ const showOrg = c.org.trim().toLowerCase() !== c.name.trim().toLowerCase();
     letter-spacing: -0.01em;
     text-wrap: pretty;
   }
-  .ce-name a {
+  /* The link is ResourceLink's: the ↗ is its own inline-block, so the underline stops at the last
+     letter instead of running on under the arrow. */
+  .ce-name :global(a) {
     padding-block: 3px;
     color: var(--ink);
     text-decoration-color: var(--rule-2);
     text-underline-offset: 0.16em;
   }
-  .ce-name a:hover {
+  .ce-name :global(a:hover) {
     color: var(--accent-text);
     text-decoration-color: currentColor;
-  }
-  .ext {
-    font: 500 0.66em/1 var(--sans);
-    margin-left: 0.3em;
-    color: var(--accent-text);
-    vertical-align: 0.25em;
   }
   .ce-org {
     margin-top: 6px;
@@ -137,6 +132,13 @@ const showOrg = c.org.trim().toLowerCase() !== c.name.trim().toLowerCase();
     font: 500 15px/1.45 var(--sans);
     color: var(--ink);
   }
+  /* The grade finder's note for this contest ("For grade 11: AMC 12."). */
+  .ce-fit {
+    display: block;
+    margin-top: 4px;
+    font-weight: 600;
+    color: var(--accent-text);
+  }
   .ce-dom {
     margin-top: 14px;
     font: 500 12.5px/1.3 var(--mono);
@@ -167,6 +169,11 @@ const showOrg = c.org.trim().toLowerCase() !== c.name.trim().toLowerCase();
     }
     .ce-facts dd {
       font-size: 16px;
+    }
+  }
+  @media print {
+    .ce {
+      break-inside: avoid;
     }
   }
 </style>

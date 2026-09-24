@@ -11,7 +11,7 @@
  * The running head's left side is the page's name from the nav (`chapter` n → "Events &
  * Competitions"), so it never repeats the kicker; pass `runLeft` for pages outside the nav.
  */
-import { emph } from '../lib/text';
+import { emph, noWidow } from '../lib/text';
 import { nav, site } from '../data/site';
 
 interface ContentsItem {
@@ -32,6 +32,9 @@ interface Props {
 const { chapter, runLeft, runRight = site.region, label, note, title, lede, contents } = Astro.props;
 const pageName = runLeft ?? nav.find((item) => item.n === chapter && item.n > 0)?.title ?? site.name;
 const hasAside = Astro.slots.has('aside');
+// No one-word last line in any engine (Firefox has no text-wrap: pretty): see noWidow.
+const titleHTML = noWidow(emph(title), 13);
+const ledeHTML = lede ? noWidow(lede) : undefined;
 ---
 
 <section class="wrap page-head" aria-labelledby="page-title">
@@ -45,8 +48,8 @@ const hasAside = Astro.slots.has('aside');
         <span class="label">{label}</span>
         {note && <span class="note">{note}</span>}
       </p>
-      <h1 id="page-title" class="rise" style="--d:120" set:html={emph(title)} />
-      {lede && <p class="lede rise" style="--d:260" set:html={lede} />}
+      <h1 id="page-title" class="rise" style="--d:120" set:html={titleHTML} />
+      {ledeHTML && <p class="lede rise" style="--d:260" set:html={ledeHTML} />}
       <slot name="lede" />
       {
         Astro.slots.has('actions') && (

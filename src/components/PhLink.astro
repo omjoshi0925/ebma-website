@@ -5,9 +5,15 @@
  *
  *   <PhLink id="org.email" />                       mailto link showing the address
  *   <PhLink id="org.instagram">Instagram</PhLink>   link text from the slot
+ *
+ * A filled link to another site gets the site's one external-link treatment (.ext in
+ * global.css, as <ResourceLink> does): the last word and a small ↗ kept on one line, and
+ * "(external site)" for screen readers. Link text that carries its own markup (an arrow, say) is
+ * left as written.
  */
 import { getPlaceholder } from '../data/placeholders';
 import Ph from './Ph.astro';
+import { splitTail } from '../lib/text';
 
 interface Props {
   id: string;
@@ -26,15 +32,25 @@ const href =
         ? `tel:${value.replace(/[^\d+]/g, '')}`
         : value;
 const external = href !== null && /^https?:\/\//.test(href);
-const hasSlot = Astro.slots.has('default');
+const escape = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+const html = Astro.slots.has('default') ? (await Astro.slots.render('default')).trim() : escape(value ?? '');
+const split = external ? splitTail(html) : null;
+// An address shown as the link text may wrap anywhere before its last few characters.
+const long = split !== null && !html.includes(' ') && html.length > 16;
 ---
 
 {
   href === null ? (
     <Ph id={id} label={label} class={className} />
+  ) : split ? (
+    <a href={href} class:list={['ext', className, { 'ext-long': long }]} rel="external noopener"><Fragment set:html={split.head} /><span class="ext-tail"><Fragment set:html={split.tail} /><span class="ext-arr" aria-hidden="true">↗</span></span><span class="sr-only"> (external site)</span></a>
   ) : (
-    <a href={href} class={className} {...(external ? { rel: 'noopener' } : {})}>
-      {hasSlot ? <slot /> : value}
-    </a>
+    <a href={href} class={className} {...(external ? { rel: 'external noopener' } : {})}><Fragment set:html={html} /></a>
   )
 }
+
+<style>
+  .ext-long {
+    overflow-wrap: anywhere;
+  }
+</style>

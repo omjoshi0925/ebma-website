@@ -12,6 +12,8 @@
 //   #join-error-summary (focused on client-side errors) linking to #join-<field>, #join-success
 //   (focused on success), per-field errors in #join-<field>-error, aria-invalid="true" on invalid
 //   controls and "false" on the rest. Radio/checkbox groups: the first input carries id join-<field>.
+//   Role-aware copy lives in [data-copy="<key>"] slots (src/scripts/join-form.ts); without JavaScript
+//   they hold the neutral wording.
 import { chromium } from 'playwright';
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
@@ -36,12 +38,27 @@ async function test(name, fn) {
 }
 
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
+
+/** The accessible name and description Chrome computes for one element. */
+async function axNode(page, selector) {
+  const cdp = await page.context().newCDPSession(page);
+  try {
+    const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
+    const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector });
+    const { nodes } = await cdp.send('Accessibility.getPartialAXTree', { nodeId, fetchRelatives: false });
+    const node = nodes.find((n) => !n.ignored) ?? nodes[0];
+    return { name: node.name?.value ?? '', description: node.description?.value ?? '' };
+  } finally {
+    await cdp.detach();
+  }
+}
 const stamp = Date.now();
 
 async function fillValid(page, suffix) {
   await page.fill('#join-form [name="name"]', `Test Person ${suffix}`);
   await page.fill('#join-form [name="email"]', `test+${suffix}@example.com`);
   await page.check('#join-form [name="role"][value="parent"]');
+  await page.selectOption('#join-form [name="grade"]', '4-below');
   await page.fill('#join-form [name="school"]', 'Automated test');
   await page.check('#join-form [name="interests"][value="events"]');
   await page.check('#join-form [name="interests"][value="updates"]');
@@ -66,11 +83,53 @@ async function fillValid(page, suffix) {
     assert.equal((await page.textContent('#join-form [data-btn-label]'))?.trim(), 'Send');
   });
 
+  await test('the grade list is wide at both ends and implies no eligibility', async () => {
+    const options = await page.$$eval('#join-grade option', (os) => os.map((o) => o.textContent.trim()));
+    assert.equal(options[1], 'Grade 4 or below');
+    assert.equal(options.at(-1), 'College, adult, or not in school');
+    assert.ok(options.includes('Grade 12'));
+  });
+
+  await test('with no role chosen the hints are neutral; the counter counts', async () => {
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'School or organization');
+    assert.match(await page.textContent('#join-grade-hint'), /your child/i);
+    assert.equal(await page.isVisible('#join-name-hint'), false);
+    assert.match(await page.textContent('#join-message-count'), /^\s*0 of 2,000 characters\s*$/);
+    await page.fill('#join-form [name="message"]', 'abc');
+    assert.match(await page.textContent('#join-message-count'), /3 of 2,000/);
+    await page.fill('#join-form [name="message"]', '');
+  });
+
+  await test('choosing a role reshapes the labels and hints (one form, same field names)', async () => {
+    await page.check('#join-form [name="role"][value="parent"]');
+    assert.equal((await page.textContent('[data-copy="gradeLabel"]'))?.trim(), 'Your child’s grade');
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'Your child’s school');
+    assert.equal((await page.textContent('[data-copy="messageLabel"]'))?.trim(), 'Tell us about your child');
+    assert.equal(await page.isVisible('#join-name-hint'), true);
+    await page.check('#join-form [name="role"][value="educator"]');
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'Your school');
+    assert.match(await page.textContent('#join-message-hint'), /your students need/i);
+    await page.check('#join-form [name="role"][value="sponsor"]');
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'Organization');
+    assert.equal(await page.isVisible('.jf-field[data-field="grade"]'), false, 'no grade for sponsors');
+    assert.equal(await page.isDisabled('#join-grade'), true, 'a hidden grade is not sent');
+    assert.equal(await page.isVisible('[data-copy="note"]'), true, 'a note for sponsors');
+    await page.check('#join-form [name="role"][value="student"]');
+    assert.equal(await page.isVisible('.jf-field[data-field="grade"]'), true);
+    assert.equal(await page.isVisible('[data-copy="note"]'), false);
+    // Back to no role, as the next test expects.
+    await page.evaluate(() => document.querySelectorAll('#join-form [name="role"]').forEach((r) => (r.checked = false)));
+  });
+
   await test('empty submit shows error summary, focuses it, marks fields invalid', async () => {
     const before = count();
     await page.click('#join-form button[type="submit"]');
     await page.waitForSelector('#join-error-summary:not([hidden])', { timeout: 5000 });
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'join-error-summary');
+    // Focusing it reads its content too, not just the heading.
+    const ax = await axNode(page, '#join-error-summary');
+    assert.match(ax.name, /check the form/i);
+    assert.match(ax.description, /enter your name/i, 'the problems are its description');
     for (const f of ['name', 'email', 'consent']) {
       assert.equal(await page.getAttribute(`#join-form [name="${f}"]`, 'aria-invalid'), 'true', `${f} aria-invalid`);
       assert.ok((await page.textContent(`#join-${f}-error`))?.trim().length, `${f} has error text`);
@@ -123,9 +182,13 @@ async function fillValid(page, suffix) {
     assert.equal(resp.status(), 200);
     await page.waitForSelector('#join-success:not([hidden])', { timeout: 5000 });
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'join-success');
+    const ax = await axNode(page, '#join-success');
+    assert.match(ax.description, new RegExp(`test\\+js-${stamp}@example\\.com`), 'the reply address is announced');
+    assert.match(ax.description, /register/i, 'and that this is not an event registration');
     assert.equal(count(), before + 1, 'one row added');
     const row = d1(`SELECT * FROM submissions WHERE email = 'test+js-${stamp}@example.com'`)[0];
     assert.equal(row.role, 'parent');
+    assert.equal(row.grade, '4-below');
     assert.equal(row.interests, 'events,updates');
     assert.match(row.message, /Second line/);
     assert.equal(row.source, '/get-involved/');
@@ -169,12 +232,44 @@ async function fillValid(page, suffix) {
   await ctx.close();
 }
 
+// ---------- A sponsor, arriving from a sponsor link ----------
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await test('sponsor: Organization instead of School, no Grade, a sponsor-shaped success', async () => {
+    await page.goto(`${formURL}?role=sponsor#join`, { waitUntil: 'networkidle' });
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'Organization');
+    assert.equal(await page.isVisible('#join-grade'), false);
+    assert.equal(await page.isChecked('#join-form [name="interests"][value="partnering"]'), true);
+    await page.waitForTimeout(2200);
+    await page.fill('#join-form [name="name"]', `Sponsor ${stamp}`);
+    await page.fill('#join-form [name="email"]', `sponsor-${stamp}@example.com`);
+    await page.fill('#join-form [name="school"]', 'Example Hardware Co.');
+    await page.check('#join-form [name="consent"]');
+    const [resp] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/join')), page.click('#join-form button[type="submit"]')]);
+    assert.equal(resp.status(), 200);
+    assert.doesNotMatch(resp.request().postData() ?? '', /name="grade"/, 'no grade sent');
+    await page.waitForSelector('#join-success:not([hidden])');
+    assert.ok(await page.$('#join-success a[href="/sponsors/#uses"]'), 'points a sponsor at where support goes');
+    const row = d1(`SELECT * FROM submissions WHERE email = 'sponsor-${stamp}@example.com'`)[0];
+    assert.deepEqual([row.role, row.school, row.grade], ['sponsor', 'Example Hardware Co.', null]);
+  });
+  await ctx.close();
+}
+
 // ---------- Without JavaScript ----------
 {
   // reducedMotion: the site's `scroll-behavior: smooth` stalls Playwright's "stable" check when
   // page JavaScript is off (check()/click() below the fold time out). Motion is irrelevant here.
   const ctx = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce', viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
+  await test('no-JS: every field shows, with neutral hints and no stuck counter', async () => {
+    await page.goto(`${formURL}?role=sponsor`);
+    assert.equal(await page.isVisible('#join-grade'), true, 'grade shows without JS, whatever ?role says');
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'School or organization');
+    assert.match(await page.textContent('#join-message-count'), /^\s*Up to 2,000 characters\s*$/);
+    assert.equal(await page.isVisible('[data-copy="note"]'), false);
+  });
   await test('no-JS: native form post stores the row and lands on the thanks page', async () => {
     await page.goto(formURL);
     const before = count();
@@ -251,21 +346,44 @@ await test('API: GET is not allowed', async () => {
   assert.equal(r.status, 405);
 });
 
-await test('API: rate limit kicks in after 5 submissions in 10 minutes from one IP', async () => {
-  const ip = `203.0.113.${stamp % 250}`;
+const postJSON = (body, ip) =>
+  fetch(api, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json', 'cf-connecting-ip': ip }, body: JSON.stringify(body) });
+
+await test('API: one network (a school, a campus) can send 30 forms in 10 minutes; the 31st waits', async () => {
+  // An address no earlier run has used: rows from a run a few minutes ago would count against it.
+  const ip = `10.${(stamp >> 16) & 255}.${(stamp >> 8) & 255}.${stamp & 255}`;
   const statuses = [];
-  for (let i = 0; i < 6; i++) {
-    const r = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json', 'cf-connecting-ip': ip }, body: JSON.stringify({ name: `Rate ${i}`, email: `rate${i}-${stamp}@example.com`, role: 'other', consent: 'yes' }) });
+  for (let i = 0; i < 31; i++) {
+    const r = await postJSON({ name: `Rate ${i}`, email: `rate${i}-${stamp}@example.com`, role: 'student', consent: 'yes' }, ip);
     statuses.push(r.status);
+    if (i === 30 && r.status === 429) assert.equal((await r.json()).code, 'rate-network');
   }
-  // Rate limiting needs an IP hash, and the server stores one only when IP_SALT is set (put it in
-  // .dev.vars locally) and the client IP reached the worker. Otherwise it is off: don't assert.
+  assert.deepEqual([...new Set(statuses.slice(0, 30))], [200], `a whole class gets through: ${statuses}`);
+  // The per-network limit needs an IP hash, and the server stores one only when IP_SALT is set (put
+  // it in .dev.vars locally) and the client IP reached the worker. Otherwise it is off.
   const hashed = d1(`SELECT COUNT(*) AS n FROM submissions WHERE email LIKE 'rate%-${stamp}@example.com' AND ip_hash IS NOT NULL`)[0].n;
   if (hashed > 0) assert.equal(statuses.at(-1), 429, `statuses ${statuses}`);
   else {
-    assert.deepEqual([...new Set(statuses)], [200], `without an IP hash every post is accepted: ${statuses}`);
-    console.log('  (rate limit not asserted: no IP hash stored; IP_SALT is not set for this server)');
+    assert.equal(statuses.at(-1), 200, `without an IP hash every post is accepted: ${statuses}`);
+    console.log('  (per-network limit not asserted: no IP hash stored; IP_SALT is not set for this server)');
   }
+});
+
+await test('API: one email address can send 3 forms in 10 minutes, from any network; the 4th waits', async () => {
+  const email = `same-${stamp}@example.com`;
+  const statuses = [];
+  let last;
+  for (let i = 0; i < 4; i++) {
+    last = await postJSON({ name: `Same ${i}`, email: i === 3 ? email.toUpperCase() : email, role: 'parent', consent: 'yes' }, `198.51.100.${(stamp + i) % 250}`);
+    statuses.push(last.status);
+  }
+  assert.deepEqual(statuses, [200, 200, 200, 429], `statuses ${statuses}`);
+  assert.equal((await last.json()).code, 'rate-email');
+  assert.equal(last.headers.get('retry-after'), '600');
+  // Without JavaScript the same limit explains itself on the error page.
+  const page = await post({ name: 'Same', email, role: 'parent', consent: 'yes' }, { 'cf-connecting-ip': '198.51.100.7' });
+  assert.equal(page.status, 429);
+  assert.match(await page.text(), /this email address/);
 });
 
 await browser.close();
