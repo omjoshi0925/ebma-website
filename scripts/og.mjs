@@ -107,7 +107,7 @@ const html = /* html */ `<!doctype html>
   <div class="main">
     <div>
       <p class="thm"><span class="label">Theorem 1</span><i>(the East Bay theorem)</i></p>
-      <h1>Every student in the East Bay can do <em>real</em> mathematics.</h1>
+      <h1>Anyone in the East Bay can do <em>real</em> mathematics.</h1>
       <p class="proof"><span><em>Proof.</em> By construction.</span><span class="qed"></span></p>
     </div>
     <div class="plate"><div class="crop"></div>

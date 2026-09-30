@@ -25,7 +25,7 @@ interface Props {
   noindex?: boolean;
 }
 const { title, description = site.description, image = '/og/default.png', noindex = false } = Astro.props;
-const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · Math for East Bay students`;
+const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · Math for anyone in the East Bay`;
 const shareTitle = title ? `${title} · ${site.name}` : site.name;
 // Until launch (site.indexable in src/data/site.ts) every page asks search engines to stay away.
 const robotsNoindex = noindex || !site.indexable;
@@ -108,7 +108,7 @@ const jsonLd = isHome
     <meta property="og:image" content={imageURL} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={`${site.name}: “Every student in the East Bay can do real mathematics,” beside a circle of points joined by straight lines that trace a cardioid.`} />
+    <meta property="og:image:alt" content={`${site.name}: “Anyone in the East Bay can do real mathematics,” beside a circle of points joined by straight lines that trace a cardioid.`} />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
 
