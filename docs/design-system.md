@@ -9,7 +9,7 @@ as a short paper; the home page is the model to follow (`src/pages/index.astro`)
 - Paper vocabulary lives in **kickers and labels only** (Theorem, Definition, Case, Proposition,
   Exercise, Lemma, Corollary, Appendix, Fig., Table). **Headings, buttons, nav, form labels and
   page titles stay plain English**, and every jargon label is followed by a plain heading or
-  sentence. A parent who has never seen a proof must never be confused.
+  sentence. A reader who has never seen a proof must never be confused.
 - Wit is welcome but light ("left as an exercise"). Never at the expense of clarity.
 - Plain, warm, specific copy. Short sentences. No hype words ("world-class", "cutting-edge").
 - American English ("check the box", not "tick"; "neighbor"), curly quotes (’ “ ”), periods and
@@ -23,7 +23,8 @@ as a short paper; the home page is the model to follow (`src/pages/index.astro`)
 
 - **Page names are Title Case** wherever they name the page: nav, footer, `<title>`, and links or
   references in running text: Home, About, Events & Competitions, Student Resources, Get
-  Involved, Sponsors & Partners, Privacy Notice. The list lives in `src/data/site.ts` (`nav`).
+  Involved, Privacy Notice. The list lives in `src/data/site.ts` (`nav`). (Sponsors & Partners
+  was retired on 2026-09-29; `public/_redirects` sends `/sponsors/` to Get Involved.)
 - **Headings (H1, section titles, h3s) are sentence case** with at most one italic word:
   "About the *association*", "Upcoming *events*".
 - In running text say "the association" (lowercase) or "EBMA", never "the Association".
@@ -42,32 +43,36 @@ as a short paper; the home page is the model to follow (`src/pages/index.astro`)
 
 ## Content rule: never invent facts
 
-We know only the name and what the brief establishes: EBMA serves students in the East Bay, holds
-events and competitions, and offers resources. Those may be said in the present tense. **Do not
-state** specifics: officer names, founding year, counts, grade ranges, meeting times, dates,
-venues, prices, emails, awards, sponsors, partner schools, program names, history, or what EBMA
-"has done". Where a real detail is needed, use a registered placeholder (below). You may write draft copy about intentions and values
+We know the name, what the brief establishes, and what the owner confirmed on 2026-09-29:
+EBMA is a math organization in the East Bay, open to anyone interested in math (not only
+students) and free to join ($0); it was founded in 2026; Om Joshi runs it and leads its talks and
+its trips to hackathons and events in fields next to mathematics; it has no sponsors page, no
+Instagram and no mailing list; mail goes to the address in `org.email`, answered within 3–5 days.
+Its talks, upcoming (dates TBD) and past, are in `src/data/events.ts`. Those may be said in the
+present tense. **Do not state** other specifics: other officer names, counts, meeting times,
+dates, venues, prices, awards, sponsors, partner schools, program names, history, or what EBMA
+"has done" beyond the events listed. Where a real detail is needed, use a registered placeholder
+(below). You may write draft copy about intentions and values
 ("will", "we aim to", "can"), never operations nobody has confirmed, and you may describe
 *third-party* programs only with facts verified from their official site
 (see `src/data/resources.ts`, `src/data/competitions.ts`), never implying affiliation. This
-includes metadata: the site description (`site.description`) says "students across the East
-Bay", with no grade range.
+includes metadata: the site description (`site.description`) says "anyone interested in math",
+with no grade range.
 
 Wherever the join form's data use is summarized, use this sentence verbatim (and keep
 `/privacy/` consistent with it): "We use what you send to reply to you, to send anything you asked
-for, and (if you share your school, city, or grade) to plan events and resources that suit
-students. We never sell it or share it, including with sponsors."
+for, and (if you share your school, city, or grade) to plan events and resources that suit our
+members. We never sell it or share it."
 
 ## Placeholders
 
 - Declare each missing detail once in `src/data/placeholders/<page>.ts` (your page's file) with
   `label`, `note` (what to supply and why), `pages`, optional `kind`/`example`, and `value: null`.
   Ids are dotted and prefixed by the page, e.g. `about.meeting-schedule`. Existing ids in any file
-  (e.g. `org.email`, `org.legal-status`, `org.safety-policy`, `events.upcoming`,
-  `sponsors.list`) may be reused anywhere.
+  (e.g. `org.email`, `org.eligibility`, `events.upcoming`) may be reused anywhere.
 - Render with `<Ph id="…" />` (text) or `<PhLink id="…" />` (email/URL/phone; renders a real
   link once filled). `label="…"` overrides the chip text for context.
-- Lists (events, officers, sponsors) use one `kind: 'list'` placeholder plus a data file whose
+- Lists (events, officers) use one `kind: 'list'` placeholder plus a data file whose
   empty array makes the page render sample entries with chips.
 - Keep chips sparse: at most about three per card; never inside form inputs; never as a heading
   on its own if a plain heading can carry the sentence.
@@ -137,11 +142,12 @@ no reading text under 16px on mobile; weight 300 only at 40px+.**
 | `Section` | Numbered section: `id`, `num`, `title` (one `*italic*`), `dek`, `note` (margin note), `wide`; `slot="actions"` for a cross-reference link. |
 | `Plate` | Crop-marked figure frame: `plate`, `corner`, `fig`, `caption` (HTML), default slot = the figure, `slot="controls"`. With an `id`, the figure's accessible name is the caption text only, never the controls. |
 | `Ph`, `PhLink` | Placeholders (above). A filled `PhLink` to another site gets the external-link treatment below. |
-| `EventCard` | An event (`event`) or a sample (`sample`) card. |
-| `LogoSlots` | Sponsor/partner logo wall with the "Your organization here" CTA: to `/sponsors/` by default; the Sponsors page passes its form link. Sample tiles while the list is empty. |
+| `EventCard` | An event (`event`) or a sample (`sample`) card on Home. An event with no date shows "TBD" where the day goes; rows appear only for the details it has; `summary` is used over `description` when present; `more` adds a read-ahead link. |
+| `EventsAgenda` | The events list on /events/: `mode="upcoming"` (soonest first, then TBD; pruned in the browser as days pass) or `mode="past"` (newest first, year under the month, hollow rail point). |
+| `AboutPerson` | One person on About §5, or a sample card. `wide` sets a lone member's card on its side. |
 | `Problem` | A practice problem with answer check, hint and solution. |
 | `Math` | `<Math tex={String.raw`…`} />` / `<Math display tex={String.raw`…`} />`, KaTeX at build time. Math is 1.08em everywhere (`global.css`; do not size it again locally, except to enlarge display math), and `\text{…}` is set in the page serif, as LaTeX does. |
-| `Band` | Closing call-to-action band ("Corollary *n*.1"). Every page ends with one, with its own figure multiplier `m`: home 3, about 6, events 4, resources 5, get-involved 7, thanks 2, sponsors 8, privacy 9. Under 980px the whole curve sits small under the buttons. |
+| `Band` | Closing call-to-action band ("Corollary *n*.1"). Every page ends with one, with its own figure multiplier `m`: home 3, about 6, events 4, resources 5, get-involved 7, thanks 2, privacy 9. Under 980px the whole curve sits small under the buttons. |
 | `DefFigure`, `TimesTableFigure`, `Mark` | Home-page figures and the logo. |
 
 ## Global classes (src/styles/global.css)
@@ -152,7 +158,7 @@ arrow: `Text <span class="arr" aria-hidden="true">→</span>`), `.cta-row`, `.la
 children (ruled columns: `.label`, `h3`, `.body`, `.xref`; side by side, the cells share rows
 through subgrid so their headings, bodies and links line up, and a closing `.xref` takes the last
 row), `.conclude` + `.qed` (closing line with tombstone), `.table-wrap > table.table` (data
-tables), `details.disclose > summary + .disclose-body` (FAQ, hints), `.runhead`, `.thm-label`,
+tables), `details.disclose > summary + .disclose-body` (hints, folded lists), `.runhead`, `.thm-label`,
 `.rise` + `style="--d:120"` (entrance stagger, above the fold only), `.sr-only`, `.nowrap`
 (keep a phrase, or a chip and its punctuation, on one line), `.aside-box.cropped` (every side
 panel with a call to action: `.label`, `h3`, `p`, a `.btn.btn-quiet`; do not restyle it per
@@ -170,11 +176,10 @@ with `.ext-tail` and `.ext-arr` (external links, below).
 
 Other shared patterns:
 
-- **Calls to action by audience.** Volunteer CTAs go to `/get-involved/?role=volunteer#join`,
-  teacher CTAs to `/get-involved/?role=educator#join`; the join form preselects the role from
-  `?role=` (student, parent, educator, volunteer, sponsor, other). Sponsor CTAs in page bodies go to
-  `/sponsors/`, which explains sponsoring; the Sponsors page's own CTAs go to
-  `/get-involved/?role=sponsor#join`.
+- **Calls to action by audience.** Volunteer CTAs go to `/get-involved/?role=volunteer#join`;
+  the join form preselects the role from `?role=` (student, parent, educator, volunteer, other).
+  There is no sponsor role and no email-updates option (retired with the Sponsors page on
+  2026-09-29).
 - **Cost tags on listing cards** (Events and Resources match): `FREE` is a solid ink tag
   (background `var(--ink)`, text `var(--paper)`); `PAID`, `FREE TIER` and `VARIES` are outlined
   (1px `var(--rule-2)` border, `var(--ink-2)` text). All share `600 12px/1 var(--sans)`,
@@ -201,7 +206,7 @@ Teachers print the calendar and the problem sets, so `global.css` has a print st
 on white in either theme, no header, preview bar, footer, closing band or controls (buttons,
 figure controls, filters, answer boxes), the web address after every link to another site, and
 figures, table rows and articles kept whole. Before printing, `scripts/site.ts` opens every closed
-disclosure (FAQ answers, folded lists), finishes figures still waiting to draw in, and switches a
+disclosure (folded lists and the like, but not a problem's hint or solution), finishes figures still waiting to draw in, and switches a
 dark page to light so the canvas figures redraw in ink; it puts everything back afterwards. A
 problem's Hint and Solution print only if the reader opened them, so a printed problem set is a
 worksheet by default. Give a page-specific heading block `data-keep-with-next` if it must stay

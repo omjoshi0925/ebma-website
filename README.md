@@ -1,7 +1,7 @@
 # East Bay Math Association website
 
-The public website of the East Bay Math Association (EBMA), a math organization serving students in
-the East Bay area of California. Built with [Astro](https://astro.build) as a static site, hosted on
+The public website of the East Bay Math Association (EBMA), a math organization in the East Bay area
+of California, open to anyone interested in math. Built with [Astro](https://astro.build) as a static site, hosted on
 [Cloudflare Pages](https://pages.cloudflare.com), with one small serverless function for the join
 form.
 
@@ -13,17 +13,17 @@ browser), and the pages print cleanly for class. See [`docs/design-system.md`](d
 ## Before launch: fill in the placeholders
 
 The site never invents facts about the association. Every real-world detail it needs (emails,
-officers, dates, venues, costs, legal status, and similar) appears on the site as a marked **placeholder**:
+officers, dates, venues, costs, and similar) appears on the site as a marked **placeholder**:
 a dashed chip that starts with `??`, LaTeX's sign for an undefined reference.
 
 - The full list is in **[`PLACEHOLDERS.md`](PLACEHOLDERS.md)** (generated).
 - Each one lives in `src/data/placeholders/<page>.ts`. Replace `value: null` with the real value,
   e.g. `value: 'hello@example.org'`, and it updates everywhere it is used.
-- Lists (events, officers, sponsors) live in `src/data/events.ts`, `src/data/team.ts` and
-  `src/data/sponsors.ts`. While a list is empty, sample entries with placeholders are shown.
+- Lists (events, officers) live in `src/data/events.ts` and `src/data/team.ts`. While a list is
+  empty, sample entries with placeholders are shown.
 - Run `npm run placeholders` to refresh `PLACEHOLDERS.md` and check for mistakes.
 - Read **[`docs/copy-to-review.md`](docs/copy-to-review.md)**: the draft copy's commitments
-  (mission wording, promises to families and sponsors, privacy promises) to confirm or edit.
+  (mission wording, promises to members, privacy promises) to confirm or edit.
 
 ### Then flip the launch switch
 
@@ -35,9 +35,6 @@ the association never shows `??` chips. The switch is `indexable` in `src/data/s
   "Site preview" bar under the header explains the `??` chips.
 - `indexable: true`: pages can be indexed, `/robots.txt` allows crawling and points to the
   sitemap, and the preview bar is gone.
-
-The footer's `??` legend needs no switch: it disappears by itself once every placeholder has a
-value.
 
 Set it to `true` once `PLACEHOLDERS.md` is filled in, then build and deploy. The site URL used by
 canonical links, the sitemap and `robots.txt` comes from `astro.config.mjs` (set `SITE_URL` when a
@@ -101,16 +98,25 @@ npm run deploy         # creates the database and project if needed, migrates, b
 first run (and writes the database id into `wrangler.toml`; commit that change), applies pending
 migrations, then builds and uploads `dist/` as the production deployment.
 
-To deploy automatically on every push instead, connect this repository in the Cloudflare dashboard
-(Workers & Pages → the project → Settings → Builds) with build command `npm run build` and output
-directory `dist`.
+`east-bay-math` is a Direct Upload project, and Cloudflare cannot switch a Direct Upload project to
+Git integration. To deploy automatically on every push instead, create a new Pages project connected
+to this repository (build command `npm run build`, output directory `dist`, the same D1 binding and
+`IP_SALT` secret) and move any custom domain to it.
+
+## Events
+
+EBMA's events live in `src/data/events.ts`, upcoming and past together, in any order. Give each a
+title and whatever is known so far; an event with no `date` shows "Date TBD". Once an event's day
+has passed (Pacific time) it drops off the upcoming lists by itself, and it moves to Past events on
+the Events page at the next build, so run `npm run deploy` after an event. The Sponsors & Partners
+page was retired on 2026-09-29; `public/_redirects` sends its old address to Get Involved.
 
 ## Project layout
 
 ```
 src/pages/             one file per page (Astro)
 src/components/        shared building blocks (Section, Plate, PageHeader, Ph, EventCard, …)
-src/data/              site content: events, competitions, resources, problems, team, sponsors
+src/data/              site content: events, competitions, resources, problems, team
 src/data/placeholders/ the placeholder registry
 src/scripts/           small browser modules (menu, theme, figures, form)
 src/styles/            tokens.css (colors, fonts) and global.css

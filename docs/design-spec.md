@@ -2,6 +2,13 @@
 
 Date: 2026-09-23 · Status: approved (autonomous build; the owner delegated every judgment call)
 
+> **Superseded in part on 2026-09-29.** The owner's review changed the audience and scope: EBMA is
+> for anyone interested in math (not a K–12 program for students, parents and schools), free to
+> join, and runs talks and trips to hackathons and events. The Sponsors & Partners page, the
+> audience cases ("Find your place"), the parents' FAQ, the event-day lemmas, the Get Involved
+> section for schools and teachers, and the Instagram and mailing-list channels were removed. This spec is kept as the record of the
+> original build; README.md and docs/design-system.md describe the site as it is.
+
 ## 1. Intent
 
 The site is the public face of the East Bay Math Association (EBMA), a math organization serving
