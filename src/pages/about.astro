@@ -4,7 +4,6 @@ import PageHeader from '../components/PageHeader.astro';
 import Section from '../components/Section.astro';
 import Band from '../components/Band.astro';
 import Ph from '../components/Ph.astro';
-import PhLink from '../components/PhLink.astro';
 import TeX from '../components/Math.astro';
 import AboutPentagon from '../components/AboutPentagon.astro';
 import AboutPerson from '../components/AboutPerson.astro';
@@ -14,8 +13,6 @@ import { valueOf } from '../data/placeholders';
 
 /** Volunteer calls to action open the join form with Volunteer preselected. */
 const volunteerHref = '/get-involved/?role=volunteer#join';
-/** The FAQ is for parents: its "write to us" link opens the form as a parent. The form takes any question. */
-const messageHref = '/get-involved/?role=parent#join';
 /**
  * Keeps a chip on the same line as the punctuation after it (every engine may break between them).
  * Only while it is a chip: a filled value is plain text, and a long one must be free to wrap.
@@ -36,20 +33,19 @@ const contents = [
   { href: '#construction', num: '3', title: 'Step by step' },
   { href: '#who', num: '4', title: 'Who we serve' },
   { href: '#people', num: '5', title: 'The people' },
-  { href: '#faq', num: '6', title: 'Questions parents ask' },
 ];
 ---
 
 <Base
   title="About"
-  description="What the East Bay Math Association is for, what it values, how it thinks about learning, who it serves, and straight answers to the questions parents ask."
+  description="What the East Bay Math Association is for, what it values, how it thinks about learning, who can take part, and who runs it."
 >
   <PageHeader
     chapter={1}
     label="Preliminaries"
     note="(in which we introduce ourselves)"
     title="About the *association*"
-    lede="<em>Who we are.</em> The East Bay Math Association is for students across the East Bay who enjoy a good problem, and for the families and teachers who back them. This chapter sets out what we are for, what we value, and who takes part."
+    lede="<em>Who we are.</em> The East Bay Math Association is for anyone in the East Bay who enjoys a good problem. This chapter sets out what we are for, what we value, and who takes part."
     contents={contents}
   />
 
@@ -63,24 +59,23 @@ const contents = [
     <div class="mission">
       <p class="thm-label"><span class="label">Definition 1.1</span><span class="note">(the mission)</span></p>
       <p class="statement">
-        To give every curious student in the East Bay a way into <em>real</em> mathematics, whatever school they attend and wherever they are
-        starting from.
+        To give anyone in the East Bay who is curious a way into <em>real</em> mathematics, wherever they are starting from.
       </p>
       <div class="plain">
         <div class="prose">
           <p>
-            <strong>In plain terms:</strong> the East Bay Math Association (EBMA) is a math organization for students in the East Bay area of
-            California. It was founded in <span class={glue('org.founded')}><Ph id="org.founded" />.</span>
+            <strong>In plain terms:</strong> the East Bay Math Association (EBMA) is a math organization in the East Bay area of California, open
+            to anyone interested in math. It was founded in <span class={glue('org.founded')}><Ph id="org.founded" />,</span> and joining is&nbsp;free.
           </p>
           <p>
-            We aim to bring students from different schools and cities together for competitions, events, and problem solving, and to gather good
-            problems and free resources so the mathematics doesn’t stop when an event does.
+            EBMA runs talks on mathematics and the fields next to it, and trips to hackathons and events in those fields. We also gather good
+            problems and free resources, so the mathematics doesn’t stop when an event does.
           </p>
         </div>
         <ul class="see" aria-label="Read next">
           <li><a class="xref" href="/events/">Events &amp; Competitions <span class="arr" aria-hidden="true">→</span></a></li>
           <li><a class="xref" href="/resources/">Student Resources <span class="arr" aria-hidden="true">→</span></a></li>
-          <li><a class="xref" href="#faq">Questions parents ask <span class="arr" aria-hidden="true">↓</span></a></li>
+          <li><a class="xref" href="#people">Who runs EBMA <span class="arr" aria-hidden="true">↓</span></a></li>
         </ul>
       </div>
     </div>
@@ -98,7 +93,7 @@ const contents = [
         <p class="formal" aria-hidden="true">curiosity <span class="op"><TeX tex={String.raw`\geq`} /></span> head start</p>
         <p class="label">Axiom 2.1</p>
         <h3>Curiosity <em>counts</em> most.</h3>
-        <p class="body">A student who enjoys a good puzzle belongs here, whatever their grades say.</p>
+        <p class="body">Anyone who enjoys a good puzzle belongs here, whatever their background.</p>
       </article>
       <article class="cell">
         <p class="formal" aria-hidden="true">stuck <span class="op"><TeX tex={String.raw`\neq`} /></span> lost</p>
@@ -110,13 +105,13 @@ const contents = [
         <p class="formal upright" aria-hidden="true">1 <span class="bin"><TeX tex="+" /></span> 1 <span class="op"><TeX tex=">" /></span> 2</p>
         <p class="label">Axiom 2.3</p>
         <h3>Better <em>together</em>.</h3>
-        <p class="body">Mathematics is more fun with company. Students learn as much from each other’s ideas as from any lesson.</p>
+        <p class="body">Mathematics is more fun with company. People learn as much from each other’s ideas as from any lesson.</p>
       </article>
       <article class="cell">
         <p class="formal" aria-hidden="true">unknown <span class="op"><TeX tex={String.raw`\Rightarrow`} /></span> say so</p>
         <p class="label">Axiom 2.4</p>
         <h3>Straight <em>answers</em>.</h3>
-        <p class="body">Families should know the dates, the costs, and who is supervising before anyone signs up. If we don’t know something yet, we say so.</p>
+        <p class="body">You should know the date, the place, and the cost before you sign up. If we don’t know something yet, like a date, we say so.</p>
       </article>
     </div>
     <p class="conclude"><span>Everything else we do is built on these&nbsp;four.</span><span class="qed" aria-hidden="true"></span></p>
@@ -136,7 +131,7 @@ const contents = [
     id="who"
     num="4"
     title="Who we *serve*"
-    dek="Students in the East Bay, whichever city they call home."
+    dek="Anyone in the East Bay who is interested in math, whichever city they call home."
     note="The domain of a function is the set of inputs it is defined for. Ours is the East Bay."
   >
     <div class="domain">
@@ -177,10 +172,9 @@ const contents = [
           <p class="label">Remark 4.1</p>
           <h3>Who can take part</h3>
           <p class="elig-v"><Ph id="org.eligibility" /></p>
-          <p>Not sure whether that includes your child? <a href={contactHref}>Ask&nbsp;us</a>.</p>
+          <p>Joining is free.</p>
           <div class="cta-row">
             <a class="xref" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
-            <a class="xref" href="/get-involved/#schools">For schools &amp; teachers <span class="arr" aria-hidden="true">→</span></a>
           </div>
         </aside>
       </div>
@@ -189,12 +183,12 @@ const contents = [
 
   <Section id="people" num="5" title="The *people*" dek="Who runs the association, and how to help.">
     <p slot="note">Want to help run things? Volunteers are welcome: see <a href={volunteerHref}>Get Involved</a>.</p>
-    <ul class="team">
+    <ul class:list={['team', { solo: team.length === 1 }]}>
       {
         team.length
           ? team.map((member) => (
               <li>
-                <AboutPerson member={member} />
+                <AboutPerson member={member} wide={team.length === 1} />
               </li>
             ))
           : Array.from({ length: SAMPLE_COUNT }, (_, i) => (
@@ -205,106 +199,13 @@ const contents = [
             ))
       }
     </ul>
-    <div class="advisor">
-      <p class="advisor-line"><span class="label">Adult advisor</span> <Ph id="about.advisor" label="Name and role" /></p>
-      <div class="cta-row">
-        <a class="xref" href={contactHref}>Contact a person <span class="arr" aria-hidden="true">→</span></a>
-        <a class="xref" href={volunteerHref}>Volunteer with us <span class="arr" aria-hidden="true">→</span></a>
-      </div>
+    <div class="people-foot cta-row">
+      <a class="xref" href={contactHref}>Contact us <span class="arr" aria-hidden="true">→</span></a>
+      <a class="xref" href={volunteerHref}>Volunteer with us <span class="arr" aria-hidden="true">→</span></a>
     </div>
   </Section>
 
-  <Section
-    id="faq"
-    num="6"
-    title="Questions parents *ask*"
-    dek="Short, straight answers. If yours isn’t here, ask a person."
-    note="If you read only one section of this page, make it this one."
-  >
-    <div class="faq">
-      <div class="faq-list">
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q1</span><span class="qt">Who can join?</span></summary>
-          <div class="disclose-body">
-            <p><Ph id="org.eligibility" /></p>
-            <p>Not sure whether your child qualifies? <a href={contactHref}>Ask us</a>. Ready to sign up? Use the <a href={joinHref}>join form</a>.</p>
-          </div>
-        </details>
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q2</span><span class="qt">What does it cost?</span></summary>
-          <div class="disclose-body">
-            <p><Ph id="org.membership-cost" /></p>
-            <p>
-              Every EBMA event will list its cost, if it has one, before anyone signs up. Outside competitions set their own fees; the
-              <a href="/events/">Events &amp; Competitions page</a> links to each one’s official site.
-            </p>
-          </div>
-        </details>
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q3</span><span class="qt">When and where do you meet?</span></summary>
-          <div class="disclose-body">
-            <p><Ph id="org.meetings" /></p>
-            <p>Dates, times, and places for upcoming events will be posted on the <a href="/events/">Events &amp; Competitions page</a>.</p>
-          </div>
-        </details>
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q4</span><span class="qt">Who supervises students, and how do you keep them safe?</span></summary>
-          <div class="disclose-body">
-            <p><Ph id="org.safety-policy" /></p>
-            <p>If you have a question about a particular event, <a href={contactHref}>ask us</a> before the day.</p>
-          </div>
-        </details>
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q5</span><span class="qt">Does my child need to be “good at math”?</span></summary>
-          <div class="disclose-body">
-            <p>
-              No. Curiosity matters more than a head start: it is our <a href="#values">first axiom</a>. Our problems and events are meant to welcome
-              beginners and still stretch students who have been at it for years. Being stuck is normal, and nobody is expected to know everything
-              already.
-            </p>
-            <p>A good way to find out: <a href="/resources/">try a problem together</a>.</p>
-          </div>
-        </details>
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q6</span><span class="qt">How is my child’s information used?</span></summary>
-          <div class="disclose-body">
-            <p>
-              We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and
-              resources that suit students. We never sell it or share it, including with sponsors.
-            </p>
-            <p>The <a href="/privacy/">Privacy Notice</a> has the details.</p>
-          </div>
-        </details>
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q7</span><span class="qt">Is EBMA a nonprofit?</span></summary>
-          <div class="disclose-body">
-            <p>The East Bay Math Association is <span class={glue('org.legal-status')}><Ph id="org.legal-status" />.</span></p>
-            <p>Organizations that would like to support EBMA can find out how on the <a href="/sponsors/#become">Sponsors &amp; Partners page</a>.</p>
-          </div>
-        </details>
-        <details class="disclose">
-          <summary><span class="qn" aria-hidden="true">Q8</span><span class="qt">How do I reach a real person?</span></summary>
-          <div class="disclose-body">
-            <p>
-              Email <span class={glue('org.email')}><PhLink id="org.email" />,</span> <a href={messageHref}>send us a message with the form</a>, or use the
-              other contact details on the <a href={contactHref}>Get Involved page</a>. A real person will read every message.
-            </p>
-          </div>
-        </details>
-      </div>
-      <aside class="faq-aside aside-box cropped">
-        <p class="label">Still wondering?</p>
-        <h3>We would rather you ask than guess.</h3>
-        <p>Questions about events, supervision, cost, or anything else are welcome.</p>
-        <div class="cta-row">
-          <a class="btn btn-quiet" href={contactHref}>Contact us</a>
-          <a class="xref" href="/privacy/">Privacy Notice <span class="arr" aria-hidden="true">→</span></a>
-        </div>
-      </aside>
-    </div>
-  </Section>
-
-  <Band label="Corollary 6.1" title="Now you know *us.*" text="Join the association, or ask us a question first. Either way, we’d be glad to hear from you." m={6}>
+  <Band label="Corollary 5.1" title="Now you know *us.*" text="Join the association, or ask us a question first. Either way, we’d be glad to hear from you." m={6}>
     <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
     <a class="btn btn-quiet" href={contactHref}>Contact us</a>
   </Band>
@@ -471,10 +372,7 @@ const contents = [
     color: var(--ink);
     margin-right: 0.4em;
   }
-  .tcap a,
-  .elig a:not(.xref),
-  .faq a:not(.xref, .btn),
-  .advisor a:not(.xref) {
+  .tcap a {
     color: var(--ink);
   }
   /* The box itself is the shared .aside-box; the answer to its question reads in full ink. */
@@ -493,62 +391,16 @@ const contents = [
     display: grid;
     min-width: 0;
   }
-  .advisor {
+  /* One person has the section to themselves: their card runs across it (AboutPerson `wide`). */
+  .team.solo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .people-foot {
     margin-top: clamp(28px, 3vw, 40px);
     padding-top: 18px;
     border-top: 1px solid var(--rule-2);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px 32px;
-  }
-  .advisor-line {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6px 14px;
-    font-size: 18px;
-  }
-  .advisor-line .label {
-    color: var(--ink);
   }
 
-  /* §6 FAQ */
-  .faq {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
-    gap: 32px clamp(32px, 4vw, 64px);
-    align-items: start;
-  }
-  .faq summary {
-    justify-content: flex-start;
-  }
-  .qn {
-    flex: none;
-    min-width: 2.4em;
-    font: 500 13px/1 var(--mono);
-    color: var(--accent-text);
-    transform: translateY(-2px);
-  }
-  .qt {
-    flex: 1;
-    min-width: 0;
-  }
-  .faq-aside {
-    position: sticky;
-    top: calc(var(--head-h) + 24px);
-  }
-
-  @media (max-width: 980px) {
-    .faq {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .faq-aside {
-      position: static;
-      max-width: 34em;
-    }
-  }
   @media (max-width: 760px) {
     .plain,
     .domain-foot {
@@ -557,7 +409,7 @@ const contents = [
   }
   /* Four across while a card is still at least ~140px wide, then two. */
   @media (max-width: 680px) {
-    .team {
+    .team:not(.solo) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 20px 16px;
     }

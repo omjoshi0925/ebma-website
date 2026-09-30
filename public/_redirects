@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects (https://developers.cloudflare.com/pages/configuration/redirects/)
+# The Sponsors & Partners page was retired on 2026-09-29; old links land on Get Involved.
+/sponsors/ /get-involved/ 301
+/sponsors /get-involved/ 301

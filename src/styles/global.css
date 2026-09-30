@@ -275,7 +275,7 @@ html .katex .text {
 }
 
 /* ---------- sample entries (empty states) ----------
- * While a list in src/data is empty (events, officers, sponsors), its section shows sample entries
+ * While a list in src/data is empty (events, officers), its section shows sample entries
  * built from placeholder chips. Every sample on every page gets the same quieter treatment: a 1px
  * dashed outline instead of the entry's own rules and crop marks, muted text, a small mono
  * "Sample" tag on its first line, and at most two chips. Real entries keep the full style.

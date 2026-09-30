@@ -23,15 +23,13 @@ const kickers: Record<string, string> = {
   '/events/': 'Chronology',
   '/resources/': 'Exercises',
   '/get-involved/': 'Correspondence',
-  '/sponsors/': 'Acknowledgments',
 };
 const blurbs: Record<string, string> = {
   '/': 'The East Bay theorem, upcoming events, and a problem to try.',
-  '/about/': 'What the association is for, and the questions parents ask.',
-  '/events/': 'Upcoming events, and competitions students can enter.',
+  '/about/': 'What the association is for, and who runs it.',
+  '/events/': 'Talks coming up and already given, and competitions students can enter.',
   '/resources/': 'Problems to work on, and good places to learn more.',
-  '/get-involved/': 'Join, get in touch, or bring your school along.',
-  '/sponsors/': 'Support mathematics for students across the East Bay.',
+  '/get-involved/': 'Join for free, or get in touch.',
 };
 const pages = [
   ...nav.map((item) => ({ href: item.href, kicker: kickers[item.href] ?? '', title: item.title, blurb: blurbs[item.href] ?? '' })),

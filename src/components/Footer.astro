@@ -3,12 +3,9 @@ import Mark from './Mark.astro';
 import Ph from './Ph.astro';
 import PhLink from './PhLink.astro';
 import { nav, site } from '../data/site';
-import { registry } from '../data/placeholders';
 
 const year = new Date().getFullYear();
 const chapters = nav.filter((item) => item.n > 0);
-// The legend explains the "??" chips, so it goes away once every placeholder is filled in.
-const pending = Object.values(registry).some((def) => def.value === null);
 ---
 
 <footer class="site-footer wrap">
@@ -18,8 +15,7 @@ const pending = Object.values(registry).some((def) => def.value === null);
         <Mark />
         <span class="brand-name">{site.name}</span>
       </a>
-      <p>A math organization for students in the East Bay, California.</p>
-      <p class="legal">The East Bay Math Association is <span class="nowrap"><Ph id="org.legal-status" label="Legal status" />.</span></p>
+      <p>A math organization in the East Bay, California, open to anyone interested in math. Free to join.</p>
     </div>
 
     <nav aria-labelledby="foot-contents">
@@ -46,12 +42,8 @@ const pending = Object.values(registry).some((def) => def.value === null);
           <dd><PhLink id="org.email" label="Email address" /></dd>
         </div>
         <div>
-          <dt>Instagram</dt>
-          <dd><PhLink id="org.instagram" label="Profile link">Instagram</PhLink></dd>
-        </div>
-        <div>
-          <dt>Announcements</dt>
-          <dd><PhLink id="org.mailing-list" label="Sign-up link">Join the mailing list</PhLink></dd>
+          <dt>Replies</dt>
+          <dd>Usually within <Ph id="get-involved.response-time" /></dd>
         </div>
       </dl>
     </div>
@@ -74,13 +66,6 @@ const pending = Object.values(registry).some((def) => def.value === null);
 
   <div class="foot-base">
     <span>© {year} {site.name}</span>
-    {
-      pending && (
-        <span class="legend">
-          <span class="ph" aria-hidden="true"><span class="ph-q">??</span>like this</span><span class="sr-only">Anything read out as “Placeholder”</span> marks a detail the association hasn’t filled in yet.
-        </span>
-      )
-    }
     <a class="to-top" href="#top">Back to top <span class="arr" aria-hidden="true">↑</span></a>
   </div>
 </footer>
@@ -121,10 +106,6 @@ const pending = Object.values(registry).some((def) => def.value === null);
     color: var(--ink-2);
     font-size: 16.5px;
     max-width: 24em;
-  }
-  .foot-brand .legal {
-    font-size: 16px;
-    color: var(--ink-3);
   }
   .foot ol {
     list-style: none;
@@ -233,15 +214,6 @@ const pending = Object.values(registry).some((def) => def.value === null);
   .to-top {
     white-space: nowrap;
   }
-  .legend {
-    font-family: var(--sans);
-    font-size: 13px;
-    letter-spacing: 0;
-  }
-  .legend .ph {
-    font-size: 12px;
-    margin-right: 4px;
-  }
   @media (max-width: 1100px) {
     .foot {
       grid-template-columns: 1fr 1fr;
@@ -307,10 +279,6 @@ const pending = Object.values(registry).some((def) => def.value === null);
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 6px 16px;
       align-items: baseline;
-    }
-    .legend {
-      grid-column: 1 / -1;
-      grid-row: 2;
     }
   }
   /* Touch: 44px targets for the footer's links and the theme control. */

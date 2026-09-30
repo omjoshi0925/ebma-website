@@ -1,65 +1,101 @@
 ---
 /**
- * The upcoming-events list on /events/, set as an agenda along a vertical time rail: date,
- * a vermilion point on the rail, then the details. Takes the same events as EventCard
- * (src/data/events.ts), in any order, and lists only the ones that have not passed, soonest
- * first. Three states:
+ * An EBMA events list on /events/, set as an agenda along a vertical time rail: date, a point on
+ * the rail, then the details. Takes the same events as EventCard (src/data/events.ts), in any
+ * order. `mode` picks which of them it lists:
  *
- *   - `events` is empty: `sampleCount` sample rows in the site's one sample style (`.sample` on
- *     the list, a `.sample-tag` on each row, global.css): a dashed outline and dashed hairlines
- *     for the list's rules and rail, muted text. The first row carries two placeholder chips and
- *     its date tile shows "??"; the others are blank ruled stand-ins, hidden from screen readers.
- *   - every event has passed: one plain sentence, "No EBMA events are scheduled right now." (The
- *     page's own table caption and "hear about new events first" box follow it.)
- *   - otherwise the events. Each row carries `data-end`, so the script drops a row whose day
- *     passes after the build and shows the empty sentence when none are left (prunePastEvents).
+ *   - 'upcoming' (the default): the events that have not passed, soonest first, then those with no
+ *     date yet ("TBD" where the day goes). Three states:
+ *       - `events` is empty: `sampleCount` sample rows in the site's one sample style (`.sample`
+ *         on the list, a `.sample-tag` on each row, global.css): a dashed outline and dashed
+ *         hairlines for the list's rules and rail, muted text. The first row carries two
+ *         placeholder chips and its date tile shows "??"; the others are blank ruled stand-ins,
+ *         hidden from screen readers.
+ *       - every event has passed: one plain sentence, "No EBMA events are scheduled right now."
+ *       - otherwise the events. A dated row carries `data-end`, so the script drops it once its
+ *         day passes after the build, and shows the empty sentence when none are left
+ *         (prunePastEvents).
+ *   - 'past': the events whose day has passed, most recent first, with the year under the month
+ *     and a hollow point on the rail. The page leaves the list out while there are none.
+ *
+ * Each row lists only the details its event has (When, Where, Speaker, For, Cost), then the full
+ * description, then `event.more` (somewhere to read more) as a link.
  */
 import Ph from './Ph.astro';
-import { dateParts, upcomingEvents, type EbmaEvent } from '../data/events';
+import { dateParts, eventRows, pastEvents, upcomingEvents, type EbmaEvent } from '../data/events';
 
 interface Props {
   events: EbmaEvent[];
-  sampleCount: number;
+  /** Sample rows to show while `events` is empty ('upcoming' only). */
+  sampleCount?: number;
   /** Section number, for labels like "Event 1.2". */
   num: string;
+  mode?: 'upcoming' | 'past';
 }
-const { events, sampleCount, num } = Astro.props;
-const upcoming = upcomingEvents(events);
+const { events, sampleCount = 0, num, mode = 'upcoming' } = Astro.props;
+const past = mode === 'past';
+const listed = past ? pastEvents(events) : upcomingEvents(events);
 const external = (href: string) => /^https?:\/\//.test(href);
+/** "Read the options study" → ["Read the options ", "study"]: the last word stays with the ↗. */
+const lastWord = (text: string) => {
+  const i = text.lastIndexOf(' ');
+  return [text.slice(0, i + 1), text.slice(i + 1)];
+};
 const emptyId = `agenda-none-${num}`;
+const live = !past && events.length > 0;
 ---
 
 {
-  events.length > 0 && (
-    <p class="ag-none" id={emptyId} hidden={upcoming.length > 0}>
+  live && (
+    <p class="ag-none" id={emptyId} hidden={listed.length > 0}>
       No EBMA events are scheduled right now.
     </p>
   )
 }
 <ol
-  class:list={['agenda', { sample: events.length === 0 }]}
-  aria-label={events.length === 0 ? 'Upcoming EBMA events (samples)' : 'Upcoming EBMA events, soonest first'}
-  data-upcoming={events.length > 0 ? num : undefined}
-  data-empty={events.length > 0 ? emptyId : undefined}
-  hidden={events.length > 0 && upcoming.length === 0}
+  class:list={['agenda', { sample: events.length === 0 && !past, past }]}
+  aria-label={
+    past ? 'Past EBMA events, most recent first' : events.length === 0 ? 'Upcoming EBMA events (samples)' : 'Upcoming EBMA events, soonest first'
+  }
+  data-upcoming={live ? num : undefined}
+  data-empty={live ? emptyId : undefined}
+  hidden={live && listed.length === 0}
 >
   {
-    events.length
-      ? upcoming.map((e, i) => {
-          const d = dateParts(e.date);
+    events.length || past
+      ? listed.map((e, i) => {
+          const d = e.date ? dateParts(e.date) : null;
+          const rows = eventRows(e);
           return (
-            <li class="ag" data-end={e.date}>
+            <li class="ag" data-end={past ? undefined : e.date}>
               <div class="ag-date">
-                <span class="ag-day" aria-hidden="true">
-                  {d.day}
-                </span>
-                <span class="ag-mon">
-                  <span aria-hidden="true">{d.month}</span>
-                  <span class="ag-wk" aria-hidden="true">
-                    {d.weekday}
-                  </span>
-                  <span class="sr-only">{d.long}</span>
-                </span>
+                {d ? (
+                  <>
+                    <span class="ag-day" aria-hidden="true">
+                      {d.day}
+                    </span>
+                    <span class="ag-mon">
+                      <span aria-hidden="true">{d.month}</span>
+                      <span class="ag-wk" aria-hidden="true">
+                        {past ? d.year : d.weekday}
+                      </span>
+                      <span class="sr-only">{d.long}</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span class="ag-day tbd" aria-hidden="true">
+                      TBD
+                    </span>
+                    <span class="ag-mon">
+                      <span aria-hidden="true">Date</span>
+                      <span class="ag-wk" aria-hidden="true">
+                        to be announced
+                      </span>
+                      <span class="sr-only">Date to be announced</span>
+                    </span>
+                  </>
+                )}
               </div>
               <div class="ag-rail" aria-hidden="true">
                 <span class="ag-pt" />
@@ -72,27 +108,33 @@ const emptyId = `agenda-none-${num}`;
                   {e.kind && <span class="ag-kind">{e.kind}</span>}
                 </p>
                 <h3 class="ag-title">{e.title}</h3>
-                <dl class="ag-meta">
-                  <div>
-                    <dt>When</dt>
-                    <dd>{e.time}</dd>
-                  </div>
-                  <div>
-                    <dt>Where</dt>
-                    <dd>{`${e.venue}, ${e.city}`}</dd>
-                  </div>
-                  <div>
-                    <dt>For</dt>
-                    <dd>{e.audience}</dd>
-                  </div>
-                  {e.cost && (
-                    <div>
-                      <dt>Cost</dt>
-                      <dd>{e.cost}</dd>
-                    </div>
-                  )}
-                </dl>
+                {rows.length > 0 && (
+                  <dl class="ag-meta">
+                    {rows.map(([term, value]) => (
+                      <div>
+                        <dt>{term}</dt>
+                        <dd>{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
                 {e.description && <p class="ag-desc">{e.description}</p>}
+                {e.more && (
+                  <p class="ag-more">
+                    <a class="xref ext" href={e.more.href} rel="external noopener">
+                      <span>
+                        {lastWord(e.more.label)[0]}
+                        <span class="ext-tail">
+                          {lastWord(e.more.label)[1]}
+                          <span class="ext-arr" aria-hidden="true">
+                            ↗
+                          </span>
+                        </span>
+                      </span>
+                      <span class="sr-only"> (external site)</span>
+                    </a>
+                  </p>
+                )}
               </div>
               <div class="ag-go">
                 {e.href &&
@@ -266,6 +308,19 @@ const emptyId = `agenda-none-${num}`;
     letter-spacing: -0.04em;
     font-variation-settings: 'opsz' 72;
   }
+  /* No date yet: "TBD" in the day's place, smaller so it doesn't outshout a real date. */
+  .ag-day.tbd {
+    font-size: clamp(40px, 3.6vw, 52px);
+    letter-spacing: -0.01em;
+  }
+  /* Past events: the date in ink rather than vermilion, and a hollow point on the rail. */
+  .past .ag-day {
+    color: var(--ink-2);
+  }
+  .past .ag-pt {
+    background: var(--paper);
+    border: 2px solid var(--ink);
+  }
   .ag-mon {
     display: flex;
     flex-direction: column;
@@ -372,6 +427,10 @@ const emptyId = `agenda-none-${num}`;
     font-size: 17px;
     color: var(--ink-2);
     max-width: 40em;
+    text-wrap: pretty;
+  }
+  .ag-more {
+    margin-top: 14px;
   }
   .ag-go {
     display: flex;

@@ -1,15 +1,16 @@
 ---
 /**
  * Small line figures for the three definitions on the home page, drawn in ink with one
- * vermilion point: a staircase y = ⌊x⌋ (compete: you level up), the spiral r = θ (explore:
- * it keeps going), and the complete graph K₆ (belong: everyone connected to everyone).
+ * vermilion point and named for what they draw: `graph`, the complete graph K₆ (Listen: a room
+ * where everyone is connected to everyone), `floor`, the staircase y = ⌊x⌋ (Go: every trip a
+ * step up), and `spiral`, the spiral r = θ (Explore: it keeps going).
  * They draw themselves in once when scrolled into view (scripts/site.ts reveal).
  *
  * Each drawing starts at the left edge of its box (x ≈ 1), so the three sit flush with the
  * labels and headings under them.
  */
 interface Props {
-  kind: 'compete' | 'explore' | 'belong';
+  kind: 'graph' | 'floor' | 'spiral';
 }
 const { kind } = Astro.props;
 const W = 132;
@@ -26,7 +27,7 @@ let sub = '';
 let capX = W - 2;
 let anchor: 'start' | 'end' = 'end';
 
-if (kind === 'compete') {
+if (kind === 'floor') {
   // y = floor(x) for x in [0, 4): four treads, a closed dot at each left end (the top one in
   // vermilion) and an open one at each right end.
   const x0 = 3.6, y0 = 74, sx = 26, sy = 16;
@@ -37,7 +38,7 @@ if (kind === 'compete') {
   }
   dot = [x0 + 3 * sx, y0 - 3 * sy];
   caption = 'y = ⌊x⌋';
-} else if (kind === 'explore') {
+} else if (kind === 'spiral') {
   // Archimedean spiral r = a·θ, θ from 0 to 3.2π; its leftmost stroke (θ = 3π) sits at x ≈ 1.
   const cx = 36, cy = 44, a = 3.6;
   const pts: string[] = [];
@@ -71,7 +72,7 @@ if (kind === 'compete') {
 <svg class="deffig" data-reveal viewBox={`0 0 ${W} ${H}`} width={W} height={H} aria-hidden="true" focusable="false">
   {lines.map((d) => <path d={d} pathLength="1" class="ln" />)}
   {hollow.map(([x, y]) => <circle cx={x} cy={y} r="2.6" class="open" />)}
-  {closed.map(([x, y]) => <circle cx={x} cy={y} r={kind === 'belong' ? 2.6 : 2.4} class="pt" />)}
+  {closed.map(([x, y]) => <circle cx={x} cy={y} r={kind === 'graph' ? 2.6 : 2.4} class="pt" />)}
   <circle cx={dot[0]} cy={dot[1]} r="3.6" class="hot" />
   <text x={capX} y={H - (sub ? 6 : 2)} text-anchor={anchor} class="cap">{caption}{sub && <tspan class="sub" dy="4">{sub}</tspan>}</text>
 </svg>

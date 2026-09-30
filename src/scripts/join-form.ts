@@ -27,7 +27,7 @@ export interface RoleCopy {
   messageHint: string;
   /** A line at the top of the form, for readers who came in with this role. Empty for none. */
   note: Rich;
-  /** Show the intro's "Filling this in for a child?" line (not for sponsors or teachers). */
+  /** Show the intro's "Filling this in for a child?" line (not for teachers). */
   family: boolean;
   /** The success message's "while you wait" line. */
   next: Rich;
@@ -67,17 +67,15 @@ const ROLE_COPY: Record<Role, Partial<RoleCopy>> = {
     schoolHint: 'Where your child goes to school.',
     messageLabel: 'Tell us about your child',
     messageHint: 'What they enjoy, what they’d like to try, and any question you have.',
-    next: ['While you wait, ', { href: '/about/#faq', text: 'read the questions parents ask' }, ' or ', { href: '/events/', text: 'see what’s coming up' }, '.'],
+    next: ['While you wait, ', { href: '/resources/#problems', text: 'try a problem together' }, ' or ', { href: '/events/', text: 'see what’s coming up' }, '.'],
   },
   educator: {
     gradeLabel: 'Grade you teach',
     gradeHint: 'The main one. Mention any others in your message.',
     schoolLabel: 'Your school',
     schoolHint: 'Where you teach.',
-    messageHint: 'What your students need, and what you have in mind.',
+    messageHint: 'What you have in mind, for yourself or for your students.',
     family: false,
-    note: ['Writing as a teacher? This form is the first step; ', { href: '#schools', text: '§3 explains how partnering works' }, '.'],
-    next: ['While you wait, ', { href: '#schools', text: 'read how partnering works' }, ' or ', { href: '/events/', text: 'see what’s coming up' }, '.'],
   },
   volunteer: {
     gradeLabel: 'Your grade',
@@ -85,15 +83,6 @@ const ROLE_COPY: Record<Role, Partial<RoleCopy>> = {
     schoolLabel: 'School or workplace',
     schoolHint: 'Where you study or work, if you’d like to say.',
     messageHint: 'How you’d like to help (coaching, writing problems, checking answers, or running an event) and roughly when you’re free.',
-  },
-  sponsor: {
-    gradeLabel: null,
-    schoolLabel: 'Organization',
-    schoolHint: 'The business, school, or group you represent.',
-    messageHint: 'What you’d like to support: a competition, an event space, prizes, printing, or something else.',
-    family: false,
-    note: ['Sponsoring or partnering? Tell us your organization below. How support works is on ', { href: '/sponsors/', text: 'Sponsors & Partners' }, '.'],
-    next: ['While you wait, ', { href: '/sponsors/#uses', text: 'see where support goes' }, '.'],
   },
   other: {
     messageHint: 'Anything at all: a question, an idea, or just hello.',
@@ -123,20 +112,19 @@ const SEND_FAILED = 'We couldn’t send your form';
 const STATUS_MESSAGES: Record<number, string> = {
   400: 'We couldn’t read that form. Please reload the page and try again.',
   403: 'This form can only be sent from the EBMA website. Please reload the page and try again.',
-  429: 'We’ve received a lot of forms from your network in the last few minutes (schools and campuses often share one connection). Please wait a few minutes, then try again, or email us instead (see §4, Get in touch).',
-  503: 'The form isn’t taking messages right now. Please email us instead (see §4, Get in touch).',
+  429: 'We’ve received a lot of forms from your network in the last few minutes (schools and campuses often share one connection). Please wait a few minutes, then try again, or email us instead (see §3, Get in touch).',
+  503: 'The form isn’t taking messages right now. Please email us instead (see §3, Get in touch).',
 };
 /** The server says which limit a 429 hit (functions/api/join.ts). */
 const RATE_MESSAGES: Record<string, string> = {
   'rate-email':
-    'We already have several forms from this email address from the last few minutes, so your message has reached us. To add something, please wait about 10 minutes and send it again, or email us instead (see §4, Get in touch).',
+    'We already have several forms from this email address from the last few minutes, so your message has reached us. To add something, please wait about 10 minutes and send it again, or email us instead (see §3, Get in touch).',
 };
-const FALLBACK_MESSAGE = 'Something went wrong on our end. Please try again in a minute, or email us instead (see §4, Get in touch).';
-const OFFLINE_MESSAGE = 'We couldn’t reach our server. Check your internet connection and try again, or email us instead (see §4, Get in touch).';
+const FALLBACK_MESSAGE = 'Something went wrong on our end. Please try again in a minute, or email us instead (see §3, Get in touch).';
+const OFFLINE_MESSAGE = 'We couldn’t reach our server. Check your internet connection and try again, or email us instead (see §3, Get in touch).';
 
-/** Preselect an interest that matches the role a page linked in with (e.g. Sponsors → partnering). */
+/** Preselect an interest that matches the role a page linked in with (e.g. Volunteer → volunteering). */
 const ROLE_INTEREST: Partial<Record<string, (typeof INTERESTS)[number]['value']>> = {
-  sponsor: 'partnering',
   volunteer: 'volunteering',
 };
 
@@ -192,7 +180,7 @@ export function mountJoinForm(form: HTMLFormElement): void {
     }
     const family = copySlot('family');
     if (family) family.hidden = !copy.family;
-    // No grade for sponsors: the field goes, and a disabled select is left out of the submission.
+    // A role with no grade (gradeLabel: null): the field goes, and a disabled select is left out of the submission.
     const noGrade = copy.gradeLabel === null;
     const gradeLabel = copySlot('gradeLabel');
     if (gradeLabel && copy.gradeLabel) gradeLabel.textContent = copy.gradeLabel;
@@ -201,7 +189,7 @@ export function mountJoinForm(form: HTMLFormElement): void {
     if (noGrade && shown.has('grade')) setError('grade', undefined);
   };
 
-  /* ---------- ?role=sponsor → preselect the matching radio ---------- */
+  /* ---------- ?role=volunteer → preselect the matching radio ---------- */
   const applyRoleFromURL = () => {
     const wanted = new URLSearchParams(location.search).get('role');
     if (isRole(wanted)) {

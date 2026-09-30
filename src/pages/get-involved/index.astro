@@ -12,48 +12,35 @@ import GetInvolvedHat from '../../components/GetInvolvedHat.astro';
 const contents = [
   { href: '#ways', num: '1', title: 'Ways in' },
   { href: '#join', num: '2', title: 'Join EBMA' },
-  { href: '#schools', num: '3', title: 'Schools & teachers' },
-  { href: '#contact', num: '4', title: 'Get in touch' },
+  { href: '#contact', num: '3', title: 'Get in touch' },
 ];
 
 const joinAs = (role: string) => `/get-involved/?role=${role}#join`;
 
 interface Way {
-  audience: string;
+  title: string;
   body: string;
   next: { href: string; text: string };
   alt: { href: string; text: string };
 }
 const ways: Way[] = [
   {
-    audience: 'Students',
-    body: 'Come to events, work on problems that go past the curriculum, and meet students from other schools who enjoy the same puzzles you do. You don’t need to be a competition star to start.',
-    next: { href: joinAs('student'), text: 'Join as a student' },
-    alt: { href: '/resources/#problems', text: 'Try a problem first' },
+    title: 'Come to a\u00a0talk',
+    body: 'Talks on mathematics at work, from swim races and stock options to aerospace engineering and data science. Anyone interested in math is welcome, and you don’t need to be a competition star to follow along.',
+    next: { href: '/events/#upcoming', text: 'See upcoming talks' },
+    alt: { href: '/events/#past', text: 'Past talks' },
   },
   {
-    audience: 'Parents &\u00a0guardians',
-    body: 'See what EBMA offers, what it costs, and how students are looked after, then tell us about your child or ask us anything. Joining puts you in touch with us; signing up for a particular event comes later, event by event. Students under 13 need you to fill in the form for them.',
-    next: { href: joinAs('parent'), text: 'Tell us about your child' },
-    alt: { href: '/about/#faq', text: 'Questions parents ask' },
+    title: 'Come on a\u00a0trip',
+    body: 'Trips to hackathons and events in fields next to mathematics, where the ideas get put to work. Join EBMA, and tell us in the form what you’d like to try.',
+    next: { href: '#join', text: 'Join EBMA' },
+    alt: { href: '/about/#mission', text: 'What EBMA does' },
   },
   {
-    audience: 'Schools &\u00a0teachers',
-    body: 'Bring your math team or club to events, pass opportunities on to your students, and tell us what would help them most.',
-    next: { href: joinAs('educator'), text: 'Partner with us' },
-    alt: { href: '#schools', text: 'How partnering works' },
-  },
-  {
-    audience: 'Volunteers &\u00a0mentors',
+    title: 'Help run\u00a0things',
     body: 'Coach, write problems, check answers, or help run an event on the day. If you can explain an idea patiently, we’d like to hear from you.',
     next: { href: joinAs('volunteer'), text: 'Offer to help' },
     alt: { href: '/about/#people', text: 'Meet the people' },
-  },
-  {
-    audience: 'Sponsors &\u00a0partners',
-    body: 'Fund a competition, host an event, or donate prizes or printing, and be thanked in front of the students and families your support reaches.',
-    next: { href: '/sponsors/', text: 'How sponsoring works' },
-    alt: { href: joinAs('sponsor'), text: 'Start the conversation' },
   },
 ];
 
@@ -63,14 +50,14 @@ const setBuilder =
 
 <Base
   title="Get Involved"
-  description="Join the East Bay Math Association as a student, parent, teacher, volunteer, or sponsor: one short form, a way in for every reader, and every way to reach us."
+  description="Join the East Bay Math Association: free, open to anyone interested in math, with one short form and every way to reach us."
 >
   <PageHeader
     chapter={4}
     label="Correspondence"
     note="(in which you find your place in the pattern)"
     title="Get *involved*"
-    lede="Students, parents, teachers, volunteers, and sponsors: there is more than one way into EBMA. Find yours below, then fill in one short form, or write to us if you’d rather."
+    lede="Anyone interested in math can join EBMA, and joining is free. Find your way in below, then fill in one short form, or write to us if you’d rather."
   >
     <div slot="lede" class="gi-head-more">
       <div class="cta-row rise" style="--d:380">
@@ -100,8 +87,8 @@ const setBuilder =
     id="ways"
     num="1"
     title="Ways *in*"
-    dek="Five kinds of people, one association. Find yourself below; each case ends in one concrete next step."
-    note="Not sure which case you are? Pick the closest one. You can tell us more in the form."
+    dek="Three ways in, one association. Each case ends in one concrete next step."
+    note="Not sure where to start? Join, and tell us what you’re after in the form."
   >
     <ol class="gi-ways">
       {
@@ -109,7 +96,7 @@ const setBuilder =
           <li class="gi-way">
             <div class="gi-way-head">
               <p class="label">Case 1.{i + 1}</p>
-              <h3>{w.audience}</h3>
+              <h3>{w.title}</h3>
             </div>
             <p class="gi-way-body">{w.body}</p>
             <div class="gi-way-next">
@@ -139,7 +126,7 @@ const setBuilder =
     num="2"
     title="Join *EBMA*"
     dek="One short form for everyone. Tell us who you are and what you’re after, and a person will write back."
-    note="Would you rather write an email? That works too: see §4, Get in touch."
+    note="Would you rather write an email? That works too: see §3, Get in touch."
   >
     <div class="gi-def">
       <div class="gi-def-math">
@@ -162,11 +149,7 @@ const setBuilder =
           </div>
           <div>
             <dt>Who can join</dt>
-            <dd><Ph id="org.eligibility" label="Grades, ages, and area" /></dd>
-          </div>
-          <div>
-            <dt>Sponsors and partners</dt>
-            <dd>Levels, how we thank sponsors, and tax details are on <a href="/sponsors/">Sponsors &amp; Partners</a>.</dd>
+            <dd><Ph id="org.eligibility" /></dd>
           </div>
           {/* The data-use sentence itself sits once, under the consent box, where consent is given. */}
           <div class="gi-fact-privacy">
@@ -183,80 +166,11 @@ const setBuilder =
   </Section>
 
   <Section
-    id="schools"
-    num="3"
-    title="Schools & *teachers*"
-    dek="For math teachers, club advisors, and coaches who want more for their students."
-    note="A partnership can start as small as passing one announcement on to your class."
-  >
-    <div class="gi-schools">
-      <div>
-        <p class="label">Proposition 3.1</p>
-        <h3>What partnering can look like</h3>
-        <ul class="gi-list">
-          <li>Bring a team, a club, or a whole class to EBMA events.</li>
-          <li>Pass competitions and practice problems on to your students.</li>
-          <li>Host an event or a problem-solving session at your school.</li>
-          <li>Tell us what your students need, and help shape what we plan next.</li>
-        </ul>
-        <p class="gi-others">
-          Universities, libraries, and other organizations: choose “Sponsor or partner” in the form, or read
-          <a href="/sponsors/">Sponsors &amp; Partners</a> first.
-        </p>
-        <div class="gi-schools-links">
-          <a class="xref" href="/events/">Events &amp; Competitions <span class="arr" aria-hidden="true">→</span></a>
-          <a class="xref" href="/resources/">Student Resources <span class="arr" aria-hidden="true">→</span></a>
-        </div>
-      </div>
-      <div>
-        <p class="label">Proof sketch</p>
-        <h3>How to start</h3>
-        <ol class="gi-steps">
-          <li>
-            <span class="gi-step-n" aria-hidden="true">1</span>
-            <div>
-              <h4>Write to us</h4>
-              <p>Send the form with “Teacher or school staff” selected, or email us. Tell us about your school and what you have in mind.</p>
-            </div>
-          </li>
-          <li>
-            <span class="gi-step-n" aria-hidden="true">2</span>
-            <div>
-              <h4>We talk it through</h4>
-              <p>We’ll get back to you to hear about your students and suggest what might fit.</p>
-            </div>
-          </li>
-          <li>
-            <span class="gi-step-n" aria-hidden="true">3</span>
-            <div>
-              <h4>Start small</h4>
-              <p>One event, one club visit, or one shared problem set. Then keep what works.</p>
-            </div>
-          </li>
-        </ol>
-        <dl class="gi-who">
-          <div>
-            <dt>Who to talk to</dt>
-            <dd><Ph id="get-involved.schools-contact" label="Schools contact" /></dd>
-          </div>
-          <div>
-            <dt>Email</dt>
-            <dd><PhLink id="org.email" /></dd>
-          </div>
-        </dl>
-        <div class="cta-row gi-schools-cta">
-          <a class="btn" href={joinAs('educator')}>Write to us as a teacher <span class="arr" aria-hidden="true">→</span></a>
-        </div>
-      </div>
-    </div>
-  </Section>
-
-  <Section
     id="contact"
-    num="4"
+    num="3"
     title="Get in *touch*"
-    dek="Write to us, follow along, or get announcements by email."
-    note="Asking about a particular event? Include its name and date so we can answer faster."
+    dek="Write to us by email or with the form. A person reads every message."
+    note="Asking about a particular event? Include its name so we can answer faster."
   >
     <dl class="gi-corr">
       <div class="gi-corr-row">
@@ -267,32 +181,12 @@ const setBuilder =
       <div class="gi-corr-row">
         <dt>Email</dt>
         <dd class="gi-corr-v"><PhLink id="org.email" /></dd>
-        <dd class="gi-corr-n">Questions from students, parents, schools, and sponsors.</dd>
-      </div>
-      <div class="gi-corr-row">
-        <dt>Instagram</dt>
-        <dd class="gi-corr-v"><PhLink id="org.instagram">EBMA on Instagram</PhLink></dd>
-        <dd class="gi-corr-n">Follow along between events.</dd>
-      </div>
-      <div class="gi-corr-row">
-        <dt>Mailing list</dt>
-        <dd class="gi-corr-v"><PhLink id="org.mailing-list">Join the mailing list</PhLink></dd>
-        <dd class="gi-corr-n">Announcements about events and competitions. You can also check “Email updates” in <a href="#join">the form</a>.</dd>
-      </div>
-      <div class="gi-corr-row">
-        <dt>Post</dt>
-        <dd class="gi-corr-v"><Ph id="org.mailing-address" /></dd>
-        <dd class="gi-corr-n">For paperwork and checks.</dd>
+        <dd class="gi-corr-n">Any question about EBMA, its talks, or its trips.</dd>
       </div>
       <div class="gi-corr-row">
         <dt>Replies</dt>
         <dd class="gi-corr-v">Usually within <Ph id="get-involved.response-time" /></dd>
         <dd class="gi-corr-n">For email and for the form alike.</dd>
-      </div>
-      <div class="gi-corr-row">
-        <dt>Sponsorship</dt>
-        <dd class="gi-corr-v"><a href="/sponsors/#become">How to sponsor EBMA</a></dd>
-        <dd class="gi-corr-n">Ways to support students, and how we thank the people who do.</dd>
       </div>
     </dl>
     <p class="tcap">
@@ -300,7 +194,7 @@ const setBuilder =
     </p>
   </Section>
 
-  <Band m={7} label="Corollary 4.1" title="The pattern needs *your* piece." text="Pick a way in above, or write to us. A person will reply.">
+  <Band m={7} label="Corollary 3.1" title="The pattern needs *your* piece." text="Pick a way in above, or write to us. A person will reply.">
     <a class="btn" href="#join">Join EBMA <span class="arr" aria-hidden="true">↑</span></a>
     <a class="btn btn-quiet" href="/events/">See upcoming events</a>
   </Band>
@@ -486,7 +380,6 @@ const setBuilder =
     border-bottom: 1px solid var(--rule);
   }
   .gi-facts dt,
-  .gi-who dt,
   .gi-corr dt {
     font: 600 12px/1.3 var(--sans);
     letter-spacing: 0.14em;
@@ -509,94 +402,7 @@ const setBuilder =
     }
   }
 
-  /* ---------- §3 schools ---------- */
-  .gi-others {
-    margin-top: 16px;
-    font-size: 16.5px;
-    color: var(--ink-2);
-  }
-  .gi-others a {
-    color: var(--ink);
-  }
-  .gi-schools {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(40px, 5vw, 80px);
-    align-items: start;
-  }
-  .gi-schools h3 {
-    margin: 12px 0 20px;
-    font: 400 clamp(26px, 2.3vw, 33px) / 1.1 var(--serif);
-    letter-spacing: -0.015em;
-  }
-  .gi-list {
-    list-style: none;
-    display: grid;
-    border-top: 1px solid var(--rule-2);
-  }
-  .gi-list li {
-    position: relative;
-    padding: 14px 0 14px 26px;
-    border-bottom: 1px solid var(--rule);
-    font-size: 18px;
-    line-height: 1.45;
-    color: var(--ink-2);
-  }
-  .gi-list li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: calc(14px + 0.55em);
-    width: 8px;
-    height: 8px;
-    background: var(--accent);
-  }
-  .gi-schools-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 28px;
-    margin-top: 24px;
-  }
-  .gi-steps {
-    list-style: none;
-    border-top: 2px solid var(--ink);
-  }
-  .gi-steps li {
-    display: grid;
-    grid-template-columns: 44px minmax(0, 1fr);
-    gap: 16px;
-    padding: 18px 0 20px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .gi-step-n {
-    font: 200 46px/0.85 var(--serif);
-    font-variation-settings: 'opsz' 72;
-    color: var(--accent);
-  }
-  .gi-steps h4 {
-    font: 600 16px/1.3 var(--sans);
-    margin: 0 0 4px;
-  }
-  .gi-steps p {
-    font-size: 17px;
-    line-height: 1.5;
-    color: var(--ink-2);
-  }
-  .gi-who {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px 24px;
-    margin-top: 24px;
-  }
-  .gi-who dd {
-    margin: 6px 0 0;
-    font-size: 17px;
-  }
-  .gi-schools-cta {
-    margin-top: 28px;
-  }
-
-  /* ---------- §4 contact ---------- */
+  /* ---------- §3 contact ---------- */
   .gi-corr {
     border-top: 2px solid var(--ink);
     border-bottom: 2px solid var(--ink);
@@ -703,9 +509,6 @@ const setBuilder =
     }
   }
   @media (max-width: 860px) {
-    .gi-schools {
-      grid-template-columns: minmax(0, 1fr);
-    }
     .gi-corr-row {
       grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
     }
@@ -733,9 +536,6 @@ const setBuilder =
     }
     .gi-corr-n {
       grid-column: 1;
-    }
-    .gi-who {
-      grid-template-columns: minmax(0, 1fr);
     }
   }
   @media (max-width: 760px) {

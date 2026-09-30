@@ -2,9 +2,8 @@
 export const site = {
   name: 'East Bay Math Association',
   shortName: 'EBMA',
-  // No grade range here: who can join is a placeholder (org.eligibility) until the association says.
   description:
-    'The East Bay Math Association brings students across the East Bay together for competitions, events, and serious fun with hard problems.',
+    'The East Bay Math Association brings people across the East Bay together for talks, trips to hackathons and events, and serious fun with hard problems. Free to join; anyone interested in math is welcome.',
   region: 'East Bay, California',
   /**
    * Launch switch. While false, every page carries <meta name="robots" content="noindex"> and
@@ -30,7 +29,6 @@ export const nav: NavItem[] = [
   { href: '/events/', label: 'Events', title: 'Events & Competitions', n: 2 },
   { href: '/resources/', label: 'Resources', title: 'Student Resources', n: 3 },
   { href: '/get-involved/', label: 'Get Involved', title: 'Get Involved', n: 4 },
-  { href: '/sponsors/', label: 'Sponsors', title: 'Sponsors & Partners', n: 5 },
 ];
 
 export const joinHref = '/get-involved/#join';

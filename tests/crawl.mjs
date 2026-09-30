@@ -117,10 +117,18 @@ while (queue.length) {
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
       .analyze();
 
-    await page.screenshot({ path: path.join(outDir, `${slug(pathname)}-${vp.name}.png`), fullPage: true });
+    // The screenshot is a record for people to look at, not a check. On a busy machine a tall page
+    // can take a while to capture, so allow longer, and note a failure instead of ending the crawl.
+    let screenshotError = null;
+    await page
+      .screenshot({ path: path.join(outDir, `${slug(pathname)}-${vp.name}.png`), fullPage: true, timeout: 120000 })
+      .catch((e) => {
+        screenshotError = e.message.split('\n')[0];
+      });
 
     pageReport.widths[vp.name] = {
       status: res?.status(),
+      screenshotError,
       consoleErrors,
       failed,
       ...layout,
@@ -154,7 +162,7 @@ while (queue.length) {
   }
 }
 
-// Verify every cross-page anchor (/about/#faq) points at an element id on the target page.
+// Verify every cross-page anchor (/events/#past) points at an element id on the target page.
 const htmlCache = {};
 for (const [target, from] of Object.entries(report.crossAnchors ?? {})) {
   const [p, hash] = target.split('#');
@@ -210,5 +218,9 @@ await browser.close();
 
 console.log(`Crawled ${report.summary.pages.length} pages × ${WIDTHS.length} widths: ${report.summary.pages.join(' ')}`);
 console.log(`Internal pages linked: ${report.summary.internalLinkCount}, cross-page anchors: ${report.summary.crossPageAnchors}, external links: ${report.summary.externalLinkCount}`);
+const missingShots = Object.entries(report.pages).flatMap(([p, pr]) =>
+  Object.entries(pr.widths).filter(([, r]) => r.screenshotError).map(([w, r]) => `${p} @${w}: ${r.screenshotError}`),
+);
+if (missingShots.length) console.log(`Screenshots not captured (not a check):\n- ${missingShots.join('\n- ')}`);
 console.log(report.summary.problems.length ? `PROBLEMS (${report.summary.problems.length}):\n- ` + report.summary.problems.join('\n- ') : 'No problems found.');
 process.exitCode = report.summary.problems.length ? 1 : 0;

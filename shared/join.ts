@@ -9,15 +9,14 @@ export const ROLES = [
   { value: 'parent', label: 'Parent or guardian' },
   { value: 'educator', label: 'Teacher or school staff' },
   { value: 'volunteer', label: 'Volunteer or mentor' },
-  { value: 'sponsor', label: 'Sponsor or partner' },
   { value: 'other', label: 'Something else' },
 ] as const;
 export type Role = (typeof ROLES)[number]['value'];
 
 /*
- * Wide on purpose, at both ends: the list must not suggest who is eligible (that is the
- * org.eligibility placeholder's job). Once eligibility is known, the list can match it. Stored
- * values stay stable ('other' predates the relabel), since D1 rows keep them.
+ * Wide on purpose, at both ends: anyone interested in math can join (the org.eligibility
+ * placeholder), whatever their age. Stored values stay stable ('other' predates the relabel),
+ * since D1 rows keep them.
  */
 export const GRADES = [
   { value: '4-below', label: 'Grade 4 or below' },
@@ -32,12 +31,11 @@ export const GRADES = [
   { value: 'other', label: 'College, adult, or not in school' },
 ] as const;
 
+/* Stored values stay stable ('events' predates the relabel), since D1 rows keep them. */
 export const INTERESTS = [
-  { value: 'events', label: 'Competitions and events' },
+  { value: 'events', label: 'Talks, trips, and events' },
   { value: 'resources', label: 'Study resources' },
   { value: 'volunteering', label: 'Volunteering' },
-  { value: 'partnering', label: 'Partnering or sponsoring' },
-  { value: 'updates', label: 'Email updates' },
 ] as const;
 
 export const LIMITS = {

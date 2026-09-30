@@ -5,18 +5,24 @@
  *
  * A card links only to its own event's page (`event.href`); the whole card is the hit area.
  * Sample cards and events without a page are not links: the section's own "All upcoming
- * events" link already leads to the list, so the cards don't repeat it.
+ * events" link already leads to the list, so the cards don't repeat it. `event.more` (somewhere
+ * to read ahead, e.g. the project behind a talk) is a separate link at the foot of the card.
+ *
+ * An event with no date yet shows "TBD" where the day goes. The rows (When, Where, Speaker, For,
+ * Cost) appear only for the details the event has, and the card prints `event.summary` when there
+ * is one (the Events page prints the full `description`).
  *
  * Samples use the site's one sample style (`.sample` + `.sample-tag`, global.css): a dashed
  * outline, a small mono "Sample" tag and muted text. The first sample carries two placeholder
  * chips (its date tile shows "??" in place of the day); later samples are blank ruled stand-ins,
  * hidden from screen readers, that only keep the row's rhythm.
  *
- * A real card carries `data-end` (its date) and `data-ev-num`, so the page's script can drop it
- * once the day has passed and renumber the rest (see prunePastEvents in src/data/events.ts).
+ * A real card carries `data-ev-num`, and `data-end` (its date) once it has one, so the page's
+ * script can drop it when the day has passed and renumber the rest (see prunePastEvents in
+ * src/data/events.ts).
  */
 import Ph from './Ph.astro';
-import { dateParts, type EbmaEvent } from '../data/events';
+import { dateParts, eventRows, type EbmaEvent } from '../data/events';
 
 interface Props {
   event?: EbmaEvent;
@@ -27,14 +33,16 @@ interface Props {
 }
 const { event, sample = 1, num, headingLevel = 'h3' } = Astro.props;
 const H = headingLevel;
-const d = event ? dateParts(event.date) : null;
+const d = event?.date ? dateParts(event.date) : null;
+const rows = event ? eventRows(event) : [];
+const text = event ? (event.summary ?? event.description) : undefined;
 const href = event?.href ?? null;
 const external = href ? /^https?:\/\//.test(href) : false;
 const ghost = !event && sample > 1;
 ---
 
 {
-  event && d ? (
+  event ? (
     <article class:list={['event', { 'is-link': href }]} data-end={event.date}>
       <div class="event-top">
         <span class="label">
@@ -43,16 +51,33 @@ const ghost = !event && sample > 1;
         {event.kind && <span class="event-kind">{event.kind}</span>}
       </div>
       <div class="event-date">
-        <span class="day" aria-hidden="true">
-          {d.day}
-        </span>
-        <span class="mon">
-          <span aria-hidden="true">{d.month}</span>
-          <span class="sr-only">{d.long}</span>
-          <span class="wk" aria-hidden="true">
-            {d.weekday}
-          </span>
-        </span>
+        {d ? (
+          <>
+            <span class="day" aria-hidden="true">
+              {d.day}
+            </span>
+            <span class="mon">
+              <span aria-hidden="true">{d.month}</span>
+              <span class="sr-only">{d.long}</span>
+              <span class="wk" aria-hidden="true">
+                {d.weekday}
+              </span>
+            </span>
+          </>
+        ) : (
+          <>
+            <span class="day tbd" aria-hidden="true">
+              TBD
+            </span>
+            <span class="mon">
+              <span aria-hidden="true">Date</span>
+              <span class="sr-only">Date to be announced</span>
+              <span class="wk" aria-hidden="true">
+                to be announced
+              </span>
+            </span>
+          </>
+        )}
       </div>
       <H class="event-title">
         {href ? (
@@ -64,21 +89,28 @@ const ghost = !event && sample > 1;
           event.title
         )}
       </H>
-      <dl>
-        <dt>When</dt>
-        <dd>{event.time}</dd>
-        <dt>Where</dt>
-        <dd>{`${event.venue}, ${event.city}`}</dd>
-        <dt>For</dt>
-        <dd>{event.audience}</dd>
-        {event.cost && (
-          <>
-            <dt>Cost</dt>
-            <dd>{event.cost}</dd>
-          </>
-        )}
-      </dl>
-      {event.description && <p class="event-desc">{event.description}</p>}
+      {rows.length > 0 && (
+        <dl>
+          {rows.map(([term, value]) => (
+            <>
+              <dt>{term}</dt>
+              <dd>{value}</dd>
+            </>
+          ))}
+        </dl>
+      )}
+      {text && <p class="event-desc">{text}</p>}
+      {event.more && (
+        <a class="event-more" href={event.more.href} rel="external noopener">
+          <span>
+            {event.more.label}
+            <span class="sr-only"> (external site)</span>
+          </span>
+          <span class="ext-arr" aria-hidden="true">
+            ↗
+          </span>
+        </a>
+      )}
       {href && (
         <span class="event-go" aria-hidden="true">
           Details &amp; registration {external ? <span class="ext-arr">↗</span> : <span class="arr">→</span>}
@@ -163,6 +195,11 @@ const ghost = !event && sample > 1;
     letter-spacing: -0.04em;
     font-variation-settings: 'opsz' 72;
   }
+  /* No date yet: "TBD" in the day's place, smaller so it doesn't outshout a real date. */
+  .day.tbd {
+    font-size: clamp(46px, 4.2vw, 60px);
+    letter-spacing: -0.01em;
+  }
   .mon {
     display: flex;
     flex-direction: column;
@@ -219,6 +256,39 @@ const ghost = !event && sample > 1;
     font-size: 16.5px;
     color: var(--ink-2);
     margin-bottom: 18px;
+    text-wrap: pretty;
+  }
+  /* Read ahead: a link of its own, above the card-wide link's hit area when the card has one. */
+  .event-more {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    font: 600 14.5px/1.35 var(--sans);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .event-more > span:first-child {
+    text-decoration: underline;
+    text-decoration-color: var(--rule-2);
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color 0.2s;
+  }
+  .event-more:hover {
+    color: var(--accent-text);
+  }
+  .event-more:hover > span:first-child {
+    text-decoration-color: var(--accent);
+  }
+  .event-more:hover .ext-arr {
+    transform: translate(1px, -1px);
+  }
+  .event-more + .event-go {
+    margin-top: 14px;
   }
   .event-go {
     margin-top: auto;

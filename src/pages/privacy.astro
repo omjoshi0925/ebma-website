@@ -34,9 +34,9 @@ const interests = listOf(INTERESTS);
 const messageLimit = LIMITS.message.toLocaleString('en-US');
 
 /** The one summary of how form data is used; the join form repeats it word for word. §1 shows it
- * with its second sentence in bold, since "never sold or shared" is what parents look for first. */
+ * with its second sentence in bold, since "never sold or shared" is what people look for first. */
 const USE =
-  'We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit students. We never sell it or share it, including with sponsors.';
+  'We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit our members. We never sell it or share it.';
 const [USE_HOW, USE_NEVER] = USE.split(/(?<=\.) (?=We never)/);
 
 const contents = [
@@ -61,7 +61,7 @@ const contents = [
     label="Fine print"
     note="(in large print)"
     title="Privacy, in *plain* English."
-    lede="This site collects personal information in one place only: the join form. We never sell it or share it, including with sponsors. The site sets no cookies and runs no analytics, ads, or trackers."
+    lede="This site collects personal information in one place only: the join form. We never sell it or share it. The site sets no cookies and runs no analytics, ads, or trackers."
     contents={contents}
   >
     <p slot="lede" class="effective rise" style="--d:320"><span class="meta">Effective</span> <Ph id="privacy.effective-date" label="Date" /></p>
@@ -142,19 +142,19 @@ const contents = [
           </tr>
           <tr>
             <th scope="row">Grade <span class="tag">Optional</span></th>
-            <td>So we can plan events and resources that suit students at each level.</td>
+            <td>So we can plan events and resources at the right level.</td>
           </tr>
           <tr>
             <th scope="row">School <span class="tag">Optional</span></th>
-            <td>So we can plan events and resources that suit students at each school.</td>
+            <td>So we know where our members study or work.</td>
           </tr>
           <tr>
             <th scope="row">City <span class="tag">Optional</span></th>
-            <td>So we can plan events that are easy for students to reach.</td>
+            <td>So we can plan events that are easy to reach.</td>
           </tr>
           <tr>
             <th scope="row">Interests <span class="tag">Optional</span></th>
-            <td>Any of: {interests}. So we know what you want to hear about. Checking “Email updates” asks us to send you announcements.</td>
+            <td>Any of: {interests}. So we know what you’re interested in.</td>
           </tr>
           <tr>
             <th scope="row">Message <span class="tag">Optional</span></th>
@@ -162,7 +162,7 @@ const contents = [
           </tr>
           <tr>
             <th scope="row">Permission to email you <span class="tag req">Required</span></th>
-            <td>A checked box confirming we may email you about your message, and about anything you checked (such as updates).</td>
+            <td>A checked box confirming we may email you about your message and anything you asked for.</td>
           </tr>
         </tbody>
         <tbody>
@@ -340,8 +340,8 @@ const contents = [
       </article>
       <article class="cell">
         <p class="label">Case 6.3</p>
-        <h3>Stop updates</h3>
-        <p class="body">If you asked for email updates and no longer want them, tell us and we will stop.</p>
+        <h3>Ask about it</h3>
+        <p class="body">Not sure what we hold, or why? Ask, and a person will answer.</p>
       </article>
     </div>
     <div class="reach">
@@ -349,10 +349,6 @@ const contents = [
         <div>
           <dt>Email</dt>
           <dd><PhLink id="org.email" /></dd>
-        </div>
-        <div>
-          <dt>Post</dt>
-          <dd><Ph id="org.mailing-address" /></dd>
         </div>
       </dl>
       <a class="xref" href={contactHref}>All the ways to reach us <span class="arr" aria-hidden="true">→</span></a>
@@ -406,7 +402,7 @@ const contents = [
     color: var(--ink-3);
   }
 
-  /* §1: three answers first (what parents look for), then four large numerals */
+  /* §1: three answers first (what people look for), then four large numerals */
   #short .ledger {
     margin-top: 0;
   }

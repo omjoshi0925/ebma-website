@@ -3,22 +3,18 @@ import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
 import Section from '../components/Section.astro';
 import Band from '../components/Band.astro';
-import Ph from '../components/Ph.astro';
-import PhLink from '../components/PhLink.astro';
 import EventsAgenda from '../components/EventsAgenda.astro';
 import CompetitionTimeline from '../components/CompetitionTimeline.astro';
 import CompetitionTable from '../components/CompetitionTable.astro';
 import CompetitionPathway from '../components/CompetitionPathway.astro';
 import CompetitionEntry from '../components/CompetitionEntry.astro';
-import { events, upcomingEvents, SAMPLE_COUNT } from '../data/events';
+import { events, upcomingEvents, pastEvents, SAMPLE_COUNT } from '../data/events';
 import { competitions, groups, upcomingDates, gradeFit, gradeFitNote, calendarFile, FINDER_GRADES, SEASON } from '../data/competitions';
 import { joinHref, contactHref } from '../data/site';
 
 // Number the directory entries [1], [2], … in the order they appear.
 let n = 0;
 const directory = groups.map((g) => ({ ...g, items: competitions.filter((c) => c.group === g.id).map((c) => ({ c, n: ++n })) }));
-
-const educatorHref = '/get-involved/?role=educator#join';
 
 // §3 grade finder (scripts/events-grades.ts): for each contest and each grade offered, whether the
 // organizer's stated grades include it (1), exclude it (0), or give no numbers (2), and the note
@@ -53,7 +49,7 @@ const notation: [string, string][] = [
 
 <Base
   title="Events & Competitions"
-  description={`EBMA events for East Bay students, what to expect at one, and a verified ${SEASON.label} calendar of math competitions with official links.`}
+  description={`EBMA’s talks and events, coming up and already given, and a verified ${SEASON.label} calendar of math competitions with official links.`}
 >
   <PageHeader
     chapter={2}
@@ -61,10 +57,10 @@ const notation: [string, string][] = [
     label="Chronology"
     note="(in which we mark the calendar)"
     title={'Events &\u00a0*competitions*'}
-    lede={`EBMA’s own events, what to expect when you come to one, and a calendar of the math competitions East Bay students can enter in ${SEASON.label}, checked against each organizer’s official site.`}
+    lede={`EBMA’s own talks and events, coming up and already given, and a calendar of the math competitions East Bay students can enter in ${SEASON.label}, checked against each organizer’s official site.`}
     contents={[
       { href: '#upcoming', num: '1', title: 'Upcoming EBMA events' },
-      { href: '#expect', num: '2', title: 'What to expect' },
+      { href: '#past', num: '2', title: 'Past events' },
       { href: '#calendar', num: '3', title: `The ${SEASON.label} calendar` },
       { href: '#competitions', num: '4', title: 'Competitions to know' },
     ]}
@@ -92,84 +88,31 @@ const notation: [string, string][] = [
     id="upcoming"
     num="1"
     title="Upcoming EBMA events"
-    dek="Events run by the East Bay Math Association, soonest first. New ones will appear here as they are scheduled."
-    note="All times Pacific. Each listing will say when and where, who it is for, what it costs, and how to register."
+    dek="Talks and events run by the East Bay Math Association. Dates, times, and places appear here as soon as they are set."
+    note="All times Pacific. Joining EBMA is free, and anyone interested in math is welcome."
   >
-    <a slot="actions" class="xref" href="#calendar">Other competitions this year <span class="arr" aria-hidden="true">↓</span></a>
+    <a slot="actions" class="xref" href="#past">Past events <span class="arr" aria-hidden="true">↓</span></a>
     <EventsAgenda events={events} sampleCount={SAMPLE_COUNT} num="1" />
     <p class="tcap">
-      <b>Table 1.</b> Upcoming EBMA events, in date order. Contests run by other organizations are in the <a href="#calendar">{SEASON.label} competition calendar</a> (§3).
+      <b>Table 1.</b> Upcoming EBMA events, soonest first; events still to be scheduled come last. Contests run by other organizations are in the
+      <a href="#calendar">{SEASON.label} competition calendar</a> (§3).
     </p>
-
-    <aside class="first aside-box cropped" aria-labelledby="first-h">
-      <div class="first-text">
-        <p class="label">Remark 1.1</p>
-        <h3 id="first-h">Hear about new events first</h3>
-        <p>
-          Get new events by email as soon as they are announced:
-          <span class="nowrap"><PhLink id="org.mailing-list" label="Mailing-list link">join the mailing list</PhLink>.</span> Or join EBMA and tell us which
-          events you’d like to see.
-        </p>
-      </div>
-      <div class="cta-row">
-        <a class="btn btn-quiet" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
-        <a class="xref" href={educatorHref}>Teachers: partner with us <span class="arr" aria-hidden="true">→</span></a>
-      </div>
-    </aside>
   </Section>
 
   <Section
-    id="expect"
+    id="past"
     num="2"
-    title="What to expect at an EBMA *event*"
-    dek="For parents and guardians: the practical details, before anyone signs up."
-    note="A lemma is a small result that helps prove a bigger one. These six help the day go smoothly."
+    title="Past *events*"
+    dek="What EBMA has already done, most recent first."
+    note="Where a talk has a written study behind it, its entry links to the study, for anyone who wants to read further."
   >
-    <a slot="actions" class="xref" href="/about/#faq">Questions parents ask <span class="arr" aria-hidden="true">→</span></a>
-    <div class="lemmas">
-      <article class="lemma">
-        <p class="label">Lemma 2.1</p>
-        <h3>Registration</h3>
-        <p class="body">Each event listing will say how to sign up and by when. Registering ahead lets us plan the room, the problems, and the adults on hand.</p>
-        <p class="fact"><Ph id="events.registration" /></p>
-        <a class="xref" href="#upcoming">Upcoming events <span class="arr" aria-hidden="true">↑</span></a>
-      </article>
-      <article class="lemma">
-        <p class="label">Lemma 2.2</p>
-        <h3>What it costs</h3>
-        <p class="body">Each event listing will say what it costs before you sign up. If cost is what stands in the way, tell us before you decide not to come.</p>
-        <p class="fact"><Ph id="org.membership-cost" /></p>
-        <a class="xref" href={contactHref}>Ask us about cost <span class="arr" aria-hidden="true">→</span></a>
-      </article>
-      <article class="lemma">
-        <p class="label">Lemma 2.3</p>
-        <h3>What to bring</h3>
-        <p class="body">Each listing will say what students need on the day. When in doubt, ask us before the day rather than at the door.</p>
-        <p class="fact"><Ph id="events.bring" /></p>
-        <a class="xref" href="/resources/#problems">Warm up with a practice problem <span class="arr" aria-hidden="true">→</span></a>
-      </article>
-      <article class="lemma">
-        <p class="label">Lemma 2.4</p>
-        <h3>Supervision and safety</h3>
-        <p class="body">You should always know who is looking after your child during an event, and how to reach them on the day.</p>
-        <p class="fact"><Ph id="org.safety-policy" /></p>
-        <a class="xref" href={contactHref}>Ask us about supervision <span class="arr" aria-hidden="true">→</span></a>
-      </article>
-      <article class="lemma">
-        <p class="label">Lemma 2.5</p>
-        <h3>Photos and media</h3>
-        <p class="body">Families should know whether photos are taken at an event, where they might appear, and how to say no.</p>
-        <p class="fact"><Ph id="events.photo-policy" /></p>
-        <a class="xref" href={contactHref}>Ask us about photos <span class="arr" aria-hidden="true">→</span></a>
-      </article>
-      <article class="lemma">
-        <p class="label">Lemma 2.6</p>
-        <h3>Questions</h3>
-        <p class="body">Not sure an event is right for your child? Ask. We would rather answer a question than miss a student.</p>
-        <p class="fact"><PhLink id="org.email" label="Contact email" /></p>
-        <a class="xref" href={contactHref}>Contact us <span class="arr" aria-hidden="true">→</span></a>
-      </article>
-    </div>
+    {
+      pastEvents(events).length ? (
+        <EventsAgenda events={events} num="2" mode="past" />
+      ) : (
+        <p class="past-none">No past events yet. The first one will be listed here once it has happened.</p>
+      )
+    }
   </Section>
 
   <Section
@@ -330,7 +273,7 @@ const notation: [string, string][] = [
   <Band
     label="Corollary 4.1"
     title="Bring a friend and a *pencil.*"
-    text="Join EBMA to hear about new events first, or tell us what you’d like to see on the calendar."
+    text="Join EBMA, or tell us what you’d like to hear about next."
     m={4}
   >
     <a class="btn" href={joinHref}>Join EBMA <span class="arr" aria-hidden="true">→</span></a>
@@ -358,32 +301,6 @@ const notation: [string, string][] = [
   }
   .tcap a {
     color: var(--ink);
-  }
-
-  /* §1: hear about new events first. The box is the shared .aside-box; on wide screens the
-     buttons sit to the right of the text. */
-  .first {
-    margin-top: clamp(36px, 4vw, 52px);
-  }
-  .first-text > * + * {
-    margin-top: 10px;
-  }
-  .first-text p:not(.label) {
-    max-width: 38em;
-  }
-  .first p a {
-    color: var(--ink);
-  }
-  @media (min-width: 1181px) {
-    .first {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 20px 40px;
-      align-items: center;
-    }
-    .first > .cta-row {
-      margin-top: 0;
-    }
   }
 
   /* §3: the grade finder (scripts/events-grades.ts). It needs JavaScript, so without it the
@@ -570,51 +487,13 @@ const notation: [string, string][] = [
     line-height: 1.45;
     color: var(--ink-2);
   }
-  .nowrap,
-  .nowrap :global(.ph) {
-    white-space: nowrap;
-  }
 
-  /* §2: six lemmas in ruled cells */
-  .lemmas {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-top: 1px solid var(--rule-2);
-    border-bottom: 1px solid var(--rule-2);
-  }
-  .lemma {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 26px 26px 30px;
-    border-left: 1px solid var(--rule);
-    min-width: 0;
-  }
-  .lemma:nth-child(3n + 1) {
-    border-left: 0;
-    padding-left: 0;
-  }
-  .lemma:nth-child(3n) {
-    padding-right: 0;
-  }
-  .lemma:nth-child(n + 4) {
-    border-top: 1px solid var(--rule);
-  }
-  .lemma h3 {
-    font: 400 clamp(25px, 2.1vw, 31px) / 1.1 var(--serif);
-    letter-spacing: -0.015em;
-  }
-  .lemma .body {
-    font-size: 17.5px;
-    color: var(--ink-2);
-    flex: 1;
-    text-wrap: pretty;
-  }
-  .lemma .fact {
-    font-size: 17px;
-  }
-  .lemma .xref {
-    align-self: flex-start;
+  /* §2, before the first event has happened. */
+  .past-none {
+    border-top: 2px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 22px 0 24px;
+    font-size: 19px;
   }
 
   /* §4: the pathway figure and the directory */
@@ -678,42 +557,9 @@ const notation: [string, string][] = [
     font-size: clamp(18px, 1.5vw, 21px);
   }
 
-  @media (max-width: 1100px) {
-    .lemmas {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .lemma:nth-child(n) {
-      border-left: 1px solid var(--rule);
-      padding: 26px 24px 30px;
-      border-top: 0;
-    }
-    .lemma:nth-child(odd) {
-      border-left: 0;
-      padding-left: 0;
-    }
-    .lemma:nth-child(even) {
-      padding-right: 0;
-    }
-    .lemma:nth-child(n + 3) {
-      border-top: 1px solid var(--rule);
-    }
-  }
   @media (max-width: 1180px) {
     .cg-list {
       grid-template-columns: minmax(0, 1fr);
-    }
-  }
-  @media (max-width: 760px) {
-    .lemmas {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .lemma:nth-child(n) {
-      border-left: 0;
-      padding: 24px 0;
-      border-top: 1px solid var(--rule);
-    }
-    .lemma:first-child {
-      border-top: 0;
     }
   }
   @media (max-width: 900px) {
@@ -728,7 +574,6 @@ const notation: [string, string][] = [
     .gf-only {
       display: none;
     }
-    .lemma,
     .pathway,
     .notation {
       break-inside: avoid;

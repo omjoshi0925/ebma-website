@@ -61,7 +61,7 @@ async function fillValid(page, suffix) {
   await page.selectOption('#join-form [name="grade"]', '4-below');
   await page.fill('#join-form [name="school"]', 'Automated test');
   await page.check('#join-form [name="interests"][value="events"]');
-  await page.check('#join-form [name="interests"][value="updates"]');
+  await page.check('#join-form [name="interests"][value="resources"]');
   await page.fill('#join-form [name="message"]', 'Automated form test — safe to delete.\nSecond line.');
   await page.check('#join-form [name="consent"]');
 }
@@ -108,12 +108,10 @@ async function fillValid(page, suffix) {
     assert.equal(await page.isVisible('#join-name-hint'), true);
     await page.check('#join-form [name="role"][value="educator"]');
     assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'Your school');
-    assert.match(await page.textContent('#join-message-hint'), /your students need/i);
-    await page.check('#join-form [name="role"][value="sponsor"]');
-    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'Organization');
-    assert.equal(await page.isVisible('.jf-field[data-field="grade"]'), false, 'no grade for sponsors');
-    assert.equal(await page.isDisabled('#join-grade'), true, 'a hidden grade is not sent');
-    assert.equal(await page.isVisible('[data-copy="note"]'), true, 'a note for sponsors');
+    assert.match(await page.textContent('#join-message-hint'), /your students/i);
+    await page.check('#join-form [name="role"][value="volunteer"]');
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'School or workplace');
+    assert.match(await page.textContent('#join-message-hint'), /how you’d like to help/i);
     await page.check('#join-form [name="role"][value="student"]');
     assert.equal(await page.isVisible('.jf-field[data-field="grade"]'), true);
     assert.equal(await page.isVisible('[data-copy="note"]'), false);
@@ -189,7 +187,7 @@ async function fillValid(page, suffix) {
     const row = d1(`SELECT * FROM submissions WHERE email = 'test+js-${stamp}@example.com'`)[0];
     assert.equal(row.role, 'parent');
     assert.equal(row.grade, '4-below');
-    assert.equal(row.interests, 'events,updates');
+    assert.equal(row.interests, 'events,resources');
     assert.match(row.message, /Second line/);
     assert.equal(row.source, '/get-involved/');
     // The sent form is emptied, so Back/Forward can't bring it back filled in.
@@ -232,27 +230,25 @@ async function fillValid(page, suffix) {
   await ctx.close();
 }
 
-// ---------- A sponsor, arriving from a sponsor link ----------
+// ---------- A volunteer, arriving from a volunteer link ----------
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
-  await test('sponsor: Organization instead of School, no Grade, a sponsor-shaped success', async () => {
-    await page.goto(`${formURL}?role=sponsor#join`, { waitUntil: 'networkidle' });
-    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'Organization');
-    assert.equal(await page.isVisible('#join-grade'), false);
-    assert.equal(await page.isChecked('#join-form [name="interests"][value="partnering"]'), true);
+  await test('volunteer: School or workplace, volunteering preselected, a neutral success', async () => {
+    await page.goto(`${formURL}?role=volunteer#join`, { waitUntil: 'networkidle' });
+    assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'School or workplace');
+    assert.equal(await page.isChecked('#join-form [name="interests"][value="volunteering"]'), true);
     await page.waitForTimeout(2200);
-    await page.fill('#join-form [name="name"]', `Sponsor ${stamp}`);
-    await page.fill('#join-form [name="email"]', `sponsor-${stamp}@example.com`);
+    await page.fill('#join-form [name="name"]', `Volunteer ${stamp}`);
+    await page.fill('#join-form [name="email"]', `volunteer-${stamp}@example.com`);
     await page.fill('#join-form [name="school"]', 'Example Hardware Co.');
     await page.check('#join-form [name="consent"]');
     const [resp] = await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/join')), page.click('#join-form button[type="submit"]')]);
     assert.equal(resp.status(), 200);
-    assert.doesNotMatch(resp.request().postData() ?? '', /name="grade"/, 'no grade sent');
     await page.waitForSelector('#join-success:not([hidden])');
-    assert.ok(await page.$('#join-success a[href="/sponsors/#uses"]'), 'points a sponsor at where support goes');
-    const row = d1(`SELECT * FROM submissions WHERE email = 'sponsor-${stamp}@example.com'`)[0];
-    assert.deepEqual([row.role, row.school, row.grade], ['sponsor', 'Example Hardware Co.', null]);
+    assert.ok(await page.$('#join-success a[href="/events/"]'), 'points at what is coming up');
+    const row = d1(`SELECT * FROM submissions WHERE email = 'volunteer-${stamp}@example.com'`)[0];
+    assert.deepEqual([row.role, row.school, row.interests], ['volunteer', 'Example Hardware Co.', 'volunteering']);
   });
   await ctx.close();
 }
@@ -264,7 +260,7 @@ async function fillValid(page, suffix) {
   const ctx = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce', viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await test('no-JS: every field shows, with neutral hints and no stuck counter', async () => {
-    await page.goto(`${formURL}?role=sponsor`);
+    await page.goto(`${formURL}?role=volunteer`);
     assert.equal(await page.isVisible('#join-grade'), true, 'grade shows without JS, whatever ?role says');
     assert.equal((await page.textContent('[data-copy="schoolLabel"]'))?.trim(), 'School or organization');
     assert.match(await page.textContent('#join-message-count'), /^\s*Up to 2,000 characters\s*$/);

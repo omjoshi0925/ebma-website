@@ -9,7 +9,6 @@ import about from './about';
 import events from './events';
 import resources from './resources';
 import getInvolved from './get-involved';
-import sponsors from './sponsors';
 import privacy from './privacy';
 
 export const groups = {
@@ -19,7 +18,6 @@ export const groups = {
   events,
   resources,
   'get-involved': getInvolved,
-  sponsors,
   privacy,
 } as const;
 

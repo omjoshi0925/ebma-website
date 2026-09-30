@@ -1,7 +1,8 @@
 ---
 /**
  * One person on the About page (§5). Pass a real `member` from src/data/team.ts, or `sample`
- * (1-based) for a sample card while that list is empty.
+ * (1-based) for a sample card while that list is empty. `wide` sets a real member's card on its
+ * side, portrait beside the text, for when one person has the section to themselves.
  *
  * Sample cards take the site's one quiet treatment for empty states (as EventCard's do): a dashed
  * outline instead of the portrait's crop marks, a small mono "Sample" tag and muted strokes. Only
@@ -14,8 +15,9 @@ import type { TeamMember } from '../data/team';
 interface Props {
   member?: TeamMember;
   sample?: number;
+  wide?: boolean;
 }
-const { member, sample = 1 } = Astro.props;
+const { member, sample = 1, wide = false } = Astro.props;
 const ghost = !member && sample > 1;
 const initials = member
   ? member.name
@@ -30,7 +32,7 @@ const initials = member
 
 {
   member ? (
-    <article class="person">
+    <article class:list={['person', { wide }]}>
       <div class="portrait cropped">
         {member.photo ? (
           <img src={member.photo} alt="" loading="lazy" decoding="async" width="240" height="300" />
@@ -112,6 +114,34 @@ const initials = member
   .bio {
     font-size: 16.5px;
     color: var(--ink-2);
+  }
+
+  /* ---- one person on their own: the portrait beside the text ---- */
+  .wide {
+    display: grid;
+    grid-template-columns: clamp(112px, 15vw, 176px) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    column-gap: clamp(20px, 3vw, 40px);
+    row-gap: 10px;
+    align-items: start;
+    max-width: 46rem;
+  }
+  .wide .portrait {
+    grid-row: 1 / span 3;
+    margin-bottom: 0;
+  }
+  .wide .role {
+    padding-top: 4px;
+  }
+  .wide .name {
+    font-size: clamp(28px, 3vw, 40px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .wide .bio {
+    font-size: clamp(17px, 1.4vw, 19px);
+    max-width: 30em;
+    text-wrap: pretty;
   }
 
   /* ---- sample (empty-state) cards ---- */

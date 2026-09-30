@@ -59,7 +59,6 @@ const titles: Record<string, string> = {
   events: 'Events & Competitions page (/events/)',
   resources: 'Student Resources page (/resources/)',
   'get-involved': 'Get Involved page (/get-involved/)',
-  sponsors: 'Sponsors & Partners page (/sponsors/)',
   privacy: 'Privacy Notice (/privacy/)',
 };
 let total = 0;

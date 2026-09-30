@@ -10,8 +10,8 @@
  * references an id that is not declared.
  */
 /**
- * 'list' marks a placeholder that stands for a whole list in a data file (events, officers,
- * sponsors). Its chips show sample entries; replace the samples in the data file, then set
+ * 'list' marks a placeholder that stands for a whole list in a data file (events, officers).
+ * Its chips show sample entries; replace the samples in the data file, then set
  * `value` to any non-null string (e.g. 'filled') so PLACEHOLDERS.md shows it as done.
  */
 export type PlaceholderKind = 'text' | 'email' | 'url' | 'phone' | 'date' | 'time' | 'image' | 'number' | 'list';

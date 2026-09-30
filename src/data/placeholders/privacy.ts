@@ -26,7 +26,7 @@ export default define({
   },
   'privacy.retention': {
     label: 'How long submissions are kept',
-    note: 'How long a submission stays in the database before it is deleted, and whether that differs for people on the email-updates list. Pick a period you will actually follow, and delete old rows on a schedule (e.g. with `wrangler d1 execute`). It completes the §3 sentence “We keep a submission [value].”',
+    note: 'How long a submission stays in the database before it is deleted. Pick a period you will actually follow, and delete old rows on a schedule (e.g. with `wrangler d1 execute`). It completes the §3 sentence “We keep a submission [value].”',
     pages: ['/privacy/'],
     example: 'until the end of the school year after you contact us, or until you ask us to delete it, whichever comes first',
     value: null,

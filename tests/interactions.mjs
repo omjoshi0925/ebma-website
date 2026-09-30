@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 
 const base = process.argv[2] ?? 'http://127.0.0.1:8788/';
-const PAGES = ['/', '/about/', '/events/', '/resources/', '/get-involved/', '/get-involved/thanks/', '/sponsors/', '/privacy/', '/this-page-does-not-exist/'];
+const PAGES = ['/', '/about/', '/events/', '/resources/', '/get-involved/', '/get-involved/thanks/', '/privacy/', '/this-page-does-not-exist/'];
 const results = [];
 const test = async (name, fn) => {
   try {
@@ -154,12 +154,48 @@ await test('problem answer checkers accept the right answer and reject a wrong o
   await ctx.close();
 });
 
-// ---------- sponsor → join role preselect ----------
-await test('sponsor CTA preselects the sponsor role on the join form', async () => {
-  const { ctx, page, errors } = await open('/get-involved/?role=sponsor#join');
-  assert.equal(await page.isChecked('#join-form [name="role"][value="sponsor"]'), true);
+// ---------- volunteer → join role preselect ----------
+await test('volunteer CTA preselects the volunteer role and the volunteering interest', async () => {
+  const { ctx, page, errors } = await open('/get-involved/?role=volunteer#join');
+  assert.equal(await page.isChecked('#join-form [name="role"][value="volunteer"]'), true);
+  assert.equal(await page.isChecked('#join-form [name="interests"][value="volunteering"]'), true);
   assert.deepEqual(errors, []);
   await ctx.close();
+});
+
+// ---------- events with no date yet ("Date TBD") survive the in-browser pruning ----------
+await test('home: undated upcoming events stay listed after the script prunes past ones', async () => {
+  const { ctx, page, errors } = await open('/');
+  assert.equal(await page.locator('.events[data-upcoming]').isHidden(), false, 'the cards stay');
+  assert.equal(await page.locator('.events[data-upcoming] > .ev-item').count(), 3);
+  assert.equal(await page.locator('#events-none').isHidden(), true, 'no empty state');
+  assert.match(await page.locator('.next-list > a').first().textContent(), /Date TBD/);
+  assert.equal(await page.locator('#next-none').isHidden(), true);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+await test('events: three upcoming talks (TBD) and the past talk, newest first', async () => {
+  const { ctx, page, errors } = await open('/events/');
+  const upcoming = page.locator('#upcoming ol.agenda[data-upcoming] > li');
+  assert.equal(await upcoming.count(), 3);
+  assert.match(await upcoming.first().textContent(), /TBD/);
+  assert.equal(await page.locator('#agenda-none-1').isHidden(), true, 'no empty state');
+  const past = page.locator('#past ol.agenda.past > li');
+  assert.equal(await past.count(), 1);
+  assert.match(await past.first().textContent(), /When Yesterday’s Smile Beats the Model/);
+  assert.match(await past.first().textContent(), /2026/);
+  assert.equal(await page.locator('#past a[href^="https://github.com/omjoshi0925/options-analysis-engine"]').count(), 1);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+await test('the retired Sponsors page redirects to Get Involved', async () => {
+  for (const path of ['/sponsors/', '/sponsors']) {
+    const r = await fetch(new URL(path, base), { redirect: 'manual' });
+    assert.equal(r.status, 301, path);
+    assert.equal(new URL(r.headers.get('location'), base).pathname, '/get-involved/', path);
+  }
 });
 
 await test('404 page is served for unknown paths', async () => {

@@ -17,7 +17,13 @@ export interface TeamMember {
   photo?: string;
 }
 
-export const team: TeamMember[] = [];
+export const team: TeamMember[] = [
+  {
+    name: 'Om Joshi',
+    role: 'Runs EBMA',
+    bio: 'Leads EBMA’s talks, and its trips to hackathons and events in fields next to mathematics.',
+  },
+];
 
 /** How many sample cards to show while `team` is empty. */
 export const SAMPLE_COUNT = 4;

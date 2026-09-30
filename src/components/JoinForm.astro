@@ -1,7 +1,7 @@
 ---
 /**
  * The "Join EBMA" form on /get-involved/#join. One form for everyone (students, parents,
- * teachers, volunteers, sponsors); the role radios say who is writing.
+ * teachers, volunteers, anyone else); the role radios say who is writing.
  *
  * Works without JavaScript: a plain POST to /api/join (functions/api/join.ts), native
  * `required` validation, then a redirect to /get-involved/thanks/. With JavaScript,
@@ -17,7 +17,7 @@
  * Role-aware copy: the page is built with NEUTRAL_COPY (hints that work for every role at once,
  * which is all a reader without JavaScript sees). Once a role is chosen or preselected by
  * ?role=, join-form.ts swaps each [data-copy] slot for that role's wording (a parent reads about
- * "your child", a sponsor gets "Organization" and no Grade). One form, one API: the field names
+ * "your child", a volunteer is asked how they’d like to help). One form, one API: the field names
  * never change.
  */
 import { ROLES, GRADES, INTERESTS, LIMITS } from '../../shared/join';
@@ -54,7 +54,7 @@ const richHTML = (parts: Rich) =>
     </div>
 
     <div id="join-intro" class="jf-intro">
-      {/* A line for readers who arrived with a role (a sponsor, a teacher); filled by join-form.ts. */}
+      {/* A line for readers who arrived with a role; filled by join-form.ts. */}
       <p class="jf-note" data-copy="note" hidden set:html={richHTML(copy.note)} />
       <p>
         Four things are <b>required</b>: your name, your email, who you are, and the consent box at the end. Everything else is optional.
@@ -209,7 +209,7 @@ const richHTML = (parts: Rich) =>
         </span>
       </label>
       <p class="jf-hint" id="join-consent-hint">
-        We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit students. We never sell it or share it, including with sponsors. See the <a href="/privacy/">Privacy Notice</a>.
+        We use what you send to reply to you, to send anything you asked for, and (if you share your school, city, or grade) to plan events and resources that suit our members. We never sell it or share it. See the <a href="/privacy/">Privacy Notice</a>.
       </p>
     </div>
 

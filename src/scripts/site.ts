@@ -138,8 +138,8 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
 });
 
 /* ---------- print ----------
- * Print the whole paper (global.css has the print styles): open every closed disclosure (FAQ
- * answers, folded lists) and finish any figure still waiting to draw itself in. A problem's Hint
+ * Print the whole paper (global.css has the print styles): open every closed disclosure (folded
+ * lists and the like) and finish any figure still waiting to draw itself in. A problem's Hint
  * and Solution stay as the reader left them, so a printed problem set is a worksheet unless its
  * solutions were opened. Paper is white, so a dark page switches to the light theme for the print
  * (the canvas figures redraw in ink). Everything changed here is put back afterwards. */
